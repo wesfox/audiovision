@@ -72,7 +72,14 @@ target_include_directories(${TARGET_NAME}
             ${CMAKE_CURRENT_SOURCE_DIR}/Source
 )
 
-file(GLOB_RECURSE COMMON_SOURCES "Source/AudioEngine/*.cpp" "Source/Gui/Components/*.cpp" "Source/Utils/*.cpp" "Source/Core/*.cpp" "Source/Gui/*.cpp")
+file(GLOB_RECURSE COMMON_SOURCES
+        "Source/AudioEngine/*.cpp"
+        "Source/Gui/Components/*.cpp"
+        "Source/Utils/*.cpp"
+        "Source/Utils/*/*.cpp"
+        "Source/Core/*.cpp"
+        "Source/Core/*/*.cpp"
+        "Source/Gui/*.cpp")
 set(SourceFiles
         Source/Main.cpp
         Source/Gui/MainComponent.cpp

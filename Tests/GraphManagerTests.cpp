@@ -28,6 +28,10 @@ public:
             EditTest editTest;
             GraphManager graphManager;
             graphManager.createGraph(editTest);
+            for (auto node : graphManager.graphNodes) {
+                if (node->isGraphStart)
+                    GraphNode::logGraph(node.get());
+            }
             expect(true);  // Basic construction test
         }
 

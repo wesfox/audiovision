@@ -2,7 +2,7 @@
 #include <Utils/Uuid.h>
 #include "Send.h"
 
-Track::Track()
+Track::Track(String name)
     : id(uuid::generate_uuid_v4()),
       outputTrack({}),
       inputTrack({}),
@@ -13,10 +13,12 @@ Track::Track()
       format(ChannelsFormat::Mono),
       outputFormat(ChannelsFormat::Mono),
       height(0.0f),
-      name(""),
+      name(name),
       color(juce::Colours::white)
 {
 }
+
+Track::~Track() = default;
 
 void Track::addSend(std::unique_ptr<Send> send)
 {

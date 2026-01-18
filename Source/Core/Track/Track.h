@@ -4,10 +4,12 @@
 #include <Utils/Format.h>
 #include <Core/Automation/Automation.h>
 
+class Send;
+
 class Track {
 public:
-    Track();
-    virtual ~Track() = default;
+    Track(String name = "");
+    virtual ~Track();
 
     // Methods
     virtual void addSend(std::unique_ptr<Send> send);
@@ -20,6 +22,11 @@ public:
     String getId() {
         return id;
     }
+
+    String getName() {
+        return name;
+    }
+
 
     std::weak_ptr<Track> getOutput() {
         return outputTrack;

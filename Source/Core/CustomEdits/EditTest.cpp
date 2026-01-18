@@ -4,20 +4,21 @@
 #include "Core/Track/AudioTrack.h"
 #include "Core/Track/AuxTrack.h"
 #include "Core/Track/FolderTrack.h"
+#include "Core/Track/Send.h"
 
 // ------------------------ MainComponent Implementation ------------------------
 
 EditTest::EditTest() {
     // Audio Files
     auto voice1 = AudioFile::get(juce::File("/Users/nico/Downloads/import/SEQ00_Actions horschampSDB.wav"));
-    auto voice2 = AudioFile::get(juce::File("/Users/nico/Downloads/import/SEQ07_Respirations Cléo.wav"));
+    auto voice2 = AudioFile::get(juce::File("/Users/nico/Downloads/import/SEQ07_RespirationsCleo.wav"));
 
     // Clips 1
     auto clipVoice11 = AudioClip::create(voice1);
     auto clipVoice12 = AudioClip::create(voice2);
 
     // AudioTrack 1
-    auto audioTrack1 =  AudioTrack::create();
+    auto audioTrack1 =  AudioTrack::create("audioTrack1");
     audioTrack1->addAudioClip(std::move(clipVoice11));
     audioTrack1->addAudioClip(std::move(clipVoice12));
 
@@ -25,29 +26,32 @@ EditTest::EditTest() {
     auto clipVoice21 = AudioClip::create(voice1);
     clipVoice21->move(48000*2);
     auto clipVoice22 = AudioClip::create(voice2);
-    clipVoice11->move(48000*3);
+    clipVoice22->move(48000*3);
 
     // AudioTrack 2
-    auto audioTrack2 =  AudioTrack::create();
-    audioTrack1->addAudioClip(std::move(clipVoice21));
-    audioTrack1->addAudioClip(std::move(clipVoice22));
+    auto audioTrack2 =  AudioTrack::create("audioTrack2");
+    audioTrack2->addAudioClip(std::move(clipVoice21));
+    audioTrack2->addAudioClip(std::move(clipVoice22));
 
     // Add the ReverbAuxTrack
-    auto reverbAuxTrack = AuxTrack::create();
+    auto reverbAuxTrack = AuxTrack::create("reverbAuxTrack");
 
     auto send1toAux = Send::create(reverbAuxTrack);
-    audioTrack1->addSend(send1toAux);
+    audioTrack1->addSend(std::move(send1toAux));
 
     auto send2toAux = Send::create(reverbAuxTrack);
-    audioTrack2->addSend(send2toAux);
+    audioTrack2->addSend(std::move(send2toAux));
 
     // Set audioTracks output to the dialAux (which is a folder)
-    auto dialAux = FolderTrack::create();
+    auto dialAux = FolderTrack::create(nullptr, "dialAux");
     dialAux->addTrack(audioTrack1); // make audioTrack1 output dialAux
     dialAux->addTrack(audioTrack2); // make audioTrack1 output dialAux
+    audioTrack1->setOutput(dialAux);
+    audioTrack2->setOutput(dialAux);
+    reverbAuxTrack->setOutput(dialAux);
 
     // Make dialAux output to DTrack
-    auto DTrack = AuxTrack::create();
+    auto DTrack = AuxTrack::create("DTrack");
     dialAux->setOutput(DTrack);
 
     // fill the constructed EditTest with these tracks that have already correct routing
@@ -55,4 +59,5 @@ EditTest::EditTest() {
     addTrack(std::move(audioTrack2));
     addTrack(std::move(dialAux));
     addTrack(std::move(DTrack));
+    addTrack(std::move(reverbAuxTrack));
 }

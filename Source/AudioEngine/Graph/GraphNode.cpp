@@ -1,9 +1,11 @@
 #include "GraphNode.h"
-#include <Utils/Uuid.h>
 
-GraphNode::GraphNode(String id)
-    : id(id),
-      trackId(""),
+#include <utility>
+
+GraphNode::GraphNode(String id, String  name)
+    : id(""),
+      trackId(id),
+        name(std::move(name)),
       nodeType(GraphNodeType::AudioTrackGraphNode),
       output(nullptr)
 {

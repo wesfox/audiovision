@@ -5,12 +5,12 @@
 
 class FolderTrack : public Track {
 public:
-    FolderTrack(FolderTrack* parentFolder);
+    FolderTrack(FolderTrack* parentFolder, const String& name="");
 
     /// This function returns a new FolderTrack
-    static std::shared_ptr<FolderTrack> create(FolderTrack* parentFolder = nullptr)
+    static std::shared_ptr<FolderTrack> create(FolderTrack* parentFolder = nullptr, const String& name="")
     {
-        return std::make_shared<FolderTrack>(parentFolder);
+        return std::make_shared<FolderTrack>(parentFolder, name);
     }
 
     void addTrack(std::weak_ptr<Track> track) {

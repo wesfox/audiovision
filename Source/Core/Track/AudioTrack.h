@@ -7,13 +7,13 @@
 
 class AudioTrack : public Track {
 public:
-    AudioTrack();
+    AudioTrack(const String &name="");
     ~AudioTrack() = default;
 
     /// This function returns a new AudioTrack
-    static std::shared_ptr<AudioTrack> create()
+    static std::shared_ptr<AudioTrack> create(const String& name="")
     {
-        return std::make_shared<AudioTrack>();
+        return std::make_shared<AudioTrack>(name);
     }
 
     /// If true, the audio track works as an aux track and ignores its clips

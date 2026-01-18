@@ -2,5 +2,5 @@
 
 // ------------------------ MainComponent Implementation ------------------------
 
-AuxTrack::AuxTrack() {
+AuxTrack::AuxTrack(const String &name): Track(name) {
 }

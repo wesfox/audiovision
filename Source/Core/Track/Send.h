@@ -6,6 +6,8 @@
 #include "Utils/Volume.h"
 #include "Utils/Pan/Pan.h"
 
+class Track;
+
 enum class SendType {
     PreFader,
     PostFader
@@ -13,12 +15,12 @@ enum class SendType {
 
 class Send {
 public:
-    Send(const std::weak_ptr<Track> &destinationTrack);
+    Send(const std::weak_ptr<Track> &destinationTrack, String  name = "");
 
     /// This function returns a new Send
-    static std::unique_ptr<Send> create(std::weak_ptr<Track> destinationTrack)
+    static std::unique_ptr<Send> create(const std::shared_ptr<Track>& destinationTrack, const String& name="")
     {
-        return std::make_unique<Send>(destinationTrack);
+        return std::make_unique<Send>(std::weak_ptr{destinationTrack}, name);
     }
 
     std::weak_ptr<Track> getDestinationTrack() {
