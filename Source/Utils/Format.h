@@ -30,7 +30,7 @@ constexpr int ChannelCount(const ChannelsFormat f) noexcept
     return 0;
 }
 
-constexpr std::string_view ChannelsFormatName(const ChannelsFormat f) noexcept
+inline String ChannelsFormatName(const ChannelsFormat f) noexcept
 {
     switch (f)
     {

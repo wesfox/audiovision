@@ -74,6 +74,7 @@ target_include_directories(${TARGET_NAME}
 
 file(GLOB_RECURSE COMMON_SOURCES
         "Source/AudioEngine/*.cpp"
+        "Source/AudioEngine/*/*.cpp"
         "Source/Gui/Components/*.cpp"
         "Source/Utils/*.cpp"
         "Source/Utils/*/*.cpp"
@@ -113,6 +114,7 @@ target_link_libraries(AudioVisionTests PRIVATE
         juce::juce_audio_devices
         juce::juce_audio_formats
         juce::juce_audio_processors
+        juce::juce_audio_utils
         juce::juce_core
         juce::juce_data_structures
         juce::juce_events

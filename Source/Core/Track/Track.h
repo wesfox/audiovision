@@ -32,6 +32,14 @@ public:
         return outputTrack;
     }
 
+    [[nodiscard]] bool isAudioTrack() const {
+        return isAudioTrack_;
+    }
+
+    ChannelsFormat getFormat() {
+        return format;
+    }
+
 protected:
     String id;
     std::vector<void*> plugins;
@@ -48,6 +56,7 @@ protected:
     bool mute;
     ChannelsFormat format;
     ChannelsFormat outputFormat;
+    bool isAudioTrack_ = false;
     float height;
     String name;
     juce::Colour color;

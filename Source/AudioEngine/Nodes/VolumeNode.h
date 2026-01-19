@@ -26,6 +26,8 @@ public:
     void changeProgramName(int, const juce::String&) override {}
     void getStateInformation(juce::MemoryBlock&) override {}
     void setStateInformation(const void*, int) override {}
+    bool hasEditor() const override {return false;}
+    AudioProcessorEditor* createEditor() override { return nullptr; }
 
 private:
 };

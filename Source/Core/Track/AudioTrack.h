@@ -8,7 +8,6 @@
 class AudioTrack : public Track {
 public:
     AudioTrack(const String &name="");
-    ~AudioTrack() = default;
 
     /// This function returns a new AudioTrack
     static std::shared_ptr<AudioTrack> create(const String& name="")
@@ -46,5 +45,5 @@ private:
 
     bool inputMonitoring;
     bool armed;
-    Recorder recorder;
+    // Recorder recorder;
 };

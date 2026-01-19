@@ -54,6 +54,9 @@ EditTest::EditTest() {
     auto DTrack = AuxTrack::create("DTrack");
     dialAux->setOutput(DTrack);
 
+    // set output
+    setAudioOutputTrack(DTrack);
+
     // fill the constructed EditTest with these tracks that have already correct routing
     addTrack(std::move(audioTrack1));
     addTrack(std::move(audioTrack2));

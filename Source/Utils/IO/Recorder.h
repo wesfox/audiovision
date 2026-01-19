@@ -2,7 +2,7 @@
 
 #include <JuceHeader.h>
 
-class Recorder : public juce::Component {
+class Recorder {
 public:
     Recorder();
 

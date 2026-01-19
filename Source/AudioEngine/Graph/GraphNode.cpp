@@ -2,11 +2,14 @@
 
 #include <utility>
 
-GraphNode::GraphNode(String id, String  name)
-    : id(""),
-      trackId(id),
+#include "Utils/Uuid.h"
+
+GraphNode::GraphNode(String id, String name, const GraphNodeType graphNodeType, const ChannelsFormat format):
+        nodeType(graphNodeType),
+        output(nullptr),
         name(std::move(name)),
-      nodeType(GraphNodeType::AudioTrackGraphNode),
-      output(nullptr)
+        id(uuid::generate_uuid_v4()),
+        trackId(std::move(id)),
+        format(format)
 {
 }

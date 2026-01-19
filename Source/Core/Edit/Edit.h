@@ -19,6 +19,15 @@ public:
         return tracks;
     }
 
+    std::weak_ptr<Track> getAudioOutputTrack() {
+        return audioOutputTrack;
+    }
+
+    std::weak_ptr<Track> setAudioOutputTrack(const std::shared_ptr<Track>& audioOutputTrackToSet) {
+        return audioOutputTrack = audioOutputTrackToSet;
+    }
+
+
 private:
     Transport transport;
     std::vector<Scene> scenes;
@@ -28,4 +37,5 @@ private:
     Video video;
     int64 videoSyncOffset;
     std::vector<std::shared_ptr<Track>> tracks;
+    std::weak_ptr<Track> audioOutputTrack;
 };
