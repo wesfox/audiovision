@@ -4,10 +4,15 @@
 #include "Core/Edit/Edit.h"
 #include "Core/Track/Send.h"
 
-GraphManager::GraphManager(std::shared_ptr<AudioProcessorGraph> graph)
-    : graph(graph ? std::move(graph) : std::make_shared<AudioProcessorGraph>()),
+GraphManager::GraphManager(std::shared_ptr<AudioProcessorGraph> graph_) :
       graphConnectionManager(graphNodes, this->graph)
 {
+    graph = (graph_ ? std::move(graph_) : std::make_shared<AudioProcessorGraph>());
+    graph->clear();
+    graph->setPlayConfigDetails(1,
+        1,
+        48000,
+        512);
 }
 
 GraphNode *GraphManager::fillGraphNode(Track *track) {
@@ -104,4 +109,8 @@ void GraphManager::attachAudioOutput(std::weak_ptr<Track> track) {
         });
     }
     audioOutputNode = newAudioOutputNode;
+}
+
+void GraphManager::prepareToPlay() const {
+    graph->prepareToPlay(1, 512);
 }

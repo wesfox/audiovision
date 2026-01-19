@@ -36,6 +36,8 @@ public:
 
     void attachAudioOutput(std::weak_ptr<Track> track);
 
+    void prepareToPlay() const;
+
     std::shared_ptr<AudioProcessorGraph> graph;
 
 private:

@@ -5,6 +5,8 @@
 
 #include <Utils/Transport.h>
 
+class EditTest;
+
 //==============================================================================
 /*
     This component lives inside our window, and this is where you should put all
@@ -25,6 +27,8 @@ private:
     //==============================================================================
     // Your private member variables go here...
     std::unique_ptr<FileSelectorComponent> fileSelector;
+    std::unique_ptr<AudioOutputComponent> audioOutputComponent;
+    std::unique_ptr<EditTest> edit;
     Transport transport;
 
 
