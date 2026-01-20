@@ -35,7 +35,7 @@ public:
                 if (node->isGraphStart)
                     GraphNode::logGraph(node.get());
             }
-            graphManager->createFinalGraph();
+            graphManager->createFinalGraph(TODO);
             for (const auto& connection : graphManager->graphConnectionManager.graphVirtualConnections) {
                 juce::Logger::writeToLog(connection->toString());
             }

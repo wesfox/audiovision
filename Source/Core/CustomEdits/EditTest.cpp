@@ -10,12 +10,13 @@
 
 EditTest::EditTest() {
     // Audio Files
-    auto voice1 = AudioFile::get(juce::File("/Users/nico/Downloads/import/SEQ00_Actions horschampSDB.wav"));
-    auto voice2 = AudioFile::get(juce::File("/Users/nico/Downloads/import/SEQ07_RespirationsCleo.wav"));
+    auto voice1 = AudioFile::get(juce::File("/Users/nico/Music/440Hz 10s 48kHz.wav"));
+    auto voice2 = AudioFile::get(juce::File("/Users/nico/Music/120Hz 10s 48kHz.wav"));
 
     // Clips 1
     auto clipVoice11 = AudioClip::create(voice1);
     auto clipVoice12 = AudioClip::create(voice2);
+    clipVoice12->move(48000*4);
 
     // AudioTrack 1
     auto audioTrack1 =  AudioTrack::create("audioTrack1");
@@ -26,7 +27,7 @@ EditTest::EditTest() {
     auto clipVoice21 = AudioClip::create(voice1);
     clipVoice21->move(48000*2);
     auto clipVoice22 = AudioClip::create(voice2);
-    clipVoice22->move(48000*3);
+    clipVoice22->move(48000*2);
 
     // AudioTrack 2
     auto audioTrack2 =  AudioTrack::create("audioTrack2");

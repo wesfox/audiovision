@@ -1,14 +1,15 @@
 #include "MainComponent.h"
 
+#include "AudioEngine/AudioEngine.h"
+#include "AudioEngine/Graph/GraphManager.h"
 #include "Core/CustomEdits/EditTest.h"
-#include "Core/Edit/Edit.h"
 
 //==============================================================================
 MainComponent::MainComponent()
 {
     setSize (600, 400);
 
-    edit = std::make_unique<EditTest>();
+    edit = std::make_shared<EditTest>();
 
     fileSelector = std::make_unique<FileSelectorComponent>();
     fileSelector->onPlaySession = [this](const FileSelectorComponent::ImportedTrack& track) {
@@ -16,14 +17,10 @@ MainComponent::MainComponent()
     };
     addAndMakeVisible(fileSelector.get());
 
-    audioOutputComponent = std::make_unique<AudioOutputComponent>(edit->getAudioOutputEngine());
-    addAndMakeVisible(audioOutputComponent.get());
-
     // Test sound stuff
-    auto graphManager = std::make_unique<GraphManager>(edit->getAudioGraph());
-    graphManager->createGraph(*edit);
-    graphManager->createFinalGraph();
-    graphManager->attachAudioOutput(edit->getAudioOutputTrack());
+    audioEngine = std::make_unique<AudioEngine>(edit);
+    audioEngine->start();
+
     // end test sound stuff
 
     setSize(800, 700);
@@ -42,10 +39,6 @@ void MainComponent::paint (juce::Graphics& g)
 void MainComponent::resized()
 {
     auto bounds = getLocalBounds();
-    if (audioOutputComponent != nullptr) {
-        auto header = bounds.removeFromTop(40);
-        audioOutputComponent->setBounds(header);
-    }
     if (fileSelector != nullptr) {
         fileSelector->setBounds(bounds);
     }

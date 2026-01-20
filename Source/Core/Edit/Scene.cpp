@@ -7,7 +7,6 @@ Scene::Scene()
       endFrame(0),
       sceneStartSample(0),
       sceneEndSample(0),
-      graphManager(),
       name("")
 {
 }

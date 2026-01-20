@@ -9,4 +9,5 @@ AudioTrack::AudioTrack(const String &name)
       //recorder(Recorder())
 {
     isAudioTrack_ = true;
+    trackType = TrackType::Audio;
 }

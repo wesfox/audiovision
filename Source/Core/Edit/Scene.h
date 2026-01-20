@@ -2,7 +2,6 @@
 
 #include <JuceHeader.h>
 #include <Core/Track/Track.h>
-#include <AudioEngine/Graph/GraphManager.h>
 #include "Marker.h"
 
 class Scene {
@@ -21,7 +20,7 @@ private:
     int64 sceneEndSample;
     std::vector<Track*> tracks;
     std::vector<void*> shots;
-    GraphManager graphManager;
+    //GraphManager graphManager;
     String name;
     std::vector<Marker> markers;
 };

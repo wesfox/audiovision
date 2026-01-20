@@ -5,7 +5,6 @@
 #include "Scene.h"
 #include <Core/Automation/AutomationManager.h>
 #include <Core/Video/Video.h>
-#include <AudioEngine/AudioOutputEngine.h>
 
 class Edit {
 public:
@@ -28,14 +27,6 @@ public:
         return audioOutputTrack = audioOutputTrackToSet;
     }
 
-    std::shared_ptr<juce::AudioProcessorGraph> getAudioGraph() const {
-        return audioGraph;
-    }
-
-    AudioOutputEngine& getAudioOutputEngine() const {
-        return *audioOutputEngine;
-    }
-
 
 private:
     Transport transport;
@@ -47,6 +38,4 @@ private:
     int64 videoSyncOffset;
     std::vector<std::shared_ptr<Track>> tracks;
     std::weak_ptr<Track> audioOutputTrack;
-    std::shared_ptr<juce::AudioProcessorGraph> audioGraph;
-    std::unique_ptr<AudioOutputEngine> audioOutputEngine;
 };

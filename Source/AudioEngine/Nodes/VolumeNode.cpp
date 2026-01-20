@@ -1,6 +1,6 @@
 #include "VolumeNode.h"
 
-VolumeNode::VolumeNode()
+VolumeNode::VolumeNode(const Transport* transport):transport(transport)
 {
     setPlayConfigDetails(2, 2, 48000.0, 512);
 }

@@ -6,6 +6,13 @@
 
 class Send;
 
+enum class TrackType {
+    Audio,
+    Aux,
+    Folder,
+    Unknown
+};
+
 class Track {
 public:
     Track(String name = "");
@@ -36,6 +43,10 @@ public:
         return isAudioTrack_;
     }
 
+    [[nodiscard]] TrackType getTrackType() const {
+        return trackType;
+    }
+
     ChannelsFormat getFormat() {
         return format;
     }
@@ -57,6 +68,7 @@ protected:
     ChannelsFormat format;
     ChannelsFormat outputFormat;
     bool isAudioTrack_ = false;
+    TrackType trackType = TrackType::Unknown;
     float height;
     String name;
     juce::Colour color;

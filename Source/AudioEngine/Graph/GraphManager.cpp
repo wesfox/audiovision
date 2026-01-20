@@ -1,18 +1,20 @@
 #include "GraphManager.h"
 
 #include "GraphNode.h"
+#include "AudioEngine/AudioEngine.h"
 #include "Core/Edit/Edit.h"
 #include "Core/Track/Send.h"
 
-GraphManager::GraphManager(std::shared_ptr<AudioProcessorGraph> graph_) :
-      graphConnectionManager(graphNodes, this->graph)
+GraphManager::GraphManager(const std::weak_ptr<Edit>& edit, const AudioEngine* engine) :
+        edit(edit)
 {
-    graph = (graph_ ? std::move(graph_) : std::make_shared<AudioProcessorGraph>());
+    graph = engine->getAudioGraph();
     graph->clear();
     graph->setPlayConfigDetails(1,
         1,
         48000,
         512);
+    graphConnectionManager = std::make_unique<GraphConnectionManager>(graphNodes, graph);
 }
 
 GraphNode *GraphManager::fillGraphNode(Track *track) {
@@ -51,9 +53,9 @@ GraphNode *GraphManager::fillGraphNode(Track *track) {
     }
 }
 
-void GraphManager::createGraph(Edit& edit)
+void GraphManager::createGraph()
 {
-    for (const auto& track: edit.getTracks()) {
+    for (const auto& track: edit.lock()->getTracks()) {
         fillGraphNode(track.get());
     }
 }
@@ -72,27 +74,34 @@ GraphNode* GraphManager::getNodeById(String id) {
 }
 
 GraphModule* GraphManager::getGraphModuleById(String id) {
-    auto foundModule = std::find_if(graphModules.begin(), graphModules.end(),
-    [id](const std::unique_ptr<GraphModule>& graphModule) {
-        return graphModule->virtualGraphNode->getTrackId() == id;
-    });
-    if (foundModule != graphModules.end()) {
-        return foundModule->get();
+    for (auto& module: graphModules) {
+        if (module->virtualGraphNode->getId() == id) {
+            return module.get();
+        }
     }
-    else {
-        return nullptr;
-    }
+    return nullptr;
 }
 
-void GraphManager::createFinalGraph() {
+GraphModule * GraphManager::getGraphModuleByTrackId(String trackId) {
+    for (auto& module: graphModules) {
+        if (module->virtualGraphNode->getTrackId() == trackId) {
+            return module.get();
+        }
+    }
+    return nullptr;
+}
+
+void GraphManager::createFinalGraph(Transport * transport) {
+    graphConnectionManager->buildGraphVirtualConnections();
     for (auto& node : graphNodes) {
-        std::unique_ptr<GraphModule> graphModule = std::make_unique<GraphModule>(node.get(), graph);
+        std::unique_ptr<GraphModule> graphModule = std::make_unique<GraphModule>(node.get(), graph, edit, transport);
+        // graphModule.get()->virtualTrack =
         graphModules.emplace_back(std::move(graphModule));
     }
-    for (auto& connection: graphConnectionManager.graphVirtualConnections) {
+    for (auto& connection: graphConnectionManager->graphVirtualConnections) {
         auto inputModule = getGraphModuleById(connection->inputId);
         auto outputModule = getGraphModuleById(connection->outputId);
-        graphConnectionManager.buildConnection(inputModule, outputModule, outputModule->virtualGraphNode->format);
+        graphConnectionManager->buildConnection(inputModule, outputModule, outputModule->virtualGraphNode->format);
     }
 }
 
@@ -101,7 +110,7 @@ void GraphManager::attachAudioOutput(std::weak_ptr<Track> track) {
         std::make_unique<juce::AudioProcessorGraph::AudioGraphIOProcessor>(
             juce::AudioProcessorGraph::AudioGraphIOProcessor::audioOutputNode)
     );
-    auto outputModule = getGraphModuleById(track.lock()->getId());
+    auto outputModule = getGraphModuleByTrackId(track.lock()->getId());
     for (auto i=0; i<ChannelCount(track.lock()->getFormat()); i++) {
         graph->addConnection({
             { outputModule->outputNode->nodeID, i },

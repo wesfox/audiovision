@@ -5,6 +5,8 @@
 
 #include <Utils/Transport.h>
 
+#include "AudioEngine/AudioEngine.h"
+
 class EditTest;
 
 //==============================================================================
@@ -27,8 +29,8 @@ private:
     //==============================================================================
     // Your private member variables go here...
     std::unique_ptr<FileSelectorComponent> fileSelector;
-    std::unique_ptr<AudioOutputComponent> audioOutputComponent;
-    std::unique_ptr<EditTest> edit;
+    std::shared_ptr<EditTest> edit;
+    std::unique_ptr<AudioEngine> audioEngine;
     Transport transport;
 
 

@@ -1,6 +1,6 @@
 #include "AuxTrackNode.h"
 
-AuxTrackNode::AuxTrackNode()
+AuxTrackNode::AuxTrackNode(const Transport* transport):transport(transport)
 {
     setPlayConfigDetails(2, 2, 48000.0, 512);
 }

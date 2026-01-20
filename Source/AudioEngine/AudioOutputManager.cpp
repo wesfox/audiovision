@@ -1,8 +1,10 @@
 #include "AudioOutputManager.h"
 
+#include "AudioEngine.h"
+
 // ------------------------ MainComponent Implementation ------------------------
 
-AudioOutputManager::AudioOutputManager(const std::weak_ptr<juce::AudioProcessorGraph> &graph_) {
+AudioOutputManager::AudioOutputManager(const std::weak_ptr<juce::AudioProcessorGraph> &graph_, AudioEngine* audioEngine):audioEngine(audioEngine) {
     graph = graph_;
 }
 
@@ -41,12 +43,13 @@ void AudioOutputManager::audioDeviceIOCallbackWithContext(
 
     juce::MidiBuffer midi;
 
-    auto start = std::chrono::high_resolution_clock::now();
     graph.lock()->processBlock(buffer, midi);
+
+    audioEngine->transport.advance(buffer.getNumSamples());
 
     for (int channel = 0; channel < numOutputChannels; ++channel) {
         for (int sample = 0; sample < numSamples; ++sample) {
-            buffer.setSample(channel, sample, 0);
+            outputChannelData[channel][sample] = buffer.getSample(channel, sample);
         }
     }
 }

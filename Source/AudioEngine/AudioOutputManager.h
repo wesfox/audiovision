@@ -4,9 +4,11 @@
 
 #include "Utils/Format.h"
 
+class AudioEngine;
+
 class AudioOutputManager : public juce::Component, public juce::AudioIODeviceCallback {
 public:
-    AudioOutputManager(const std::weak_ptr<juce::AudioProcessorGraph> &graph);
+    AudioOutputManager(const std::weak_ptr<juce::AudioProcessorGraph> &graph, AudioEngine* audioEngine);
     ~AudioOutputManager() override = default;
 
     void configure(ChannelsFormat format, double rate, int size) noexcept;
@@ -27,6 +29,7 @@ public:
 
 
 private:
+    AudioEngine* audioEngine;
     std::weak_ptr<juce::AudioProcessorGraph> graph;
     ChannelsFormat channelsFormat = ChannelsFormat::Mono;
     double sampleRate = 48000.0;

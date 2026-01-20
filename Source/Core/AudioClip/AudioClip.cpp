@@ -10,9 +10,9 @@ AudioClip::AudioClip(const std::shared_ptr<AudioFile> &audioFile)
       fadeIn(),
       fadeOut(),
       sessionStartSample(0),
-      sessionEndSample(0),
-      clipLength(0),
-      sampleRate(0.0),
+      sessionEndSample(48000),
+      clipLength(48000),
+      sampleRate(48000),
       format(ChannelsFormat::Mono),
       muted(false)
 {}
@@ -70,8 +70,7 @@ std::vector<float> AudioClip::getWaveformData()
 
 juce::AudioBuffer<float> AudioClip::read(int64 startSample, int64 numberOfSamples)
 {
-    // Empty implementation
-    return juce::AudioBuffer<float>();
+    return audioFile->read(fileStartSample + startSample, numberOfSamples);
 }
 
 void AudioClip::move(int64 newSessionStartSample)

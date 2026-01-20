@@ -2,9 +2,11 @@
 
 #include <JuceHeader.h>
 
+#include "Utils/Transport.h"
+
 class AuxTrackNode : public juce::AudioProcessor {
 public:
-    AuxTrackNode();
+    AuxTrackNode(const Transport* transport);
 
     const juce::String getName() const override { return "AuxTrackNode"; }
 
@@ -30,4 +32,5 @@ public:
     AudioProcessorEditor* createEditor() override { return nullptr; }
 
 private:
+    const Transport* transport;
 };

@@ -43,7 +43,7 @@ public:
         return sampleRate.load();
     }
 
-    int64 getCursorPosition() {
+    int64_t getCursorPosition() const {
         return currentSample.load();
     }
 
@@ -52,7 +52,7 @@ public:
     }
 
 private:
-    std::atomic<int64> currentSample{ 0 };
+    std::atomic<int64_t> currentSample{ 0 };
     std::atomic<bool> playing{ false };
     std::atomic<int> sampleRate = 48000;
 };

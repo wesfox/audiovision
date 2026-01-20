@@ -35,7 +35,7 @@ public:
     std::vector<float> getWaveformData();
 
     /// Reads a chunk of the Clip
-    /// @param startSample positive integer, relative start sample from the beginning of the Clip
+    /// @param startSample positive integer, relative start sample FROM the beginning of the Clip
     /// @param numberOfSamples number of samples to read. If the length of the Clip is < startSample + numberOfSamples (the clips ends before), it is filled with zeros
     juce::AudioBuffer<float> read(int64 startSample, int64 numberOfSamples);
 

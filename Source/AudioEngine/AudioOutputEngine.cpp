@@ -1,8 +1,8 @@
 #include "AudioOutputEngine.h"
 
-AudioOutputEngine::AudioOutputEngine(std::shared_ptr<juce::AudioProcessorGraph> graph_)
-    : graph(std::move(graph_)),
-      audioOutputManager(graph)
+AudioOutputEngine::AudioOutputEngine(std::weak_ptr<juce::AudioProcessorGraph> graph_, AudioEngine * audioEngine)
+    : graph(graph_),
+      audioOutputManager(graph_,audioEngine)
 {
 }
 

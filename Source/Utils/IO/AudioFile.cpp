@@ -61,8 +61,8 @@ juce::AudioBuffer<float> AudioFile::read(juce::int64 startSample, juce::int64 nu
                  0,
                  numberOfSamples,
                  startSample,
-                 false,
-                 false);
+                 true,
+                 true);
 
     return buffer;
 }

@@ -5,25 +5,36 @@
 
 // ------------------------ MainComponent Implementation ------------------------
 
-GraphModule::GraphModule(GraphNode * graphNode, const std::weak_ptr<AudioProcessorGraph>& graph):virtualGraphNode(graphNode),graph(graph) {
+GraphModule::GraphModule(
+    GraphNode * graphNode,
+    const std::weak_ptr<AudioProcessorGraph>& graph,
+    const std::weak_ptr<Edit>& edit,
+    const Transport * transport
+    ):
+        virtualGraphNode(graphNode),
+        edit(edit),
+        transport(transport),
+        graph(graph)
+    {
     const auto graphRef = graph.lock().get();
     if (graphRef == nullptr) {
         throw std::runtime_error("GraphNode is nullptr");
     }
 
     if (graphNode->getType() == GraphNodeType::AudioTrackGraphNode) {
-        auto volumeNode = std::make_unique<VolumeNode>();
+        auto volumeNode = std::make_unique<VolumeNode>(transport);
         auto graphVolumeNode = graphRef->addNode(std::move(volumeNode));
         outputNode = graphVolumeNode;
 
-        auto audioTrackNode = std::make_unique<AudioTrackNode>();
+        auto track = getAudioTrackById(graphNode->getTrackId());
+        auto audioTrackNode = std::make_unique<AudioTrackNode>(track, transport);
         auto graphAudioTrackNode = graphRef->addNode(std::move(audioTrackNode));
         inputNode = graphAudioTrackNode;
 
         buildInternalConnexion(inputNode.get(), outputNode.get(), graphNode->getFormat());
     }
     else if (graphNode->getType() == GraphNodeType::AuxTrackGraphNode) {
-        auto volumeNode = std::make_unique<VolumeNode>();
+        auto volumeNode = std::make_unique<VolumeNode>(transport);
         auto graphVolumeNode = graphRef->addNode(std::move(volumeNode));
         outputNode = graphVolumeNode;
 
@@ -43,3 +54,19 @@ void GraphModule::buildInternalConnexion(const AudioProcessorGraph::Node* nodeIn
         });
     }
 }
+
+
+std::weak_ptr<AudioTrack> GraphModule::getAudioTrackById(const String& trackId) const {
+    const auto editPtr = edit.lock();
+    if (!editPtr)
+        return {};
+
+    for (const auto& t : editPtr->getTracks())
+    {
+        if (t->getId() == trackId && t->getTrackType() == TrackType::Audio)
+            return std::dynamic_pointer_cast<AudioTrack>(t);
+    }
+
+    return {};
+}
+
