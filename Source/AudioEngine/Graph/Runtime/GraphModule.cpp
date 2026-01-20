@@ -16,25 +16,22 @@ GraphModule::GraphModule(
         transport(transport),
         graph(graph)
     {
-    const auto graphRef = graph.lock().get();
-    if (graphRef == nullptr) {
-        throw std::runtime_error("GraphNode is nullptr");
-    }
+    auto* graphRef = getGraphRef();
 
     if (graphNode->getType() == GraphNodeType::AudioTrackGraphNode) {
-        auto volumeNode = std::make_unique<VolumeNode>(transport);
-        auto graphVolumeNode = graphRef->addNode(std::move(volumeNode));
-        outputNode = graphVolumeNode;
-
         auto track = getAudioTrackById(graphNode->getTrackId());
-        auto audioTrackNode = std::make_unique<AudioTrackNode>(track, transport);
+        auto audioTrackNode = std::make_unique<AudioTrackNode>(track, transport, graphNode);
         auto graphAudioTrackNode = graphRef->addNode(std::move(audioTrackNode));
         inputNode = graphAudioTrackNode;
 
-        buildInternalConnexion(inputNode.get(), outputNode.get(), graphNode->getFormat());
+        auto volumeNode = std::make_unique<VolumeNode>(transport, graphNode);
+        auto graphVolumeNode = graphRef->addNode(std::move(volumeNode));
+        outputNode = graphVolumeNode;
+
+        buildInternalConnexion(graphAudioTrackNode.get(), graphVolumeNode.get(), graphNode->getFormat());
     }
     else if (graphNode->getType() == GraphNodeType::AuxTrackGraphNode) {
-        auto volumeNode = std::make_unique<VolumeNode>(transport);
+        auto volumeNode = std::make_unique<VolumeNode>(transport, graphNode);
         auto graphVolumeNode = graphRef->addNode(std::move(volumeNode));
         outputNode = graphVolumeNode;
 
@@ -43,10 +40,7 @@ GraphModule::GraphModule(
 }
 
 void GraphModule::buildInternalConnexion(const AudioProcessorGraph::Node* nodeInput, const AudioProcessorGraph::Node* nodeOutput, const ChannelsFormat format) const {
-    const auto graphRef = graph.lock().get();
-    if (graphRef == nullptr) {
-        throw std::runtime_error("GraphNode is nullptr");
-    }
+    auto* graphRef = getGraphRef();
     for (auto i=0; i<ChannelCount(format); i++) {
         graphRef->addConnection({
             { nodeInput->nodeID, i },
@@ -68,4 +62,13 @@ std::weak_ptr<AudioTrack> GraphModule::getAudioTrackById(const String& trackId) 
     }
 
     return {};
+}
+
+AudioProcessorGraph* GraphModule::getGraphRef() const
+{
+    auto* graphRef = graph.lock().get();
+    if (graphRef == nullptr) {
+        throw std::runtime_error("GraphNode is nullptr");
+    }
+    return graphRef;
 }

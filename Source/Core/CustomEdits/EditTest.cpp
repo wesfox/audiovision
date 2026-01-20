@@ -19,7 +19,7 @@ EditTest::EditTest() {
 
     // Clips AudioTrack 1
     auto clipVoice11 = AudioClip::create(voice1, 48000 * 0, 48000 * 0, 48000 * 2);
-    auto clipVoice12 = AudioClip::create(voice1, 48000 * 2, 48000 * 2, 48000 * 4);
+    auto clipVoice12 = AudioClip::create(voice2, 48000 * 2, 48000 * 32, 48000 * 34);
 
     // AudioTrack 1
     auto audioTrack1 =  AudioTrack::create("audioTrack1");
@@ -27,8 +27,8 @@ EditTest::EditTest() {
     audioTrack1->addAudioClip(std::move(clipVoice12));
 
     // Clips AudioTrack 2
-    auto clipVoice21 = AudioClip::create(voice1, 48000 * 2, 48000 * 22, 48000 * 3);
-    auto clipVoice22 = AudioClip::create(voice2, 48000 * 16, 48000 * 51, 48000 * 64);
+    auto clipVoice21 = AudioClip::create(voice1, 48000 * 2, 48000 * 2, 48000 * 5);
+    auto clipVoice22 = AudioClip::create(voice2, 48000 * 0, 48000 * 30, 48000 * 33);
 
     // AudioTrack 2
     auto audioTrack2 =  AudioTrack::create("audioTrack2");

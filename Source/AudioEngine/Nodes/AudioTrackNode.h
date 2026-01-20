@@ -1,15 +1,19 @@
 #pragma once
 
 #include <JuceHeader.h>
+
 #include "Core/Track/AudioTrack.h"
 #include "Utils/Transport.h"
+
+class GraphNode;
 
 class AudioTrackNode : public juce::AudioProcessor {
 public:
     AudioTrackNode(const std::weak_ptr<AudioTrack>& audioTrack,
-                   const std::weak_ptr<Transport>& transport);
+                   const std::weak_ptr<Transport>& transport,
+                   const GraphNode* graphNode);
 
-    const juce::String getName() const override { return "AudioTrackNode"; }
+    const juce::String getName() const override;
 
     void prepareToPlay(double, int) override {}
     void releaseResources() override {}
@@ -36,4 +40,5 @@ public:
 private:
     std::weak_ptr<Transport> transport;
     std::weak_ptr<AudioTrack> audioTrack;
+    const GraphNode* graphNode;
 };

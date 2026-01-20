@@ -2,7 +2,7 @@
 
 #include <JuceHeader.h>
 
-#include "GraphNode.h"
+#include "../Model/GraphNode.h"
 #include "Core/Edit/Edit.h"
 #include "Core/Track/AudioTrack.h"
 #include "Utils/Format.h"
@@ -27,6 +27,8 @@ public:
 
     std::weak_ptr<Transport> transport;
 private:
+    AudioProcessorGraph* getGraphRef() const;
+
     std::weak_ptr<AudioProcessorGraph> graph;
     std::vector<std::unique_ptr<AudioProcessor>> audioProcessors;
 };

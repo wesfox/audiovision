@@ -75,6 +75,7 @@ target_include_directories(${TARGET_NAME}
 file(GLOB_RECURSE COMMON_SOURCES
         "Source/AudioEngine/*.cpp"
         "Source/AudioEngine/*/*.cpp"
+        "Source/AudioEngine/*/*/*.cpp"
         "Source/Gui/Components/*.cpp"
         "Source/Utils/*.cpp"
         "Source/Utils/*/*.cpp"

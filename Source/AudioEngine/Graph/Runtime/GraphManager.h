@@ -3,9 +3,9 @@
 #include <JuceHeader.h>
 #include <set>
 
+#include "../Builder/GraphBuilder.h"
 #include "GraphModule.h"
 #include "Core/Track/AudioTrack.h"
-#include "VirtualConnections/GraphConnectionManager.h"
 
 class Track;
 class Edit;
@@ -17,8 +17,6 @@ class GraphManager {
 public:
     GraphManager(const std::weak_ptr<Edit> &edit, const AudioEngine *engine);
 
-    GraphNode *fillGraphNode(Track *track);
-
     ~GraphManager() = default;
 
     // Methods
@@ -28,8 +26,6 @@ public:
 
     std::vector<std::shared_ptr<GraphNode>> graphNodes;
     std::vector<std::unique_ptr<GraphModule>> graphModules;
-
-     std::unique_ptr<GraphConnectionManager> graphConnectionManager;
 
     GraphNode* getNodeById(String id);
     GraphModule *getGraphModuleById(String id);
@@ -43,6 +39,14 @@ public:
 
     std::shared_ptr<AudioProcessorGraph> graph;
 
+    const GraphDescription& getGraphDescription() const { return graphDescription; }
+
 private:
+    void buildConnection(const GraphModule* inputModule,
+                         const GraphModule* outputModule,
+                         ChannelsFormat format) const;
+
     juce::AudioProcessorGraph::Node::Ptr audioOutputNode;
+    GraphBuilder graphBuilder;
+    GraphDescription graphDescription;
 };

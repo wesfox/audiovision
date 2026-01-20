@@ -10,8 +10,8 @@ Track::Track(String name)
       solo(false),
       soloSafe(false),
       mute(false),
-      format(ChannelsFormat::Mono),
-      outputFormat(ChannelsFormat::Mono),
+      format(ChannelsFormat::Stereo),
+      outputFormat(ChannelsFormat::Stereo),
       height(0.0f),
       name(name),
       color(juce::Colours::white)

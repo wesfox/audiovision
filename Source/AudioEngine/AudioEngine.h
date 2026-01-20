@@ -3,7 +3,7 @@
 #include <JuceHeader.h>
 
 #include "AudioOutput/AudioOutputEngine.h"
-#include "Graph/GraphManager.h"
+#include "Graph/Runtime/GraphManager.h"
 #include "Utils/Transport.h"
 
 class Edit;

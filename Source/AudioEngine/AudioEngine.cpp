@@ -1,7 +1,7 @@
 #include "AudioEngine.h"
 
 #include "Core/Edit/Edit.h"
-#include "Graph/GraphManager.h"
+#include "Graph/Runtime/GraphManager.h"
 
 // ------------------------ MainComponent Implementation ------------------------
 

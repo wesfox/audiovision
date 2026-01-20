@@ -1,7 +1,7 @@
 #include "MainComponent.h"
 
 #include "AudioEngine/AudioEngine.h"
-#include "AudioEngine/Graph/GraphManager.h"
+#include "AudioEngine/Graph/Runtime/GraphManager.h"
 #include "Core/CustomEdits/EditTest.h"
 
 //==============================================================================

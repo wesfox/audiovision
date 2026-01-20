@@ -38,9 +38,9 @@ public:
         );
     }
 
-    String getTrackId() {return trackId;};
-    String getId() {return id;};
-    String getName() {return name;};
+    String getTrackId() const { return trackId; };
+    String getId() const { return id; };
+    String getName() const { return name; };
     [[nodiscard]] ChannelsFormat getFormat() const {return format;};
 
     void tagIsNotGraphStart(){ isGraphStart = false; };

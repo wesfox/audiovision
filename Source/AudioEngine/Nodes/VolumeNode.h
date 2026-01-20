@@ -4,12 +4,14 @@
 
 #include "Utils/Transport.h"
 
+class GraphNode;
+
 
 class VolumeNode : public juce::AudioProcessor {
 public:
-    VolumeNode(const std::weak_ptr<Transport>& transport);
+    VolumeNode(const std::weak_ptr<Transport>& transport, const GraphNode* graphNode);
 
-    const juce::String getName() const override { return "VolumeNode"; }
+    const juce::String getName() const override;
 
     void prepareToPlay(double, int) override {}
     void releaseResources() override {}
@@ -34,4 +36,5 @@ public:
 
 private:
     std::weak_ptr<Transport> transport;
+    const GraphNode* graphNode;
 };

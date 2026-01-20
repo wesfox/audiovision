@@ -1,7 +1,9 @@
 #include <JuceHeader.h>
 
-#include <AudioEngine/Graph/GraphManager.h>
-#include <AudioEngine/Graph/GraphNode.h>
+#include <AudioEngine/AudioEngine.h>
+#include <AudioEngine/Graph/Model/GraphNode.h>
+#include <Utils/IO/GraphMermaidExporter.h>
+#include <Utils/IO/AudioGraphMermaidExporter.h>
 
 #include "Core/CustomEdits/EditTest.h"
 
@@ -15,7 +17,8 @@ public:
         beginTest("GraphManager construction");
         {
             juce::ScopedJuceInitialiser_GUI juceInit;
-            GraphManager graphManager;
+            auto edit = std::make_shared<EditTest>();
+            AudioEngine audioEngine(edit);
             expect(true);  // Basic construction test
         }
 
@@ -28,21 +31,20 @@ public:
         beginTest("GraphNode construction");
         {
             juce::ScopedJuceInitialiser_GUI juceInit;
-            EditTest editTest;
-            auto graphManager = std::make_unique<GraphManager>();
-            graphManager->createGraph(editTest);
+            auto edit = std::make_shared<EditTest>();
+            AudioEngine audioEngine(edit);
+            auto* graphManager = audioEngine.graphManager.get();
             for (auto node : graphManager->graphNodes) {
                 if (node->isGraphStart)
                     GraphNode::logGraph(node.get());
             }
-            graphManager->createFinalGraph(TODO);
-            for (const auto& connection : graphManager->graphConnectionManager.graphVirtualConnections) {
-                juce::Logger::writeToLog(connection->toString());
-            }
             for (const auto& node : graphManager->graphNodes) {
                 juce::Logger::writeToLog(node->toString());
             }
-            graphManager->attachAudioOutput(editTest.getAudioOutputTrack());
+            auto mermaid = GraphMermaidExporter::exportMermaid(graphManager->getGraphDescription());
+            juce::Logger::writeToLog(mermaid);
+            auto audioGraphMermaid = AudioGraphMermaidExporter::exportMermaid(*audioEngine.audioGraph);
+            juce::Logger::writeToLog(audioGraphMermaid);
             expect(true);  // Basic construction test
         }
 

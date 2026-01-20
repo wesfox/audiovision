@@ -1,15 +1,27 @@
 #include "AudioTrackNode.h"
 
+#include "AudioEngine/Graph/Model/GraphNode.h"
+
 #include <Core/Track/AudioTrack.h>
 
 #include <utility>
 
 AudioTrackNode::AudioTrackNode(const std::weak_ptr<AudioTrack>& audioTrack,
-                               const std::weak_ptr<Transport>& transport)
+                               const std::weak_ptr<Transport>& transport,
+                               const GraphNode* graphNode)
     : transport(transport),
-      audioTrack(audioTrack)
+      audioTrack(audioTrack),
+      graphNode(graphNode)
 {
     setPlayConfigDetails(2, 2, 48000.0, 512);
+}
+
+const juce::String AudioTrackNode::getName() const
+{
+    if (graphNode != nullptr) {
+        return graphNode->getName() + ":AudioTrackNode";;
+    }
+    return "NoName:AudioTrackNode";
 }
 
 void AudioTrackNode::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer&)
