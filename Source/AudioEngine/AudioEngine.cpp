@@ -6,11 +6,12 @@
 // ------------------------ MainComponent Implementation ------------------------
 
 AudioEngine::AudioEngine(const std::weak_ptr<Edit>& edit):edit(edit) {
+    transport = std::make_shared<Transport>();
     audioGraph = std::make_shared<juce::AudioProcessorGraph>();
 
     graphManager = std::make_unique<GraphManager>(edit, this);
     graphManager->createGraph();
-    graphManager->createFinalGraph(&transport);
+    graphManager->createFinalGraph(transport);
     graphManager->attachAudioOutput(edit.lock()->getAudioOutputTrack());
     graphManager->prepareToPlay();
 
@@ -20,7 +21,7 @@ AudioEngine::AudioEngine(const std::weak_ptr<Edit>& edit):edit(edit) {
 
 void AudioEngine::start()
 {
-    transport.prepare(48000.0);
-    transport.rewind();
-    transport.play();
+    transport->prepare(48000.0);
+    transport->rewind();
+    transport->play();
 }

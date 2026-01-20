@@ -2,7 +2,7 @@
 
 #include <JuceHeader.h>
 
-#include "AudioOutputEngine.h"
+#include "AudioOutput/AudioOutputEngine.h"
 #include "Graph/GraphManager.h"
 #include "Utils/Transport.h"
 
@@ -12,7 +12,7 @@ class AudioEngine{
 public:
     AudioEngine(const std::weak_ptr<Edit>& edit);
 
-    Transport transport = Transport();
+    std::shared_ptr<Transport> transport;
     std::weak_ptr<Edit> edit;
     std::unique_ptr<GraphManager> graphManager;
 
@@ -23,6 +23,10 @@ public:
 
     std::shared_ptr<juce::AudioProcessorGraph> getAudioGraph() const {
         return audioGraph;
+    }
+
+    std::shared_ptr<Transport> getTransport() const {
+        return transport;
     }
 
     AudioOutputEngine& getAudioOutputEngine() const {

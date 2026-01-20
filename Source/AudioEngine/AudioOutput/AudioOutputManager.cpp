@@ -1,6 +1,6 @@
 #include "AudioOutputManager.h"
 
-#include "AudioEngine.h"
+#include "../AudioEngine.h"
 
 // ------------------------ MainComponent Implementation ------------------------
 
@@ -45,7 +45,9 @@ void AudioOutputManager::audioDeviceIOCallbackWithContext(
 
     graph.lock()->processBlock(buffer, midi);
 
-    audioEngine->transport.advance(buffer.getNumSamples());
+    if (auto transport = audioEngine->getTransport()) {
+        transport->advance(buffer.getNumSamples());
+    }
 
     for (int channel = 0; channel < numOutputChannels; ++channel) {
         for (int sample = 0; sample < numSamples; ++sample) {

@@ -7,7 +7,7 @@
 
 class VolumeNode : public juce::AudioProcessor {
 public:
-    VolumeNode(const Transport* transport);
+    VolumeNode(const std::weak_ptr<Transport>& transport);
 
     const juce::String getName() const override { return "VolumeNode"; }
 
@@ -33,5 +33,5 @@ public:
     AudioProcessorEditor* createEditor() override { return nullptr; }
 
 private:
-    const Transport* transport;
+    std::weak_ptr<Transport> transport;
 };

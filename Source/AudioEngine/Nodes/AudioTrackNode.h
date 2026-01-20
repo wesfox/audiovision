@@ -6,7 +6,8 @@
 
 class AudioTrackNode : public juce::AudioProcessor {
 public:
-    AudioTrackNode(const std::weak_ptr<AudioTrack> &audioTrackId, const Transport * transport);
+    AudioTrackNode(const std::weak_ptr<AudioTrack>& audioTrack,
+                   const std::weak_ptr<Transport>& transport);
 
     const juce::String getName() const override { return "AudioTrackNode"; }
 
@@ -33,6 +34,6 @@ public:
     AudioProcessorEditor* createEditor() override { return nullptr; }
 
 private:
-    const Transport * transport;
-    const AudioTrack * audioTrack;
+    std::weak_ptr<Transport> transport;
+    std::weak_ptr<AudioTrack> audioTrack;
 };

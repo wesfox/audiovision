@@ -136,3 +136,8 @@ void AudioClip::setSampleRate(double newSampleRate)
 {
     sampleRate = newSampleRate;
 }
+
+void AudioClip::setFileStartSample(int64 newFileStartSample)
+{
+    fileStartSample = newFileStartSample;
+}

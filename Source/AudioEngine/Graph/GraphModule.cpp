@@ -9,7 +9,7 @@ GraphModule::GraphModule(
     GraphNode * graphNode,
     const std::weak_ptr<AudioProcessorGraph>& graph,
     const std::weak_ptr<Edit>& edit,
-    const Transport * transport
+    const std::weak_ptr<Transport>& transport
     ):
         virtualGraphNode(graphNode),
         edit(edit),
@@ -69,4 +69,3 @@ std::weak_ptr<AudioTrack> GraphModule::getAudioTrackById(const String& trackId) 
 
     return {};
 }
-

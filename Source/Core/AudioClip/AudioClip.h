@@ -15,6 +15,17 @@ public:
     {
         return std::make_unique<AudioClip>(audioFile);
     }
+    static std::unique_ptr<AudioClip> create(const std::shared_ptr<AudioFile>& audioFile,
+                                             int64 fileStartSample,
+                                             int64 sessionStartSample,
+                                             int64 sessionEndSample)
+    {
+        auto clip = std::make_unique<AudioClip>(audioFile);
+        clip->setFileStartSample(fileStartSample);
+        clip->setSessionStartSample(sessionStartSample);
+        clip->setSessionEndSample(sessionEndSample);
+        return clip;
+    }
 
     ~AudioClip() = default;
 
@@ -73,6 +84,7 @@ public:
     void setSessionStartSample(int64 newSessionStartSample);
     void setSessionEndSample(int64 newSessionEndSample);
     void setSampleRate(double newSampleRate);
+    void setFileStartSample(int64 newFileStartSample);
 
     /// If true, the read method returns an empty (cleared), buffer
     bool isMuted() const { return muted; }

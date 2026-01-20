@@ -1,6 +1,7 @@
 #include "VolumeNode.h"
 
-VolumeNode::VolumeNode(const Transport* transport):transport(transport)
+VolumeNode::VolumeNode(const std::weak_ptr<Transport>& transport)
+    : transport(transport)
 {
     setPlayConfigDetails(2, 2, 48000.0, 512);
 }

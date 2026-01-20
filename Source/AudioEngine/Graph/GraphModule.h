@@ -9,7 +9,10 @@
 
 class GraphModule{
 public:
-    explicit GraphModule(GraphNode * graphNode, const std::weak_ptr<AudioProcessorGraph>& graph, const std::weak_ptr<Edit>& edit, const Transport* transport);
+    explicit GraphModule(GraphNode * graphNode,
+                         const std::weak_ptr<AudioProcessorGraph>& graph,
+                         const std::weak_ptr<Edit>& edit,
+                         const std::weak_ptr<Transport>& transport);
 
     void buildInternalConnexion(const AudioProcessorGraph::Node *nodeInput, const AudioProcessorGraph::Node *nodeOutput,
                         ChannelsFormat format) const;
@@ -22,7 +25,7 @@ public:
     GraphNode* virtualGraphNode;
     std::weak_ptr<Edit> edit;
 
-    const Transport *transport;
+    std::weak_ptr<Transport> transport;
 private:
     std::weak_ptr<AudioProcessorGraph> graph;
     std::vector<std::unique_ptr<AudioProcessor>> audioProcessors;

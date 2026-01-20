@@ -91,7 +91,7 @@ GraphModule * GraphManager::getGraphModuleByTrackId(String trackId) {
     return nullptr;
 }
 
-void GraphManager::createFinalGraph(Transport * transport) {
+void GraphManager::createFinalGraph(const std::shared_ptr<Transport>& transport) {
     graphConnectionManager->buildGraphVirtualConnections();
     for (auto& node : graphNodes) {
         std::unique_ptr<GraphModule> graphModule = std::make_unique<GraphModule>(node.get(), graph, edit, transport);

@@ -35,7 +35,7 @@ public:
     GraphModule *getGraphModuleById(String id);
     GraphModule *getGraphModuleByTrackId(String id);
 
-    void createFinalGraph(Transport *transport);
+    void createFinalGraph(const std::shared_ptr<Transport>& transport);
 
     void attachAudioOutput(std::weak_ptr<Track> track);
 

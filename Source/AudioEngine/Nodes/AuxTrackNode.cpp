@@ -1,6 +1,7 @@
 #include "AuxTrackNode.h"
 
-AuxTrackNode::AuxTrackNode(const Transport* transport):transport(transport)
+AuxTrackNode::AuxTrackNode(const std::weak_ptr<Transport>& transport)
+    : transport(transport)
 {
     setPlayConfigDetails(2, 2, 48000.0, 512);
 }
