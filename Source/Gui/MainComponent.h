@@ -2,7 +2,7 @@
 
 #include <JuceHeader.h>
 #include "Components/Components.h"
-#include "Plugin/PluginEditorHost.h"
+#include "Plugin/PluginEditorWindow.h"
 
 #include <Utils/Transport.h>
 
@@ -21,6 +21,7 @@ public:
     //==============================================================================
     MainComponent();
     ~MainComponent() override;
+    void shutdown();
 
     //==============================================================================
     void paint (juce::Graphics&) override;
@@ -30,9 +31,10 @@ private:
     //==============================================================================
     // Your private member variables go here...
     std::unique_ptr<FileSelectorComponent> fileSelector;
-    std::unique_ptr<PluginEditorHost> pluginEditorHost;
+    std::unique_ptr<PluginEditorWindow> pluginEditorWindow;
     std::shared_ptr<EditTest> edit;
     std::unique_ptr<AudioEngine> audioEngine;
+    bool isShutDown = false;
 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)

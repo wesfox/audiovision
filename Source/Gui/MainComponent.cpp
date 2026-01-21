@@ -17,8 +17,7 @@ MainComponent::MainComponent()
     };
     addAndMakeVisible(fileSelector.get());
 
-    pluginEditorHost = std::make_unique<PluginEditorHost>();
-    addAndMakeVisible(pluginEditorHost.get());
+    pluginEditorWindow = std::make_unique<PluginEditorWindow>();
 
     // Test sound stuff
     audioEngine = std::make_unique<AudioEngine>(edit);
@@ -31,9 +30,10 @@ MainComponent::MainComponent()
         }
     }
     if (reverbTrackId.isNotEmpty()) {
-        auto node = audioEngine->getPluginNode(reverbTrackId, "MReverbMB");
+        auto node = audioEngine->getPluginNode(reverbTrackId, "TAL-Reverb-2");
         if (node != nullptr) {
-            pluginEditorHost->setPluginNode(node);
+            pluginEditorWindow->setPluginNode(node);
+            pluginEditorWindow->setVisible(true);
         } else {
             juce::Logger::writeToLog("Plugin node not found for reverbAuxTrack");
         }
@@ -48,14 +48,27 @@ MainComponent::MainComponent()
 
 MainComponent::~MainComponent()
 {
-    if (pluginEditorHost != nullptr) {
-        pluginEditorHost->setPluginNode(nullptr);
+    shutdown();
+}
+
+void MainComponent::shutdown()
+{
+    if (isShutDown) {
+        return;
     }
-    pluginEditorHost.reset();
+    isShutDown = true;
+    if (pluginEditorWindow != nullptr) {
+        pluginEditorWindow->setPluginNode(nullptr);
+        pluginEditorWindow->setVisible(false);
+    }
+    pluginEditorWindow.reset();
     if (audioEngine != nullptr) {
         audioEngine->shutdown();
     }
     audioEngine.reset();
+    if (auto* messageManager = juce::MessageManager::getInstanceWithoutCreating()) {
+        messageManager->runDispatchLoopUntil(50);
+    }
 }
 
 //==============================================================================
@@ -67,10 +80,6 @@ void MainComponent::paint (juce::Graphics& g)
 void MainComponent::resized()
 {
     auto bounds = getLocalBounds();
-    if (pluginEditorHost != nullptr) {
-        auto editorBounds = bounds.removeFromRight(bounds.getWidth() / 2);
-        pluginEditorHost->setBounds(editorBounds);
-    }
     if (fileSelector != nullptr) {
         fileSelector->setBounds(bounds);
     }

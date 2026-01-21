@@ -25,6 +25,21 @@ void PluginEditorHost::setPluginNode(juce::AudioProcessorGraph::Node::Ptr node)
     }
 }
 
+bool PluginEditorHost::getEditorSize(int& width, int& height) const
+{
+    if (editor == nullptr) {
+        return false;
+    }
+    width = editor->getWidth();
+    height = editor->getHeight();
+    if (width <= 0 || height <= 0) {
+        auto bounds = editor->getBounds();
+        width = bounds.getWidth();
+        height = bounds.getHeight();
+    }
+    return width > 0 && height > 0;
+}
+
 void PluginEditorHost::resized()
 {
     if (editor != nullptr) {

@@ -8,6 +8,7 @@ public:
     ~PluginEditorHost() override;
 
     void setPluginNode(juce::AudioProcessorGraph::Node::Ptr node);
+    bool getEditorSize(int& width, int& height) const;
 
     void resized() override;
 
