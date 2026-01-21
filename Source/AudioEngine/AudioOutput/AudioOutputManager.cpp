@@ -25,6 +25,15 @@ void AudioOutputManager::audioDeviceAboutToStart(juce::AudioIODevice* device)
         sampleRate = device->getCurrentSampleRate();
         blockSize = device->getCurrentBufferSizeSamples();
     }
+    if (auto transportPtr = transport.lock()) {
+        transportPtr->prepare(sampleRate);
+        transportPtr->setCurrentBlockSize(blockSize);
+    }
+    for (auto& instance : graphInstances) {
+        if (instance) {
+            instance->prepareToPlay(sampleRate, blockSize);
+        }
+    }
 }
 
 void AudioOutputManager::audioDeviceStopped()

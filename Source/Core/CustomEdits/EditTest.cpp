@@ -5,20 +5,21 @@
 #include "Core/Track/AuxTrack.h"
 #include "Core/Track/FolderTrack.h"
 #include "Core/Track/Send.h"
+#include "Core/Plugin/PluginRegistry.h"
 
 // ------------------------ MainComponent Implementation ------------------------
 
 EditTest::EditTest() {
     // Audio Files waves
-    auto voice1 = AudioFile::get(juce::File("/Users/nico/Music/440Hz 10s 48kHz.wav"));
-    auto voice2 = AudioFile::get(juce::File("/Users/nico/Music/120Hz 10s 48kHz.wav"));
+    // auto voice1 = AudioFile::get(juce::File("/Users/nico/Music/440Hz 10s 48kHz.wav"));
+    // auto voice2 = AudioFile::get(juce::File("/Users/nico/Music/120Hz 10s 48kHz.wav"));
 
     // Real AudioFiles
-    // auto voice1 = AudioFile::get(juce::File("/Users/nico/Music/SEQ07_RespirationsCleo.wav"));
-    // auto voice2 = AudioFile::get(juce::File("/Users/nico/Music/SEQ00_Actions horschampSDB.wav"));
+    auto voice1 = AudioFile::get(juce::File("/Users/nico/Music/SEQ07_RespirationsCleo.wav"));
+    auto voice2 = AudioFile::get(juce::File("/Users/nico/Music/SEQ00_Actions horschampSDB.wav"));
 
     // Clips AudioTrack 1
-    auto clipVoice11 = AudioClip::create(voice1, 48000 * 0, 48000 * 0, 48000 * 2);
+    auto clipVoice11 = AudioClip::create(voice2, 48000 * 5, 48000 * 0, 48000 * 20);
     auto clipVoice12 = AudioClip::create(voice2, 48000 * 2, 48000 * 32, 48000 * 34);
 
     // AudioTrack 1
@@ -27,7 +28,7 @@ EditTest::EditTest() {
     audioTrack1->addAudioClip(std::move(clipVoice12));
 
     // Clips AudioTrack 2
-    auto clipVoice21 = AudioClip::create(voice1, 48000 * 2, 48000 * 2, 48000 * 5);
+    auto clipVoice21 = AudioClip::create(voice1, 48000 * 2, 48000 * 20, 48000 * 50);
     auto clipVoice22 = AudioClip::create(voice2, 48000 * 0, 48000 * 30, 48000 * 33);
 
     // AudioTrack 2
@@ -37,6 +38,11 @@ EditTest::EditTest() {
 
     // Add the ReverbAuxTrack
     auto reverbAuxTrack = AuxTrack::create("reverbAuxTrack");
+    PluginRegistry pluginRegistry;
+    pluginRegistry.scan();
+    if (auto reverbPlugin = pluginRegistry.getByName("TAL-Reverb")) {
+        reverbAuxTrack->addPlugin(std::move(reverbPlugin));
+    }
 
     auto send1toAux = Send::create(reverbAuxTrack);
     audioTrack1->addSend(std::move(send1toAux));
@@ -60,8 +66,8 @@ EditTest::EditTest() {
     setAudioOutputTrack(DTrack);
 
     // scene
-    auto scene1 = std::make_unique<Scene>(48000*0, 48000*2, "Scene 1");
-    auto scene2 = std::make_unique<Scene>(48000*2, 48000*4, "Scene 2");
+    auto scene1 = std::make_unique<Scene>(48000*0, 48000*20, "Scene 1");
+    auto scene2 = std::make_unique<Scene>(48000*20, 48000*40, "Scene 2");
     addScene(std::move(scene1));
     addScene(std::move(scene2));
 

@@ -18,5 +18,16 @@ const juce::String VolumeNode::getName() const
 }
 
 void VolumeNode::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer&) {
+    bool nonFiniteValueAlert=false;
+    for (int c=0;c!= buffer.getNumChannels();c++) {
+        for (int i=0;i!=buffer.getNumSamples();i++) {
+            if (!std::isfinite(buffer.getSample(c,i))) {
+                buffer.setSample(c,i,0);
+                nonFiniteValueAlert = true;
+            }
+        }
+    }
+    // We got here because at least one sample was not a finite value
+    jassert (!nonFiniteValueAlert);
     buffer.applyGain(1.0f); // Apply unity gain
 }

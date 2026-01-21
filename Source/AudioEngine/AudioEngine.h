@@ -3,16 +3,19 @@
 #include <JuceHeader.h>
 
 #include "AudioOutput/AudioOutputEngine.h"
+#include "Plugin/PluginInstanceFactory.h"
 #include "Graph/Runtime/GraphInstance.h"
 #include "Utils/Transport.h"
 
 #include <vector>
 
 class Edit;
+class PluginRegistry;
 
 class AudioEngine{
 public:
     AudioEngine(const std::weak_ptr<Edit>& edit);
+    ~AudioEngine();
 
     std::shared_ptr<Transport> transport;
     std::weak_ptr<Edit> edit;
@@ -30,10 +33,19 @@ public:
         return graphInstances;
     }
 
+    std::shared_ptr<PluginRuntime> createPluginRuntimeByName(const String& name,
+                                                             double sampleRate,
+                                                             int blockSize,
+                                                             juce::String& error) const;
+    juce::AudioProcessorGraph::Node::Ptr getPluginNode(const String& trackId,
+                                                       const String& pluginName) const;
+
     AudioOutputEngine& getAudioOutputEngine() const {
         return *audioOutputEngine;
     }
 
 private:
+    std::unique_ptr<PluginInstanceFactory> pluginHost;
+    std::unique_ptr<PluginRegistry> pluginRegistry;
 
 };

@@ -12,6 +12,7 @@ public:
         int sceneId=0);
 
     void build();
+    void prepareToPlay(double sampleRate, int blockSize);
 
     juce::AudioProcessorGraph& getGraph() const { return *graph; }
     GraphManager& getGraphManager() const { return *graphManager; }

@@ -23,6 +23,7 @@ public:
         playing.store(false);
     }
 
+    /// set transport to 0
     void rewind()
     {
         currentSample.store(0);
@@ -33,6 +34,8 @@ public:
         return playing.load();
     }
 
+    /// advance (or go back) from numSample
+    /// @param numSamples number of sample to move (can be negative, move backward)
     void advance(int numSamples)
     {
         if (playing.load())
@@ -41,6 +44,14 @@ public:
 
     double getSampleRate() const {
         return sampleRate.load();
+    }
+
+    int getCurrentBlockSize() const {
+        return blockSize.load();
+    }
+
+    void setCurrentBlockSize(int newBlockSize) {
+        blockSize.store(newBlockSize);
     }
 
     int64_t getCursorPosition() const {
@@ -55,4 +66,5 @@ private:
     std::atomic<int64_t> currentSample{ 0 };
     std::atomic<bool> playing{ false };
     std::atomic<int> sampleRate = 48000;
+    std::atomic<int> blockSize = 512;
 };

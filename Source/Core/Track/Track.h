@@ -4,6 +4,8 @@
 #include <Utils/Format.h>
 #include <Core/Automation/Automation.h>
 
+#include "Core/Plugin/Plugin.h"
+
 class Send;
 
 enum class TrackType {
@@ -22,6 +24,14 @@ public:
     virtual void addSend(std::unique_ptr<Send> send);
 
     const std::vector<std::unique_ptr<Send>>& getSends();
+
+    void addPlugin(std::shared_ptr<Plugin> plugin) {
+        plugins.push_back(std::move(plugin));
+    }
+
+    const std::vector<std::shared_ptr<Plugin>>& getPlugins() const {
+        return plugins;
+    }
 
     /// Make this track output to the defined track
     void setOutput(std::weak_ptr<Track> newOutputTrack);
@@ -53,7 +63,7 @@ public:
 
 protected:
     String id;
-    std::vector<void*> plugins;
+    std::vector<std::shared_ptr<Plugin>> plugins;
     std::vector<std::unique_ptr<Send>> sends;
     std::weak_ptr<Track> outputTrack;
     std::weak_ptr<Track> inputTrack;

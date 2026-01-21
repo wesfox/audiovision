@@ -6,6 +6,8 @@
 #include "../Builder/GraphBuilder.h"
 #include "GraphModule.h"
 #include "Core/Track/AudioTrack.h"
+#include "AudioEngine/Plugin/PluginInstanceFactory.h"
+#include "AudioEngine/Plugin/PluginInstanceStore.h"
 
 class Track;
 class Edit;
@@ -34,11 +36,15 @@ public:
 
     void attachAudioOutput(std::weak_ptr<Track> track);
 
-    void prepareToPlay() const;
+    void prepareToPlay(double sampleRate, int blockSize) const;
 
     std::shared_ptr<AudioProcessorGraph> graph;
 
     const GraphDescription& getGraphDescription() const { return graphDescription; }
+
+    void setProcessingFormat(double sampleRate, int blockSize);
+    juce::AudioProcessorGraph::Node::Ptr findPluginNode(const String& trackId,
+                                                        const String& pluginName) const;
 
 private:
     void buildConnection(const GraphModule* inputModule,
@@ -48,4 +54,6 @@ private:
     juce::AudioProcessorGraph::Node::Ptr audioOutputNode;
     GraphBuilder graphBuilder;
     GraphDescription graphDescription;
+    std::unique_ptr<PluginInstanceFactory> pluginFactory;
+    PluginInstanceStore pluginInstanceStore;
 };

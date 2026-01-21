@@ -77,6 +77,7 @@ file(GLOB_RECURSE COMMON_SOURCES
         "Source/AudioEngine/*/*.cpp"
         "Source/AudioEngine/*/*/*.cpp"
         "Source/Gui/Components/*.cpp"
+        "Source/Gui/*/*.cpp"
         "Source/Utils/*.cpp"
         "Source/Utils/*/*.cpp"
         "Source/Core/*.cpp"
@@ -122,6 +123,15 @@ target_link_libraries(AudioVisionTests PRIVATE
         juce::juce_graphics
         juce::juce_gui_basics)
 
+target_compile_definitions(AudioVisionTests PRIVATE
+        JUCE_PLUGINHOST_AU=1
+        JUCE_PLUGINHOST_LADSPA=1
+        JUCE_PLUGINHOST_VST3=1
+        JUCE_USE_CURL=0
+        JUCE_WEB_BROWSER=0
+        JUCE_MODAL_LOOPS_PERMITTED=1
+        JUCE_STRICT_REFCOUNTEDPOINTER=1)
+
 # Set target properties for macOS
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     target_compile_options(AudioVisionTests PRIVATE "-fno-aligned-allocation")
@@ -135,7 +145,6 @@ if (DEFINED ENV{VST2_SDK_DIR})
     target_compile_definitions(${TARGET_NAME} PRIVATE
             JUCE_PLUGINHOST_VST=1)
 endif()
-
 
 target_compile_definitions(${TARGET_NAME} PRIVATE
         JUCE_PLUGINHOST_AU=1

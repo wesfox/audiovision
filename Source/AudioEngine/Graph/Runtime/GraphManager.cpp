@@ -14,6 +14,7 @@ GraphManager::GraphManager(const std::weak_ptr<Edit>& edit,
         1,
         48000,
         512);
+    pluginFactory = std::make_unique<PluginInstanceFactory>();
 }
 
 void GraphManager::createGraph()
@@ -54,8 +55,15 @@ GraphModule * GraphManager::getGraphModuleByTrackId(String trackId) {
 }
 
 void GraphManager::createFinalGraph(const std::shared_ptr<Transport>& transport) {
+    pluginInstanceStore.clear();
     for (auto& node : graphNodes) {
-        std::unique_ptr<GraphModule> graphModule = std::make_unique<GraphModule>(node.get(), graph, edit, transport);
+        std::unique_ptr<GraphModule> graphModule = std::make_unique<GraphModule>(
+            node.get(),
+            graph,
+            edit,
+            transport,
+            pluginFactory.get(),
+            &pluginInstanceStore);
         // graphModule.get()->virtualTrack =
         graphModules.emplace_back(std::move(graphModule));
     }
@@ -64,6 +72,12 @@ void GraphManager::createFinalGraph(const std::shared_ptr<Transport>& transport)
         auto outputModule = getGraphModuleById(connection.outputId);
         buildConnection(inputModule, outputModule, outputModule->virtualGraphNode->format);
     }
+}
+
+juce::AudioProcessorGraph::Node::Ptr GraphManager::findPluginNode(const String& trackId,
+                                                                  const String& pluginName) const
+{
+    return pluginInstanceStore.find(trackId, pluginName);
 }
 
 void GraphManager::attachAudioOutput(std::weak_ptr<Track> track) {
@@ -81,8 +95,14 @@ void GraphManager::attachAudioOutput(std::weak_ptr<Track> track) {
     audioOutputNode = newAudioOutputNode;
 }
 
-void GraphManager::prepareToPlay() const {
-    graph->prepareToPlay(1, 512);
+void GraphManager::prepareToPlay(double sampleRate, int blockSize) const {
+    graph->setPlayConfigDetails(2, 2, sampleRate, blockSize);
+    graph->prepareToPlay(sampleRate, blockSize);
+}
+
+void GraphManager::setProcessingFormat(double sampleRate, int blockSize)
+{
+    graph->setPlayConfigDetails(2, 2, sampleRate, blockSize);
 }
 
 void GraphManager::buildConnection(
