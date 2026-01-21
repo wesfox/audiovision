@@ -1,14 +1,14 @@
 #include "GraphManager.h"
 
 #include "../Model/GraphNode.h"
-#include "AudioEngine/AudioEngine.h"
 #include "Core/Edit/Edit.h"
 #include "Core/Track/Send.h"
 
-GraphManager::GraphManager(const std::weak_ptr<Edit>& edit, const AudioEngine* engine) :
-        edit(edit)
+GraphManager::GraphManager(const std::weak_ptr<Edit>& edit,
+                           const std::shared_ptr<AudioProcessorGraph>& graph) :
+        edit(edit),
+        graph(graph)
 {
-    graph = engine->getAudioGraph();
     graph->clear();
     graph->setPlayConfigDetails(1,
         1,

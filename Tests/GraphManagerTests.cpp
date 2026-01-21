@@ -33,17 +33,18 @@ public:
             juce::ScopedJuceInitialiser_GUI juceInit;
             auto edit = std::make_shared<EditTest>();
             AudioEngine audioEngine(edit);
-            auto* graphManager = audioEngine.graphManager.get();
-            for (auto node : graphManager->graphNodes) {
+            auto& graphInstance = *audioEngine.getGraphInstances().front();
+            auto& graphManager = graphInstance.getGraphManager();
+            for (auto node : graphManager.graphNodes) {
                 if (node->isGraphStart)
                     GraphNode::logGraph(node.get());
             }
-            for (const auto& node : graphManager->graphNodes) {
+            for (const auto& node : graphManager.graphNodes) {
                 juce::Logger::writeToLog(node->toString());
             }
-            auto mermaid = GraphMermaidExporter::exportMermaid(graphManager->getGraphDescription());
+            auto mermaid = GraphMermaidExporter::exportMermaid(graphManager.getGraphDescription());
             juce::Logger::writeToLog(mermaid);
-            auto audioGraphMermaid = AudioGraphMermaidExporter::exportMermaid(*audioEngine.audioGraph);
+            auto audioGraphMermaid = AudioGraphMermaidExporter::exportMermaid(graphInstance.getGraph());
             juce::Logger::writeToLog(audioGraphMermaid);
             expect(true);  // Basic construction test
         }

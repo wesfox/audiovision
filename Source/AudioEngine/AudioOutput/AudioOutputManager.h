@@ -4,11 +4,16 @@
 
 #include "Utils/Format.h"
 
-class AudioEngine;
+#include <memory>
+#include <vector>
+
+class GraphInstance;
+class Transport;
 
 class AudioOutputManager : public juce::Component, public juce::AudioIODeviceCallback {
 public:
-    AudioOutputManager(const std::weak_ptr<juce::AudioProcessorGraph> &graph, AudioEngine* audioEngine);
+    AudioOutputManager(std::vector<std::unique_ptr<GraphInstance>>& graphInstances,
+                       const std::weak_ptr<Transport>& transport);
     ~AudioOutputManager() override = default;
 
     void configure(ChannelsFormat format, double rate, int size) noexcept;
@@ -26,12 +31,12 @@ public:
     [[nodiscard]] double getSampleRate() const noexcept { return sampleRate; }
     [[nodiscard]] int getBlockSize() const noexcept { return blockSize; }
 
-
-
 private:
-    AudioEngine* audioEngine;
-    std::weak_ptr<juce::AudioProcessorGraph> graph;
+    std::vector<std::unique_ptr<GraphInstance>>& graphInstances;
+    std::weak_ptr<Transport> transport;
     ChannelsFormat channelsFormat = ChannelsFormat::Mono;
     double sampleRate = 48000.0;
     int blockSize = 512;
+    juce::AudioBuffer<float> mixBuffer;
+    juce::AudioBuffer<float> tempBuffer;
 };

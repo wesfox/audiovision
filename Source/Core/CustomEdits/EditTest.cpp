@@ -59,6 +59,12 @@ EditTest::EditTest() {
     // set output
     setAudioOutputTrack(DTrack);
 
+    // scene
+    auto scene1 = std::make_unique<Scene>(48000*0, 48000*2, "Scene 1");
+    auto scene2 = std::make_unique<Scene>(48000*2, 48000*4, "Scene 2");
+    addScene(std::move(scene1));
+    addScene(std::move(scene2));
+
     // fill the constructed EditTest with these tracks that have already correct routing
     addTrack(std::move(audioTrack1));
     addTrack(std::move(audioTrack2));

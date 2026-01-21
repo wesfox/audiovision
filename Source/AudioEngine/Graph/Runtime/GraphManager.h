@@ -9,13 +9,12 @@
 
 class Track;
 class Edit;
-class AudioEngine;
-
 class GraphNode;
 
 class GraphManager {
 public:
-    GraphManager(const std::weak_ptr<Edit> &edit, const AudioEngine *engine);
+    GraphManager(const std::weak_ptr<Edit>& edit,
+                 const std::shared_ptr<AudioProcessorGraph>& graph);
 
     ~GraphManager() = default;
 

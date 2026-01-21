@@ -5,11 +5,15 @@
 #include "AudioOutputManager.h"
 #include "Utils/Format.h"
 
-class AudioEngine;
+#include <vector>
+
+class GraphInstance;
+class Transport;
 
 class AudioOutputEngine {
 public:
-    explicit AudioOutputEngine(std::weak_ptr<juce::AudioProcessorGraph> graph, AudioEngine* audioEngine);
+    AudioOutputEngine(std::vector<std::unique_ptr<GraphInstance>>& graphInstances,
+                      const std::weak_ptr<Transport>& transport);
     ~AudioOutputEngine();
 
     void initialise(ChannelsFormat format, double rate, int size);
@@ -22,7 +26,6 @@ public:
 private:
     void configureDevice(ChannelsFormat format, double rate, int size);
 
-    std::weak_ptr<juce::AudioProcessorGraph> graph;
     juce::AudioDeviceManager deviceManager;
     AudioOutputManager audioOutputManager;
     bool initialised = false;

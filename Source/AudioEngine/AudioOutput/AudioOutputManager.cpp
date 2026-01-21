@@ -1,11 +1,15 @@
 #include "AudioOutputManager.h"
 
-#include "../AudioEngine.h"
+#include "../Graph/Runtime/GraphInstance.h"
+#include "Utils/Transport.h"
 
 // ------------------------ MainComponent Implementation ------------------------
 
-AudioOutputManager::AudioOutputManager(const std::weak_ptr<juce::AudioProcessorGraph> &graph_, AudioEngine* audioEngine):audioEngine(audioEngine) {
-    graph = graph_;
+AudioOutputManager::AudioOutputManager(std::vector<std::unique_ptr<GraphInstance>>& graphInstances,
+                                       const std::weak_ptr<Transport>& transport)
+    : graphInstances(graphInstances),
+      transport(transport)
+{
 }
 
 void AudioOutputManager::configure(ChannelsFormat format, double rate, int size) noexcept
@@ -34,24 +38,36 @@ void AudioOutputManager::audioDeviceIOCallbackWithContext(
     int numOutputChannels, int numSamples, const AudioIODeviceCallbackContext &context
     )
 {
-    for (int channel = 0; channel < numOutputChannels; ++channel) {
-        if (auto* output = outputChannelData[channel]) {
-            juce::FloatVectorOperations::clear(output, numSamples);
-        }
-    }
-    juce::AudioBuffer<float> buffer(numOutputChannels, numSamples);
+    mixBuffer.setSize(numOutputChannels, numSamples, false, false, true);
+    mixBuffer.clear();
+    tempBuffer.setSize(numOutputChannels, numSamples, false, false, true);
 
     juce::MidiBuffer midi;
 
-    graph.lock()->processBlock(buffer, midi);
+    for (auto& instance : graphInstances) {
+        if (!instance) {
+            continue;
+        }
+        auto& scene = instance->getScene();
+        tempBuffer.clear();
+        if (auto transportPtr = transport.lock()) {
+            auto curPos = transportPtr->getCursorPosition();
+            if (scene->sceneStartSample <= curPos && scene->sceneEndSample >= curPos) {
+                instance->processBlock(tempBuffer, midi);
+            }
+        }
+        for (int channel = 0; channel < numOutputChannels; ++channel) {
+            mixBuffer.addFrom(channel, 0, tempBuffer, channel, 0, numSamples);
+        }
+    }
 
-    if (auto transport = audioEngine->getTransport()) {
-        transport->advance(buffer.getNumSamples());
+    if (auto transportPtr = transport.lock()) {
+        transportPtr->advance(numSamples);
     }
 
     for (int channel = 0; channel < numOutputChannels; ++channel) {
-        for (int sample = 0; sample < numSamples; ++sample) {
-            outputChannelData[channel][sample] = buffer.getSample(channel, sample);
+        if (auto* output = outputChannelData[channel]) {
+            juce::FloatVectorOperations::copy(output, mixBuffer.getReadPointer(channel), numSamples);
         }
     }
 }
