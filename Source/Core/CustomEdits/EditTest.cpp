@@ -40,7 +40,7 @@ EditTest::EditTest() {
     auto reverbAuxTrack = AuxTrack::create("reverbAuxTrack");
     PluginRegistry pluginRegistry;
     pluginRegistry.scan();
-    if (auto reverbPlugin = pluginRegistry.getByName("TAL-Reverb")) {
+    if (auto reverbPlugin = pluginRegistry.getByName("MReverbMB")) {
         reverbAuxTrack->addPlugin(std::move(reverbPlugin));
     }
 

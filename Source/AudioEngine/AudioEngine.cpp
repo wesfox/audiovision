@@ -25,13 +25,32 @@ AudioEngine::AudioEngine(const std::weak_ptr<Edit>& edit):edit(edit) {
     audioOutputEngine->initialise(ChannelsFormat::Mono, 48000.0, 512);
 }
 
-AudioEngine::~AudioEngine() = default;
+AudioEngine::~AudioEngine()
+{
+    shutdown();
+}
 
 void AudioEngine::start()
 {
     transport->prepare(48000.0);
     transport->rewind();
     transport->play();
+}
+
+void AudioEngine::shutdown()
+{
+    if (audioOutputEngine) {
+        audioOutputEngine->shutdown();
+    }
+
+    for (auto& instance : graphInstances) {
+        if (instance) {
+            instance->shutdown();
+        }
+    }
+    graphInstances.clear();
+    pluginRegistry.reset();
+    pluginHost.reset();
 }
 
 std::shared_ptr<PluginRuntime> AudioEngine::createPluginRuntimeByName(const String& name,

@@ -27,7 +27,6 @@ GraphNode* GraphBuilder::fillGraphNode(
         return nullptr;
     }
 
-    juce::Logger::writeToLog("Move into Track" + track->getName().toStdString());
     GraphNode* existingNode = getNodeById(track->getId(), nodes);
     if (existingNode == nullptr) {
         auto newNode = GraphNode::create(

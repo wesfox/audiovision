@@ -6,6 +6,7 @@
 #include "../Builder/GraphBuilder.h"
 #include "GraphModule.h"
 #include "Core/Track/AudioTrack.h"
+#include "AudioEngine/Plugin/PluginChainBuilder.h"
 #include "AudioEngine/Plugin/PluginInstanceFactory.h"
 #include "AudioEngine/Plugin/PluginInstanceStore.h"
 
@@ -56,4 +57,5 @@ private:
     GraphDescription graphDescription;
     std::unique_ptr<PluginInstanceFactory> pluginFactory;
     PluginInstanceStore pluginInstanceStore;
+    std::unique_ptr<PluginChainBuilder> pluginChainBuilder;
 };

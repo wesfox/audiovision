@@ -15,6 +15,7 @@ GraphManager::GraphManager(const std::weak_ptr<Edit>& edit,
         48000,
         512);
     pluginFactory = std::make_unique<PluginInstanceFactory>();
+    pluginChainBuilder = std::make_unique<PluginChainBuilder>(pluginFactory.get(), &pluginInstanceStore);
 }
 
 void GraphManager::createGraph()
@@ -62,8 +63,7 @@ void GraphManager::createFinalGraph(const std::shared_ptr<Transport>& transport)
             graph,
             edit,
             transport,
-            pluginFactory.get(),
-            &pluginInstanceStore);
+            pluginChainBuilder.get());
         // graphModule.get()->virtualTrack =
         graphModules.emplace_back(std::move(graphModule));
     }

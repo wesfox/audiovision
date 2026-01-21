@@ -13,6 +13,7 @@ public:
 
     void build();
     void prepareToPlay(double sampleRate, int blockSize);
+    void shutdown();
 
     juce::AudioProcessorGraph& getGraph() const { return *graph; }
     GraphManager& getGraphManager() const { return *graphManager; }

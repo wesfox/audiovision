@@ -22,6 +22,7 @@ public:
     std::vector<std::unique_ptr<GraphInstance>> graphInstances;
 
     void start();
+    void shutdown();
 
     std::unique_ptr<AudioOutputEngine> audioOutputEngine;
 

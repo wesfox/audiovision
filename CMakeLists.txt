@@ -162,7 +162,7 @@ target_link_libraries(${TARGET_NAME} PRIVATE
         juce::juce_audio_formats
         juce::juce_audio_plugin_client
         juce::juce_audio_processors
-        juce::juce_audio_processors_headless
+        # juce::juce_audio_processors_headless
         juce::juce_audio_utils
         juce::juce_box2d
         juce::juce_core

@@ -31,7 +31,7 @@ MainComponent::MainComponent()
         }
     }
     if (reverbTrackId.isNotEmpty()) {
-        auto node = audioEngine->getPluginNode(reverbTrackId, "TAL-Reverb");
+        auto node = audioEngine->getPluginNode(reverbTrackId, "MReverbMB");
         if (node != nullptr) {
             pluginEditorHost->setPluginNode(node);
         } else {
@@ -48,6 +48,14 @@ MainComponent::MainComponent()
 
 MainComponent::~MainComponent()
 {
+    if (pluginEditorHost != nullptr) {
+        pluginEditorHost->setPluginNode(nullptr);
+    }
+    pluginEditorHost.reset();
+    if (audioEngine != nullptr) {
+        audioEngine->shutdown();
+    }
+    audioEngine.reset();
 }
 
 //==============================================================================

@@ -2,9 +2,7 @@
 
 #include "AudioEngine/Nodes/AudioTrackNode.h"
 #include "AudioEngine/Nodes/VolumeNode.h"
-#include "AudioEngine/Plugin/PluginInstanceFactory.h"
-#include "AudioEngine/Plugin/PluginInstanceStore.h"
-#include "Core/Plugin/Plugin.h"
+#include "AudioEngine/Plugin/PluginChainBuilder.h"
 
 // ------------------------ MainComponent Implementation ------------------------
 
@@ -13,15 +11,13 @@ GraphModule::GraphModule(
     const std::weak_ptr<AudioProcessorGraph>& graph,
     const std::weak_ptr<Edit>& edit,
     const std::weak_ptr<Transport>& transport,
-    PluginInstanceFactory* pluginFactory,
-    PluginInstanceStore* pluginInstanceStore
+    PluginChainBuilder* pluginChainBuilder
     ):
         virtualGraphNode(graphNode),
         edit(edit),
         transport(transport),
         graph(graph),
-        pluginFactory(pluginFactory),
-        pluginInstanceStore(pluginInstanceStore)
+        pluginChainBuilder(pluginChainBuilder)
     {
     auto* graphRef = getGraphRef();
 
@@ -40,14 +36,24 @@ GraphModule::GraphModule(
             auto transportPtr = transport.lock();
             auto sampleRate = transportPtr ? transportPtr->getSampleRate() : 48000.0;
             auto blockSize = transportPtr ? transportPtr->getCurrentBlockSize() : 512;
-            auto plugins = createPluginNodes(trackPtr->getPlugins(), sampleRate, blockSize);
-            if (!plugins.empty()) {
-                connectPluginChain(graphAudioTrackNode.get(), graphVolumeNode.get(), plugins, graphNode->getFormat());
+            if (pluginChainBuilder != nullptr) {
+                auto plugins = pluginChainBuilder->createPluginNodes(
+                    trackPtr->getPlugins(),
+                    *graphRef,
+                    graphNode->getTrackId(),
+                    sampleRate,
+                    blockSize);
+                pluginChainBuilder->connectChain(
+                    *graphRef,
+                    graphAudioTrackNode.get(),
+                    graphVolumeNode.get(),
+                    plugins,
+                    graphNode->getFormat());
             } else {
-                buildInternalConnexion(graphAudioTrackNode.get(), graphVolumeNode.get(), graphNode->getFormat());
+                connectNodes(*graphRef, graphAudioTrackNode.get(), graphVolumeNode.get(), graphNode->getFormat());
             }
         } else {
-            buildInternalConnexion(graphAudioTrackNode.get(), graphVolumeNode.get(), graphNode->getFormat());
+            connectNodes(*graphRef, graphAudioTrackNode.get(), graphVolumeNode.get(), graphNode->getFormat());
         }
     }
     else if (graphNode->getType() == GraphNodeType::AuxTrackGraphNode) {
@@ -60,10 +66,23 @@ GraphModule::GraphModule(
             auto transportPtr = transport.lock();
             auto sampleRate = transportPtr ? transportPtr->getSampleRate() : 48000.0;
             auto blockSize = transportPtr ? transportPtr->getCurrentBlockSize() : 512;
-            auto plugins = createPluginNodes(trackPtr->getPlugins(), sampleRate, blockSize);
-            if (!plugins.empty()) {
-                inputNode = plugins.front();
-                connectPluginsToOutput(graphVolumeNode.get(), plugins, graphNode->getFormat());
+            if (pluginChainBuilder != nullptr) {
+                auto plugins = pluginChainBuilder->createPluginNodes(
+                    trackPtr->getPlugins(),
+                    *graphRef,
+                    graphNode->getTrackId(),
+                    sampleRate,
+                    blockSize);
+                if (!plugins.empty()) {
+                    inputNode = plugins.front();
+                    pluginChainBuilder->connectPluginsToOutput(
+                        *graphRef,
+                        graphVolumeNode.get(),
+                        plugins,
+                        graphNode->getFormat());
+                } else {
+                    inputNode = outputNode;
+                }
             } else {
                 inputNode = outputNode;
             }
@@ -72,17 +91,6 @@ GraphModule::GraphModule(
         }
     }
 }
-
-void GraphModule::buildInternalConnexion(const AudioProcessorGraph::Node* nodeInput, const AudioProcessorGraph::Node* nodeOutput, const ChannelsFormat format) const {
-    auto* graphRef = getGraphRef();
-    for (auto i=0; i<ChannelCount(format); i++) {
-        graphRef->addConnection({
-            { nodeInput->nodeID, i },
-            { nodeOutput->nodeID, i }
-        });
-    }
-}
-
 
 std::weak_ptr<AudioTrack> GraphModule::getAudioTrackById(const String& trackId) const {
     const auto editPtr = edit.lock();
@@ -124,68 +132,15 @@ AudioProcessorGraph* GraphModule::getGraphRef() const
     return graphRef;
 }
 
-std::vector<juce::AudioProcessorGraph::Node::Ptr> GraphModule::createPluginNodes(
-    const std::vector<std::shared_ptr<Plugin>>& plugins,
-    double sampleRate,
-    int blockSize)
+void GraphModule::connectNodes(AudioProcessorGraph& graph,
+                               const AudioProcessorGraph::Node* nodeInput,
+                               const AudioProcessorGraph::Node* nodeOutput,
+                               ChannelsFormat format)
 {
-    std::vector<juce::AudioProcessorGraph::Node::Ptr> nodes;
-    if (pluginFactory == nullptr) {
-        return nodes;
+    for (auto i = 0; i < ChannelCount(format); i++) {
+        graph.addConnection({
+            { nodeInput->nodeID, i },
+            { nodeOutput->nodeID, i }
+        });
     }
-
-    for (const auto& plugin : plugins) {
-        if (!plugin) {
-            continue;
-        }
-        juce::String error;
-        auto instance = pluginFactory->createProcessorInstance(*plugin, sampleRate, blockSize, error);
-        if (!instance) {
-            juce::Logger::writeToLog("Plugin load error: " + error);
-            continue;
-        }
-        auto node = getGraphRef()->addNode(std::move(instance));
-        if (node != nullptr) {
-            nodes.push_back(node);
-            pluginNodes.push_back(node);
-            if (pluginInstanceStore != nullptr) {
-                pluginInstanceStore->add({ virtualGraphNode->getTrackId(), plugin->getName(), node });
-            }
-        }
-    }
-
-    return nodes;
-}
-
-void GraphModule::connectPluginChain(
-    const AudioProcessorGraph::Node* inputNode,
-    const AudioProcessorGraph::Node* outputNode,
-    const std::vector<juce::AudioProcessorGraph::Node::Ptr>& plugins,
-    ChannelsFormat format) const
-{
-    if (plugins.empty()) {
-        buildInternalConnexion(inputNode, outputNode, format);
-        return;
-    }
-
-    buildInternalConnexion(inputNode, plugins.front().get(), format);
-    for (size_t i = 1; i < plugins.size(); ++i) {
-        buildInternalConnexion(plugins[i - 1].get(), plugins[i].get(), format);
-    }
-    buildInternalConnexion(plugins.back().get(), outputNode, format);
-}
-
-void GraphModule::connectPluginsToOutput(
-    const AudioProcessorGraph::Node* outputNode,
-    const std::vector<juce::AudioProcessorGraph::Node::Ptr>& plugins,
-    ChannelsFormat format) const
-{
-    if (plugins.empty()) {
-        return;
-    }
-
-    for (size_t i = 1; i < plugins.size(); ++i) {
-        buildInternalConnexion(plugins[i - 1].get(), plugins[i].get(), format);
-    }
-    buildInternalConnexion(plugins.back().get(), outputNode, format);
 }

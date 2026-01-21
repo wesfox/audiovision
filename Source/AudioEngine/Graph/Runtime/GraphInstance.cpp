@@ -34,3 +34,10 @@ void GraphInstance::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuf
 {
     graph->processBlock(buffer, midi);
 }
+
+void GraphInstance::shutdown()
+{
+    graph->releaseResources();
+    graph->clear();
+    graphManager.reset();
+}
