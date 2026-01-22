@@ -18,8 +18,14 @@ public:
     std::vector<std::shared_ptr<Track>>& getTracks() {
         return tracks;
     }
+    const std::vector<std::shared_ptr<Track>>& getTracks() const {
+        return tracks;
+    }
 
     std::weak_ptr<Track> getAudioOutputTrack() {
+        return audioOutputTrack;
+    }
+    std::weak_ptr<Track> getAudioOutputTrack() const {
         return audioOutputTrack;
     }
 
@@ -32,6 +38,9 @@ public:
     }
 
     std::vector<std::shared_ptr<Scene>>& getScenes() {
+        return scenes;
+    }
+    const std::vector<std::shared_ptr<Scene>>& getScenes() const {
         return scenes;
     }
 

@@ -6,6 +6,7 @@
 #include <Utils/IO/AudioGraphMermaidExporter.h>
 
 #include "Core/CustomEdits/EditTest.h"
+#include "Utils/IO/EditSerializer.h"
 
 class GraphManagerTests : public juce::UnitTest
 {
@@ -35,14 +36,14 @@ public:
             AudioEngine audioEngine(edit);
 
             for (auto& graphInstance : audioEngine.getGraphInstances()) {
-                auto& graphManager = graphInstance->getGraphManager();
-                juce::Logger::writeToLog("Graphs for " + graphInstance->getScene()->getName());
+                auto& graphManager = graphInstance->getGraphManager();;
                 auto mermaid = GraphMermaidExporter::exportMermaid(graphManager.getGraphDescription());
                 juce::Logger::writeToLog(mermaid);
                 auto audioGraphMermaid = AudioGraphMermaidExporter::exportMermaid(graphInstance->getGraph());
                 juce::Logger::writeToLog(audioGraphMermaid);
 
             }
+            EditSerializer::exportToFile(*edit.get(), File("/Users/nico/code/Audiovision/exports"));
             expect(true);  // Basic construction test
         }
 

@@ -31,12 +31,6 @@ void GraphManager::createGraphFromEdit()
     graphNodes = graphDescription.nodes;
 }
 
-void GraphManager::createGraphFromScene(const Scene* scene)
-{
-    graphDescription = graphBuilder.buildDescription(scene);
-    graphNodes = graphDescription.nodes;
-}
-
 GraphNode* GraphManager::getNodeById(String id) {
     for (const auto& node : graphNodes) {
         if (node->getTrackId() == id) {

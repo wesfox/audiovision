@@ -64,7 +64,7 @@ void RecordSession::begin(int64 startSample, double newSampleRate, int newBlockS
 void RecordSession::end(int64 endSample)
 {
     state.isRecording = false;
-    state.endSample = endSample;
+    state.endSample = std::max(endSample, state.startSample);
     juce::Logger::writeToLog("RecordSession::end at sample " + juce::String(endSample));
 
     for (const auto& [trackId, node] : trackNodes) {
@@ -81,9 +81,11 @@ void RecordSession::end(int64 endSample)
 
 juce::File RecordSession::recordingsDirectory() const
 {
-    auto dir = juce::File::getCurrentWorkingDirectory().getChildFile("recordings");
+    auto dir = juce::File("/Users/nico/Music").getChildFile("recordings");
     if (!dir.exists()) {
-        dir.createDirectory();
+        if (dir.createDirectory().failed()) {
+            juce::Logger::writeToLog("RecordSession::recordingsDirectory creation failed : " + dir.getFullPathName());
+        }
     }
     return dir;
 }
@@ -94,7 +96,11 @@ void RecordSession::finalizeRecorder(const ActiveRecorder& activeRecorder)
     if (!track || !activeRecorder.recorder) {
         return;
     }
-    const auto recordedSamples = activeRecorder.recorder->getNumSamplesRecorded();
+    auto recordedSamples = activeRecorder.recorder->getNumSamplesRecorded();
+    const auto requestedSamples = state.endSample - state.startSample;
+    if (requestedSamples > 0) {
+        recordedSamples = std::min(recordedSamples, requestedSamples);
+    }
     if (recordedSamples <= 0) {
         juce::Logger::writeToLog("RecordSession::finalizeRecorder no samples for " + activeRecorder.trackId);
         return;

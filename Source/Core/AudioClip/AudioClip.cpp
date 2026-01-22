@@ -32,6 +32,11 @@ juce::Colour AudioClip::getColor() const
     return color;
 }
 
+String AudioClip::getAudioFilePath() const
+{
+    return audioFile ? audioFile->getFilePath() : String();
+}
+
 int64 AudioClip::getFileStartSample() const
 {
     return fileStartSample;

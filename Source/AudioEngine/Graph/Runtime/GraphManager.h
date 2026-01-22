@@ -23,8 +23,6 @@ public:
 
     void createGraphFromEdit();
 
-    void createGraphFromScene(const Scene *scene);
-
     ~GraphManager() = default;
 
     const std::weak_ptr<Edit> edit;

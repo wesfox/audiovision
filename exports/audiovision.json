@@ -1,0 +1,97 @@
+{
+  "tracks": [
+    {
+      "index": 0,
+      "name": "reverbAuxTrack",
+      "type": "Aux",
+      "armed": false,
+      "outputIndex": -1,
+      "clips": [],
+      "plugins": [
+        {
+          "name": "TAL-Reverb-2",
+          "vendor": "Unknown",
+          "path": "/Library/Audio/Plug-Ins/VST3/TAL-Reverb-2.vst3",
+          "format": "VST3"
+        }
+      ],
+      "sends": []
+    },
+    {
+      "index": 1,
+      "name": "audioTrack1",
+      "type": "Audio",
+      "armed": false,
+      "outputIndex": 3,
+      "clips": [
+        {
+          "filePath": "/Users/nico/Music/SEQ00_Actions horschampSDB.wav",
+          "fileStartSample": 240000,
+          "sessionStartSample": 0,
+          "sessionEndSample": 960000
+        },
+        {
+          "filePath": "/Users/nico/Music/SEQ00_Actions horschampSDB.wav",
+          "fileStartSample": 96000,
+          "sessionStartSample": 1536000,
+          "sessionEndSample": 1632000
+        }
+      ],
+      "plugins": [],
+      "sends": [
+        {
+          "destinationIndex": 0
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "name": "audioTrack2",
+      "type": "Audio",
+      "armed": false,
+      "outputIndex": 3,
+      "clips": [
+        {
+          "filePath": "/Users/nico/Music/ELYO PRINT_11.wav",
+          "fileStartSample": 0,
+          "sessionStartSample": 96000,
+          "sessionEndSample": 2400000
+        },
+        {
+          "filePath": "/Users/nico/Music/SEQ00_Actions horschampSDB.wav",
+          "fileStartSample": 0,
+          "sessionStartSample": 1440000,
+          "sessionEndSample": 1584000
+        }
+      ],
+      "plugins": [],
+      "sends": [
+        {
+          "destinationIndex": 0
+        }
+      ]
+    },
+    {
+      "index": 3,
+      "name": "dialAux",
+      "type": "Folder",
+      "armed": false,
+      "outputIndex": 4,
+      "clips": [],
+      "plugins": [],
+      "sends": []
+    },
+    {
+      "index": 4,
+      "name": "DTrack",
+      "type": "Audio",
+      "armed": true,
+      "outputIndex": -1,
+      "clips": [],
+      "plugins": [],
+      "sends": []
+    }
+  ],
+  "scenes": [],
+  "audioOutputIndex": 4
+}

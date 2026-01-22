@@ -33,7 +33,7 @@ private:
     std::unique_ptr<FileSelectorComponent> fileSelector;
     std::unique_ptr<RecordComponent> recordComponent;
     std::unique_ptr<PluginEditorWindow> pluginEditorWindow;
-    std::shared_ptr<EditTest> edit;
+    std::shared_ptr<Edit> edit;
     std::unique_ptr<AudioEngine> audioEngine;
     bool isShutDown = false;
 

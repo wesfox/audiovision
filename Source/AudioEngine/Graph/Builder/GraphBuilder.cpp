@@ -11,17 +11,7 @@ GraphDescription GraphBuilder::buildDescription(Edit& edit)
     GraphDescription description;
     std::set<std::pair<String, String>> seenConnections;
     for (const auto& track : edit.getTracks()) {
-        fillGraphNode(track.get(), description.nodes, seenConnections, description.connections);
-    }
-    return description;
-}
-
-GraphDescription GraphBuilder::buildDescription(const Scene* scene)
-{
-    GraphDescription description;
-    std::set<std::pair<String, String>> seenConnections;
-    for (const auto& track : scene->getTracks()) {
-        fillGraphNode(track.lock().get(), description.nodes, seenConnections, description.connections);
+        fillGraphNode(std::move(track.get()), description.nodes, seenConnections, description.connections);
     }
     return description;
 }
@@ -34,6 +24,7 @@ GraphNode* GraphBuilder::fillGraphNode(
 {
     if (track == nullptr) {
         juce::Logger::writeToLog("Got into an empty Track ???");
+        jassert(false);
         return nullptr;
     }
 

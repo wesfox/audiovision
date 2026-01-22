@@ -33,6 +33,7 @@ public:
     String getId() const;
     String getName() const;
     juce::Colour getColor() const;
+    String getAudioFilePath() const;
     int64 getFileStartSample() const;
     int64 getSessionStartSample() const;
 

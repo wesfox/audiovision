@@ -2,13 +2,15 @@
 
 #include "AudioEngine/AudioEngine.h"
 #include "Core/CustomEdits/EditTest.h"
+#include "Core/CustomEdits/ImportEdit.h"
+#include "Utils/IO/EditSerializer.h"
 
 //==============================================================================
 MainComponent::MainComponent()
 {
     setSize (600, 400);
 
-    edit = std::make_shared<EditTest>();
+    edit = ImportEdit::importEdit();
 
     fileSelector = std::make_unique<FileSelectorComponent>();
     fileSelector->onPlaySession = [this](const FileSelectorComponent::ImportedTrack& track) {
@@ -48,6 +50,7 @@ MainComponent::~MainComponent()
 
 void MainComponent::shutdown()
 {
+    EditSerializer::exportToFile(*edit, juce::File("/Users/nico/code/Audiovision/exports"));
     if (isShutDown) {
         return;
     }

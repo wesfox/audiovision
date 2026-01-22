@@ -3,20 +3,18 @@
 #include "Core/Edit/Edit.h"
 
 GraphInstance::GraphInstance(const std::shared_ptr<Edit>& edit,
-                             const std::shared_ptr<Transport>& transport,
-                             std::weak_ptr<Scene> scene)
+                             const std::shared_ptr<Transport>& transport)
     :
         edit(edit),
         transport(transport),
         graph(std::make_shared<juce::AudioProcessorGraph>()),
-        scene(std::move(scene)),
         recordSession(std::make_unique<RecordSession>())
 {
     graphManager = std::make_unique<GraphManager>(edit, graph, recordSession.get());
 }
 
 void GraphInstance::build() const {
-    graphManager->createGraphFromScene(getScene());
+    graphManager->createGraphFromEdit();
     graphManager->createFinalGraph(transport);
     graphManager->attachAudioOutput(edit->getAudioOutputTrack());
     auto transportPtr = transport;
