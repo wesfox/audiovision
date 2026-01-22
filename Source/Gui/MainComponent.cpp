@@ -17,29 +17,24 @@ MainComponent::MainComponent()
     };
     addAndMakeVisible(fileSelector.get());
 
+    recordComponent = std::make_unique<RecordComponent>();
+    recordComponent->onStartRecording = [this]() {
+        if (audioEngine != nullptr) {
+            audioEngine->startRecording();
+        }
+    };
+    recordComponent->onStopRecording = [this]() {
+        if (audioEngine != nullptr) {
+            audioEngine->stopRecording();
+        }
+    };
+    addAndMakeVisible(recordComponent.get());
+
     pluginEditorWindow = std::make_unique<PluginEditorWindow>();
 
     // Test sound stuff
     audioEngine = std::make_unique<AudioEngine>(edit);
     audioEngine->start();
-    String reverbTrackId;
-    for (const auto& track : edit->getTracks()) {
-        if (track->getName() == "reverbAuxTrack") {
-            reverbTrackId = track->getId();
-            break;
-        }
-    }
-    if (reverbTrackId.isNotEmpty()) {
-        auto node = audioEngine->getPluginNode(reverbTrackId, "TAL-Reverb-2");
-        if (node != nullptr) {
-            pluginEditorWindow->setPluginNode(node);
-            pluginEditorWindow->setVisible(true);
-        } else {
-            juce::Logger::writeToLog("Plugin node not found for reverbAuxTrack");
-        }
-    } else {
-        juce::Logger::writeToLog("Reverb aux track not found");
-    }
 
     // end test sound stuff
 
@@ -62,6 +57,7 @@ void MainComponent::shutdown()
         pluginEditorWindow->setVisible(false);
     }
     pluginEditorWindow.reset();
+    recordComponent.reset();
     if (audioEngine != nullptr) {
         audioEngine->shutdown();
     }
@@ -80,6 +76,10 @@ void MainComponent::paint (juce::Graphics& g)
 void MainComponent::resized()
 {
     auto bounds = getLocalBounds();
+    auto controlsArea = bounds.removeFromTop(40);
+    if (recordComponent != nullptr) {
+        recordComponent->setBounds(controlsArea);
+    }
     if (fileSelector != nullptr) {
         fileSelector->setBounds(bounds);
     }

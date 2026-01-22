@@ -15,7 +15,7 @@ EditTest::EditTest() {
     // auto voice2 = AudioFile::get(juce::File("/Users/nico/Music/120Hz 10s 48kHz.wav"));
 
     // Real AudioFiles
-    auto voice1 = AudioFile::get(juce::File("/Users/nico/Music/SEQ07_RespirationsCleo.wav"));
+    auto voice1 = AudioFile::get(juce::File("/Users/nico/Music/ELYO PRINT_11.wav"));
     auto voice2 = AudioFile::get(juce::File("/Users/nico/Music/SEQ00_Actions horschampSDB.wav"));
 
     // Clips AudioTrack 1
@@ -60,9 +60,10 @@ EditTest::EditTest() {
 
     // Set audioTracks output to the dialAux (which is a folder, only for the Scene 1)
 
-    auto DTrack = AuxTrack::create("DTrack");
+    auto DTrack = AudioTrack::create("DTrack");
     // set output
     setAudioOutputTrack(DTrack);
+    DTrack.get()->setArmed(true);
 
     auto dialAux = FolderTrack::create(nullptr, "dialAux");
 

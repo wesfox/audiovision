@@ -3,11 +3,14 @@
 #include "../Model/GraphNode.h"
 #include "Core/Edit/Edit.h"
 #include "Core/Track/Send.h"
+#include "AudioEngine/Recording/RecordSession.h"
 
 GraphManager::GraphManager(const std::weak_ptr<Edit>& edit,
-                           const std::shared_ptr<AudioProcessorGraph>& graph) :
+                           const std::shared_ptr<AudioProcessorGraph>& graph,
+                           RecordSession* recordSession) :
         edit(edit),
-        graph(graph)
+        graph(graph),
+        recordSession(recordSession)
 {
     graph->clear();
     graph->setPlayConfigDetails(1,
@@ -69,7 +72,8 @@ void GraphManager::createFinalGraph(const std::shared_ptr<Transport>& transport)
             graph,
             edit,
             transport,
-            pluginChainBuilder.get());
+            pluginChainBuilder.get(),
+            recordSession);
         // graphModule.get()->virtualTrack =
         graphModules.emplace_back(std::move(graphModule));
     }
@@ -126,4 +130,40 @@ void GraphManager::buildConnection(
             { outputModule->inputNode->nodeID, i }
         });
     }
+}
+
+void GraphManager::shutdown()
+{
+    pluginInstanceStore.clear();
+    graphModules.clear();
+    graphNodes.clear();
+    graphDescription.nodes.clear();
+    graphDescription.connections.clear();
+    if (recordSession != nullptr) {
+        recordSession->clearTrackNodes();
+    }
+    if (graph) {
+        auto nodes = graph->getNodes();
+        std::vector<juce::AudioProcessorGraph::NodeID> nodeIds;
+        nodeIds.reserve(static_cast<size_t>(nodes.size()));
+        for (auto* node : nodes) {
+            if (node != nullptr) {
+                nodeIds.push_back(node->nodeID);
+            }
+        }
+        for (const auto& nodeId : nodeIds) {
+            if (auto* node = graph->getNodeForId(nodeId)) {
+                if (auto* processor = node->getProcessor()) {
+                    processor->suspendProcessing(true);
+                    processor->releaseResources();
+                }
+            }
+            graph->removeNode(nodeId);
+        }
+        graph->releaseResources();
+        graph->clear();
+    }
+    pluginChainBuilder.reset();
+    pluginFactory.reset();
+    graph.reset();
 }

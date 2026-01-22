@@ -3,7 +3,6 @@
 #include <JuceHeader.h>
 #include "Track.h"
 #include <Core/AudioClip/AudioClip.h>
-#include "Utils/IO/Recorder.h"
 
 class AudioTrack : public Track {
 public:
@@ -32,6 +31,9 @@ public:
     /// @see RecordManager()
     bool isArmed() const {
         return armed;
+    }
+    void setArmed(bool shouldArm) {
+        armed = shouldArm;
     }
 
     /// Returns the list of Clips owned by the AudioTrack

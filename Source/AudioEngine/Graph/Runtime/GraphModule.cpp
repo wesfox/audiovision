@@ -3,6 +3,7 @@
 #include "AudioEngine/Nodes/AudioTrackNode.h"
 #include "AudioEngine/Nodes/VolumeNode.h"
 #include "AudioEngine/Plugin/PluginChainBuilder.h"
+#include "AudioEngine/Recording/RecordSession.h"
 
 // ------------------------ MainComponent Implementation ------------------------
 
@@ -11,21 +12,27 @@ GraphModule::GraphModule(
     const std::weak_ptr<AudioProcessorGraph>& graph,
     const std::weak_ptr<Edit>& edit,
     const std::weak_ptr<Transport>& transport,
-    PluginChainBuilder* pluginChainBuilder
+    PluginChainBuilder* pluginChainBuilder,
+    RecordSession* recordSession
     ):
         virtualGraphNode(graphNode),
         edit(edit),
         transport(transport),
         graph(graph),
-        pluginChainBuilder(pluginChainBuilder)
+        pluginChainBuilder(pluginChainBuilder),
+        recordSession(recordSession)
     {
     auto* graphRef = getGraphRef();
 
     if (graphNode->getType() == GraphNodeType::AudioTrackGraphNode) {
         auto track = getAudioTrackById(graphNode->getTrackId());
         auto audioTrackNode = std::make_unique<AudioTrackNode>(track, transport, graphNode);
+        auto* audioTrackNodePtr = audioTrackNode.get();
         auto graphAudioTrackNode = graphRef->addNode(std::move(audioTrackNode));
         inputNode = graphAudioTrackNode;
+        if (recordSession != nullptr && graphAudioTrackNode != nullptr) {
+            recordSession->registerTrackNode(graphNode->getTrackId(), audioTrackNodePtr);
+        }
 
         auto volumeNode = std::make_unique<VolumeNode>(transport, graphNode);
         auto graphVolumeNode = graphRef->addNode(std::move(volumeNode));

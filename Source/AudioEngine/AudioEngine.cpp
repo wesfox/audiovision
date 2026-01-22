@@ -37,6 +37,24 @@ void AudioEngine::start()
     transport->play();
 }
 
+void AudioEngine::startRecording()
+{
+    for (auto& instance : graphInstances) {
+        if (instance) {
+            instance->startRecording();
+        }
+    }
+}
+
+void AudioEngine::stopRecording()
+{
+    for (auto& instance : graphInstances) {
+        if (instance) {
+            instance->stopRecording();
+        }
+    }
+}
+
 void AudioEngine::shutdown()
 {
     if (audioOutputEngine) {

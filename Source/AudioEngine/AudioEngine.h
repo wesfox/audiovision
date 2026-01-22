@@ -22,6 +22,8 @@ public:
     std::vector<std::unique_ptr<GraphInstance>> graphInstances;
 
     void start();
+    void startRecording();
+    void stopRecording();
     void shutdown();
 
     std::unique_ptr<AudioOutputEngine> audioOutputEngine;
@@ -34,6 +36,25 @@ public:
         return graphInstances;
     }
 
+    /// Create a pluginRuntime to show it, Exemple Code :
+    /// String reverbTrackId;
+    /// for (const auto& track : edit->getTracks()) {
+    ///  if (track->getName() == "reverbAuxTrack") {
+    ///     reverbTrackId = track->getId();
+    ///     break;
+    /// }
+    /// }
+    /// if (reverbTrackId.isNotEmpty()) {
+    ///     auto node = audioEngine->getPluginNode(reverbTrackId, "TAL-Reverb-2");
+    ///     if (node != nullptr) {
+    ///         pluginEditorWindow->setPluginNode(node);
+    ///         pluginEditorWindow->setVisible(true);
+    ///     } else {
+    ///         juce::Logger::writeToLog("Plugin node not found for reverbAuxTrack");
+    ///     }
+    /// } else {
+    ///     juce::Logger::writeToLog("Reverb aux track not found");
+    /// }
     std::shared_ptr<PluginRuntime> createPluginRuntimeByName(const String& name,
                                                              double sampleRate,
                                                              int blockSize,

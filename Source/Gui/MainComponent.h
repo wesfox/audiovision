@@ -31,6 +31,7 @@ private:
     //==============================================================================
     // Your private member variables go here...
     std::unique_ptr<FileSelectorComponent> fileSelector;
+    std::unique_ptr<RecordComponent> recordComponent;
     std::unique_ptr<PluginEditorWindow> pluginEditorWindow;
     std::shared_ptr<EditTest> edit;
     std::unique_ptr<AudioEngine> audioEngine;

@@ -1,6 +1,7 @@
 #include "AudioTrackNode.h"
 
 #include "AudioEngine/Graph/Model/GraphNode.h"
+#include "AudioEngine/Recording/Recorder.h"
 
 #include <Core/Track/AudioTrack.h>
 
@@ -26,12 +27,14 @@ const juce::String AudioTrackNode::getName() const
 
 void AudioTrackNode::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer&)
 {
-    buffer.clear();
-
     const auto transportPtr = transport.lock();
     const auto trackPtr = audioTrack.lock();
     if (!transportPtr || !trackPtr) {
         return;
+    }
+
+    if (auto* recorder = activeRecorder.load(std::memory_order_relaxed)) {
+        recorder->pushBuffer(buffer, buffer.getNumSamples());
     }
 
     for (const auto& audioClip : trackPtr->getAudioClips()) {
@@ -56,6 +59,24 @@ void AudioTrackNode::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBu
             }
         }
     }
+}
+
+void AudioTrackNode::setActiveRecorder(Recorder* recorder)
+{
+    activeRecorder.store(recorder, std::memory_order_relaxed);
+}
+
+bool AudioTrackNode::isTrackArmed() const
+{
+    if (const auto trackPtr = audioTrack.lock()) {
+        return trackPtr->isArmed();
+    }
+    return false;
+}
+
+std::shared_ptr<AudioTrack> AudioTrackNode::getTrack() const
+{
+    return audioTrack.lock();
 }
 
 // void AudioTrackNode::applyGain() {

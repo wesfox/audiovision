@@ -8,6 +8,7 @@
 #include "Utils/Format.h"
 
 class PluginChainBuilder;
+class RecordSession;
 
 class GraphModule{
 public:
@@ -15,7 +16,8 @@ public:
                          const std::weak_ptr<AudioProcessorGraph>& graph,
                          const std::weak_ptr<Edit>& edit,
                          const std::weak_ptr<Transport>& transport,
-                         PluginChainBuilder* pluginChainBuilder);
+                         PluginChainBuilder* pluginChainBuilder,
+                         RecordSession* recordSession);
 
     [[nodiscard]] std::weak_ptr<AudioTrack> getAudioTrackById(const String &trackId) const;
     std::shared_ptr<Track> getTrackById(const String& trackId) const;
@@ -36,4 +38,5 @@ private:
 
     std::weak_ptr<AudioProcessorGraph> graph;
     PluginChainBuilder* pluginChainBuilder;
+    RecordSession* recordSession;
 };

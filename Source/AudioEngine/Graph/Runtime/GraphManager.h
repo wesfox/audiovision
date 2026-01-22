@@ -13,11 +13,13 @@
 class Track;
 class Edit;
 class GraphNode;
+class RecordSession;
 
 class GraphManager {
 public:
     GraphManager(const std::weak_ptr<Edit>& edit,
-                 const std::shared_ptr<AudioProcessorGraph>& graph);
+                 const std::shared_ptr<AudioProcessorGraph>& graph,
+                 RecordSession* recordSession);
 
     void createGraphFromEdit();
 
@@ -45,6 +47,7 @@ public:
     const GraphDescription& getGraphDescription() const { return graphDescription; }
 
     void setProcessingFormat(double sampleRate, int blockSize);
+    void shutdown();
     juce::AudioProcessorGraph::Node::Ptr findPluginNode(const String& trackId,
                                                         const String& pluginName) const;
 
@@ -59,4 +62,5 @@ private:
     std::unique_ptr<PluginInstanceFactory> pluginFactory;
     PluginInstanceStore pluginInstanceStore;
     std::unique_ptr<PluginChainBuilder> pluginChainBuilder;
+    RecordSession* recordSession = nullptr;
 };
