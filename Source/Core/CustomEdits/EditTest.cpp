@@ -28,7 +28,7 @@ EditTest::EditTest() {
     audioTrack1->addAudioClip(std::move(clipVoice12));
 
     // Clips AudioTrack 2
-    auto clipVoice21 = AudioClip::create(voice1, 48000 * 2, 48000 * 20, 48000 * 50);
+    auto clipVoice21 = AudioClip::create(voice1, 48000 * 0, 48000 * 2, 48000 * 50);
     auto clipVoice22 = AudioClip::create(voice2, 48000 * 0, 48000 * 30, 48000 * 33);
 
     // AudioTrack 2
@@ -37,37 +37,66 @@ EditTest::EditTest() {
     audioTrack2->addAudioClip(std::move(clipVoice22));
 
     // Add the ReverbAuxTrack
-    auto reverbAuxTrack = AuxTrack::create("reverbAuxTrack");
+    auto reverbAuxTrackScene1 = AuxTrack::create("reverbAuxTrackScene1");
     PluginRegistry pluginRegistry;
     pluginRegistry.scan();
     if (auto reverbPlugin = pluginRegistry.getByName("TAL-Reverb-2")) {
-        reverbAuxTrack->addPlugin(std::move(reverbPlugin));
+        reverbAuxTrackScene1->addPlugin(std::move(reverbPlugin));
+    }
+    auto reverbAuxTrackScene2 = AuxTrack::create("reverbAuxTrackScene2");
+    if (auto reverbPlugin = pluginRegistry.getByName("MReverbMB")) {
+        reverbAuxTrackScene2->addPlugin(std::move(reverbPlugin));
     }
 
-    auto send1toAux = Send::create(reverbAuxTrack);
+    auto send1toAux = Send::create(reverbAuxTrackScene1);
     audioTrack1->addSend(std::move(send1toAux));
 
-    auto send2toAux = Send::create(reverbAuxTrack);
+    auto send2toAux = Send::create(reverbAuxTrackScene2);
     audioTrack2->addSend(std::move(send2toAux));
 
-    // Set audioTracks output to the dialAux (which is a folder)
-    auto dialAux = FolderTrack::create(nullptr, "dialAux");
-    dialAux->addTrack(audioTrack1); // make audioTrack1 output dialAux
-    dialAux->addTrack(audioTrack2); // make audioTrack1 output dialAux
-    audioTrack1->setOutput(dialAux);
-    audioTrack2->setOutput(dialAux);
-    reverbAuxTrack->setOutput(dialAux);
+    ///////////////////
+    /// Global Mapping
+    ///
 
-    // Make dialAux output to DTrack
+    // Set audioTracks output to the dialAux (which is a folder, only for the Scene 1)
+
     auto DTrack = AuxTrack::create("DTrack");
-    dialAux->setOutput(DTrack);
-
     // set output
     setAudioOutputTrack(DTrack);
 
+    auto dialAux = FolderTrack::create(nullptr, "dialAux");
+
+    //////////////////
+    /// Scene 1 mapping
+    ///
+
+
     // scene
-    auto scene1 = std::make_unique<Scene>(48000*0, 48000*20, "Scene 1");
-    auto scene2 = std::make_unique<Scene>(48000*20, 48000*40, "Scene 2");
+    auto scene1 = std::make_shared<Scene>(48000*0, 48000*40, "Scene 1");
+
+    dialAux->addTrack(audioTrack1);
+    reverbAuxTrackScene1->setOutput(dialAux);
+    audioTrack1->setOutput(dialAux); // make audioTrack1 output dialAux
+
+    dialAux->setOutput(DTrack);
+
+    scene1->addTrack(audioTrack1);
+    scene1->addTrack(reverbAuxTrackScene1);
+    scene1->addTrack(dialAux);
+    scene1->addTrack(DTrack);
+
+    //////////////////
+    /// Scene 2 mapping
+    ///
+    auto scene2 = std::make_shared<Scene>(48000*0, 48000*40, "Scene 2");
+
+    audioTrack2->setOutput(DTrack);
+    reverbAuxTrackScene2->setOutput(DTrack);
+
+    scene2->addTrack(audioTrack2);
+    scene2->addTrack(DTrack);
+    scene2->addTrack(reverbAuxTrackScene2);
+
     addScene(std::move(scene1));
     addScene(std::move(scene2));
 
@@ -76,5 +105,6 @@ EditTest::EditTest() {
     addTrack(std::move(audioTrack2));
     addTrack(std::move(dialAux));
     addTrack(std::move(DTrack));
-    addTrack(std::move(reverbAuxTrack));
+    addTrack(std::move(reverbAuxTrackScene1));
+    addTrack(std::move(reverbAuxTrackScene2));
 }

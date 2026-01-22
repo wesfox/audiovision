@@ -16,6 +16,16 @@ GraphDescription GraphBuilder::buildDescription(Edit& edit)
     return description;
 }
 
+GraphDescription GraphBuilder::buildDescription(const Scene* scene)
+{
+    GraphDescription description;
+    std::set<std::pair<String, String>> seenConnections;
+    for (const auto& track : scene->getTracks()) {
+        fillGraphNode(track.lock().get(), description.nodes, seenConnections, description.connections);
+    }
+    return description;
+}
+
 GraphNode* GraphBuilder::fillGraphNode(
     Track* track,
     std::vector<std::shared_ptr<GraphNode>>& nodes,

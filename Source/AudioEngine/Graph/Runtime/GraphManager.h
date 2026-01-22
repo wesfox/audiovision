@@ -19,10 +19,11 @@ public:
     GraphManager(const std::weak_ptr<Edit>& edit,
                  const std::shared_ptr<AudioProcessorGraph>& graph);
 
-    ~GraphManager() = default;
+    void createGraphFromEdit();
 
-    // Methods
-    void createGraph();
+    void createGraphFromScene(const Scene *scene);
+
+    ~GraphManager() = default;
 
     const std::weak_ptr<Edit> edit;
 

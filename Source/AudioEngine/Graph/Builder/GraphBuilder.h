@@ -4,6 +4,7 @@
 #include <set>
 
 #include "../Model/GraphNode.h"
+#include "Core/Edit/Scene.h"
 
 class Edit;
 class Track;
@@ -21,6 +22,8 @@ struct GraphDescription {
 class GraphBuilder {
 public:
     GraphDescription buildDescription(Edit& edit);
+
+    GraphDescription buildDescription(const Scene *scene);
 
 private:
     GraphNode* fillGraphNode(

@@ -57,13 +57,14 @@ void AudioOutputManager::audioDeviceIOCallbackWithContext(
         if (!instance) {
             continue;
         }
-        auto& scene = instance->getScene();
+        const auto scene = instance->getScene();
         tempBuffer.clear();
         if (auto transportPtr = transport.lock()) {
             auto curPos = transportPtr->getCursorPosition();
             if (scene->sceneStartSample <= curPos && scene->sceneEndSample >= curPos) {
-                instance->processBlock(tempBuffer, midi);
+
             }
+            instance->processBlock(tempBuffer, midi);
         }
         for (int channel = 0; channel < numOutputChannels; ++channel) {
             mixBuffer.addFrom(channel, 0, tempBuffer, channel, 0, numSamples);

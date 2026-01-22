@@ -4,19 +4,18 @@
 
 GraphInstance::GraphInstance(const std::shared_ptr<Edit>& edit,
                              const std::shared_ptr<Transport>& transport,
-                             int sceneId)
+                             std::weak_ptr<Scene> scene)
     :
-        sceneId(sceneId),
         edit(edit),
         transport(transport),
-        graph(std::make_shared<juce::AudioProcessorGraph>())
+        graph(std::make_shared<juce::AudioProcessorGraph>()),
+        scene(std::move(scene))
 {
     graphManager = std::make_unique<GraphManager>(edit, graph);
 }
 
-void GraphInstance::build()
-{
-    graphManager->createGraph();
+void GraphInstance::build() const {
+    graphManager->createGraphFromScene(getScene());
     graphManager->createFinalGraph(transport);
     graphManager->attachAudioOutput(edit->getAudioOutputTrack());
     auto transportPtr = transport;

@@ -18,13 +18,19 @@ GraphManager::GraphManager(const std::weak_ptr<Edit>& edit,
     pluginChainBuilder = std::make_unique<PluginChainBuilder>(pluginFactory.get(), &pluginInstanceStore);
 }
 
-void GraphManager::createGraph()
+void GraphManager::createGraphFromEdit()
 {
     const auto editPtr = edit.lock();
     if (!editPtr) {
         return;
     }
     graphDescription = graphBuilder.buildDescription(*editPtr);
+    graphNodes = graphDescription.nodes;
+}
+
+void GraphManager::createGraphFromScene(const Scene* scene)
+{
+    graphDescription = graphBuilder.buildDescription(scene);
     graphNodes = graphDescription.nodes;
 }
 

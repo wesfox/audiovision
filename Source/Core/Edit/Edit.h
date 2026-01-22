@@ -27,18 +27,18 @@ public:
         return audioOutputTrack = audioOutputTrackToSet;
     }
 
-    void addScene(std::unique_ptr<Scene> scene) {
+    void addScene(std::shared_ptr<Scene> scene) {
         scenes.push_back(std::move(scene));
     }
 
-    std::vector<std::unique_ptr<Scene>>& getScenes() {
+    std::vector<std::shared_ptr<Scene>>& getScenes() {
         return scenes;
     }
 
 
 private:
     Transport transport;
-    std::vector<std::unique_ptr<Scene>> scenes;
+    std::vector<std::shared_ptr<Scene>> scenes;
     String projectName;
     AutomationManager automationManager;
     int64 videoStartFrame;

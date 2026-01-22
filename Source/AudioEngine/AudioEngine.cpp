@@ -9,8 +9,8 @@ AudioEngine::AudioEngine(const std::weak_ptr<Edit>& edit):edit(edit) {
     transport = std::make_shared<Transport>();
 
     if (auto editPtr = edit.lock()) {
-        for (int i =0; i!=editPtr->getScenes().size(); i++) {
-            auto graphInstance = std::make_unique<GraphInstance>(editPtr, transport, i);
+        for (auto& scene : editPtr->getScenes()) {
+            auto graphInstance = std::make_unique<GraphInstance>(editPtr, transport, scene);
             graphInstance->build();
             graphInstances.emplace_back(std::move(graphInstance));
         }
