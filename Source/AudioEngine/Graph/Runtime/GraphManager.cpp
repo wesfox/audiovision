@@ -19,6 +19,7 @@ GraphManager::GraphManager(const std::weak_ptr<Edit>& edit,
         512);
     pluginFactory = std::make_unique<PluginInstanceFactory>();
     pluginChainBuilder = std::make_unique<PluginChainBuilder>(pluginFactory.get(), &pluginInstanceStore);
+    valueTreeManager = std::make_unique<ValueTreeManager>();
 }
 
 void GraphManager::createGraphFromEdit()
@@ -29,6 +30,9 @@ void GraphManager::createGraphFromEdit()
     }
     graphDescription = graphBuilder.buildDescription(*editPtr);
     graphNodes = graphDescription.nodes;
+    if (valueTreeManager) {
+        valueTreeManager->buildForGraph(*this);
+    }
 }
 
 GraphNode* GraphManager::getNodeById(String id) {
@@ -67,7 +71,8 @@ void GraphManager::createFinalGraph(const std::shared_ptr<Transport>& transport)
             edit,
             transport,
             pluginChainBuilder.get(),
-            recordSession);
+            recordSession,
+            valueTreeManager.get());
         // graphModule.get()->virtualTrack =
         graphModules.emplace_back(std::move(graphModule));
     }

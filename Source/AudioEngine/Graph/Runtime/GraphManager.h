@@ -9,6 +9,7 @@
 #include "AudioEngine/Plugin/PluginChainBuilder.h"
 #include "AudioEngine/Plugin/PluginInstanceFactory.h"
 #include "AudioEngine/Plugin/PluginInstanceStore.h"
+#include "AudioEngine/Parameters/ValueTreeManager.h"
 
 class Track;
 class Edit;
@@ -49,6 +50,8 @@ public:
     juce::AudioProcessorGraph::Node::Ptr findPluginNode(const String& trackId,
                                                         const String& pluginName) const;
 
+    ValueTreeManager& getValueTreeManager() const { return *valueTreeManager; }
+
 private:
     void buildConnection(const GraphModule* inputModule,
                          const GraphModule* outputModule,
@@ -61,4 +64,5 @@ private:
     PluginInstanceStore pluginInstanceStore;
     std::unique_ptr<PluginChainBuilder> pluginChainBuilder;
     RecordSession* recordSession = nullptr;
+    std::unique_ptr<ValueTreeManager> valueTreeManager;
 };

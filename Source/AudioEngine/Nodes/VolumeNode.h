@@ -9,7 +9,9 @@ class GraphNode;
 
 class VolumeNode : public juce::AudioProcessor {
 public:
-    VolumeNode(const std::weak_ptr<Transport>& transport, const GraphNode* graphNode);
+    VolumeNode(const std::weak_ptr<Transport>& transport,
+               const GraphNode* graphNode,
+               std::atomic<float>* volumeDbParam);
 
     const juce::String getName() const override;
 
@@ -37,4 +39,5 @@ public:
 private:
     std::weak_ptr<Transport> transport;
     const GraphNode* graphNode;
+    std::atomic<float>* volumeParam = nullptr;
 };

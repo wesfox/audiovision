@@ -2,9 +2,12 @@
 
 #include "AudioEngine/Graph/Model/GraphNode.h"
 
-VolumeNode::VolumeNode(const std::weak_ptr<Transport>& transport, const GraphNode* graphNode)
+VolumeNode::VolumeNode(const std::weak_ptr<Transport>& transport,
+                       const GraphNode* graphNode,
+                       std::atomic<float>* volumeParam)
     : transport(transport),
-      graphNode(graphNode)
+      graphNode(graphNode),
+      volumeParam(volumeParam)
 {
     setPlayConfigDetails(2, 2, 48000.0, 512);
 }
@@ -29,5 +32,7 @@ void VolumeNode::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer
     }
     // We got here because at least one sample was not a finite value
     jassert (!nonFiniteValueAlert);
-    buffer.applyGain(1.0f); // Apply unity gain
+    const float volume = volumeParam ? volumeParam->load() : 1.0f;
+    juce::Logger::writeToLog(getName() + String(volume));
+    buffer.applyGain(volume);
 }

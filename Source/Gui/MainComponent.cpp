@@ -4,6 +4,7 @@
 #include "Core/CustomEdits/EditTest.h"
 #include "Core/CustomEdits/ImportEdit.h"
 #include "Utils/IO/EditSerializer.h"
+#include "AudioEngine/Parameters/ValueTreeManager.h"
 
 //==============================================================================
 MainComponent::MainComponent()
@@ -39,6 +40,36 @@ MainComponent::MainComponent()
     audioEngine->start();
 
     // end test sound stuff
+    volumeSlider.setRange(0.0, 1.0, 0.01);
+    volumeSlider.setValue(1.0);
+    volumeSlider.onValueChange = [this]() {
+        if (volumeParam != nullptr) {
+            volumeParam->setValueNotifyingHost(static_cast<float>(volumeSlider.getValue()));
+        }
+    };
+    addAndMakeVisible(volumeSlider);
+
+    if (audioEngine != nullptr && !audioEngine->getGraphInstances().empty() && edit != nullptr) {
+        auto& graphManager = audioEngine->getGraphInstances().front()->getGraphManager();
+        auto& valueTreeManager = graphManager.getValueTreeManager();
+        if (auto* apvts = valueTreeManager.getState()) {
+            const auto& tracks = edit->getTracks();
+            if (!tracks.empty()) {
+                for (auto track : tracks) {
+                    if (track->getName() == "DTrack"){
+                        juce::Logger::writeToLog("slider attached to DTrack");
+                        const auto paramId = valueTreeManager.makeParamId(track->getId(), "volume");
+                        volumeParam = apvts->getParameter(paramId);
+                        if (volumeParam != nullptr) {
+                            volumeSlider.setValue(volumeParam->getValue(), juce::dontSendNotification);
+                        }
+                    }
+                }
+            }
+
+        }
+    }
+
 
     setSize(800, 700);
 }
@@ -80,9 +111,11 @@ void MainComponent::resized()
 {
     auto bounds = getLocalBounds();
     auto controlsArea = bounds.removeFromTop(40);
+    auto sliderArea = bounds.removeFromTop(40);
     if (recordComponent != nullptr) {
         recordComponent->setBounds(controlsArea);
     }
+    volumeSlider.setBounds(sliderArea.removeFromLeft(200).reduced(8, 4));
     if (fileSelector != nullptr) {
         fileSelector->setBounds(bounds);
     }

@@ -4,6 +4,7 @@
 #include "AudioEngine/Nodes/VolumeNode.h"
 #include "AudioEngine/Plugin/PluginChainBuilder.h"
 #include "AudioEngine/Recording/RecordSession.h"
+#include "AudioEngine/Parameters/ValueTreeManager.h"
 
 // ------------------------ MainComponent Implementation ------------------------
 
@@ -13,14 +14,16 @@ GraphModule::GraphModule(
     const std::weak_ptr<Edit>& edit,
     const std::weak_ptr<Transport>& transport,
     PluginChainBuilder* pluginChainBuilder,
-    RecordSession* recordSession
+    RecordSession* recordSession,
+    ValueTreeManager* valueTreeManager
     ):
         virtualGraphNode(graphNode),
         edit(edit),
         transport(transport),
         graph(graph),
         pluginChainBuilder(pluginChainBuilder),
-        recordSession(recordSession)
+        recordSession(recordSession),
+        valueTreeManager(valueTreeManager)
     {
     auto* graphRef = getGraphRef();
 
@@ -34,7 +37,10 @@ GraphModule::GraphModule(
             recordSession->registerTrackNode(graphNode->getTrackId(), audioTrackNodePtr);
         }
 
-        auto volumeNode = std::make_unique<VolumeNode>(transport, graphNode);
+        auto* volumeParam = valueTreeManager
+            ? valueTreeManager->getRawParameterValue(graphNode->getTrackId(), "volume")
+            : nullptr;
+        auto volumeNode = std::make_unique<VolumeNode>(transport, graphNode, volumeParam);
         auto graphVolumeNode = graphRef->addNode(std::move(volumeNode));
         outputNode = graphVolumeNode;
 
@@ -64,7 +70,10 @@ GraphModule::GraphModule(
         }
     }
     else if (graphNode->getType() == GraphNodeType::AuxTrackGraphNode) {
-        auto volumeNode = std::make_unique<VolumeNode>(transport, graphNode);
+        auto* volumeParam = valueTreeManager
+            ? valueTreeManager->getRawParameterValue(graphNode->getTrackId(), "volume")
+            : nullptr;
+        auto volumeNode = std::make_unique<VolumeNode>(transport, graphNode, volumeParam);
         auto graphVolumeNode = graphRef->addNode(std::move(volumeNode));
         outputNode = graphVolumeNode;
 

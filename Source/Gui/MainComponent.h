@@ -36,6 +36,8 @@ private:
     std::shared_ptr<Edit> edit;
     std::unique_ptr<AudioEngine> audioEngine;
     bool isShutDown = false;
+    juce::Slider volumeSlider;
+    juce::AudioProcessorParameter* volumeParam = nullptr;
 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
