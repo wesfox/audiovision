@@ -4,12 +4,21 @@
 
 VolumeNode::VolumeNode(const std::weak_ptr<Transport>& transport,
                        const GraphNode* graphNode,
-                       std::atomic<float>* volumeParam)
+                       const std::map<ParameterKey, std::atomic<float>*>& parameters)
     : transport(transport),
-      graphNode(graphNode),
-      volumeParam(volumeParam)
+      graphNode(graphNode)
 {
+    bindParameters(parameters);
     setPlayConfigDetails(2, 2, 48000.0, 512);
+}
+
+const std::vector<ParameterKey>& VolumeNode::requiredParameters()
+{
+    static const std::vector<ParameterKey> keys = {
+        ParameterKey::Volume,
+        ParameterKey::StereoPan
+    };
+    return keys;
 }
 
 const juce::String VolumeNode::getName() const
@@ -32,7 +41,11 @@ void VolumeNode::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer
     }
     // We got here because at least one sample was not a finite value
     jassert (!nonFiniteValueAlert);
-    const float volume = volumeParam ? volumeParam->load() : 1.0f;
-    juce::Logger::writeToLog(getName() + String(volume));
-    buffer.applyGain(volume);
+    const auto* param = getParameter(ParameterKey::Volume);
+    const float gain = param ? param->load() : 1.0f;
+    const auto* panParam = getParameter(ParameterKey::StereoPan);
+    const float pan = panParam ? panParam->load() : 1.0f;
+    // juce::Logger::writeToLog(graphNode->getName() + " - " + String(gain));
+    // juce::Logger::writeToLog(graphNode->getName() + " - " + String(pan));
+    buffer.applyGain(gain);
 }

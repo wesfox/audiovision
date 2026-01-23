@@ -4,6 +4,7 @@
 
 #include <atomic>
 #include <memory>
+#include <map>
 
 #include "ParameterFactory.h"
 
@@ -17,9 +18,18 @@ public:
 
     std::atomic<float>* getRawParameterValue(const juce::String& trackId,
                                              const juce::String& paramName) const;
+    std::atomic<float>* getRawParameterValue(const juce::String& trackId,
+                                             ParameterKey key) const;
+    std::map<ParameterKey, std::atomic<float>*> buildParamMap(
+        const juce::String& trackId,
+        const std::vector<ParameterKey>& keys) const;
+    float getParameterValue(const juce::String& trackId, ParameterKey key) const;
+    void setParameterValue(const juce::String& trackId, ParameterKey key, float value) const;
 
     juce::String makeParamId(const juce::String& trackId,
                              const juce::String& paramName) const;
+    juce::String makeParamId(const juce::String& trackId,
+                             ParameterKey key) const;
 
     juce::AudioProcessorValueTreeState* getState() const { return apvts.get(); }
 
@@ -49,6 +59,5 @@ private:
     };
 
     ParameterHost host;
-    ParameterFactory factory;
     std::unique_ptr<juce::AudioProcessorValueTreeState> apvts;
 };

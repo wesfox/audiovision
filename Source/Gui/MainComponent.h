@@ -38,6 +38,8 @@ private:
     bool isShutDown = false;
     juce::Slider volumeSlider;
     juce::AudioProcessorParameter* volumeParam = nullptr;
+    juce::Slider stereoPanSlider;
+    juce::AudioProcessorParameter* stereoPanParam = nullptr;
 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)

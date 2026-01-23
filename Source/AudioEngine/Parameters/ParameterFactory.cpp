@@ -1,15 +1,29 @@
 #include "ParameterFactory.h"
 
-#include "AudioEngine/Graph/Model/GraphNode.h"
-
-std::vector<ParameterDescriptor> ParameterFactory::collectForNode(const GraphNode& /*graphNode*/) const
+const std::vector<ParamDef>& allParamDefs()
 {
-    ParameterDescriptor volume;
-    volume.name = "volume";
-    volume.minValue = 0.0f;
-    volume.maxValue = 1.0f;
-    volume.defaultValue = 1.0f;
-    volume.label = "";
+    static const std::vector<ParamDef> defs = {
+        { ParameterKey::Volume, "volume", 0.0f, 1.0f, 1.0f, "" },
+        { ParameterKey::StereoPan, "stereoPan", -1.0f, 1.0f, 0.0f, "" }
+    };
+    return defs;
+}
 
-    return { volume };
+const ParamDef* findParamDef(ParameterKey key)
+{
+    const auto& defs = allParamDefs();
+    for (const auto& def : defs) {
+        if (def.key == key) {
+            return &def;
+        }
+    }
+    return nullptr;
+}
+
+juce::String paramName(ParameterKey key)
+{
+    if (const auto* def = findParamDef(key)) {
+        return def->name;
+    }
+    return "unknown";
 }

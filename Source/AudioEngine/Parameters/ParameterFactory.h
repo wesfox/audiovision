@@ -4,17 +4,20 @@
 
 #include <vector>
 
-class GraphNode;
+enum class ParameterKey {
+    Volume,
+    StereoPan
+};
 
-struct ParameterDescriptor {
+struct ParamDef {
+    ParameterKey key;
     juce::String name;
-    float minValue = 0.0f;
-    float maxValue = 1.0f;
-    float defaultValue = 0.0f;
+    float minValue;
+    float maxValue;
+    float defaultValue;
     juce::String label;
 };
 
-class ParameterFactory {
-public:
-    std::vector<ParameterDescriptor> collectForNode(const GraphNode& graphNode) const;
-};
+const std::vector<ParamDef>& allParamDefs();
+const ParamDef* findParamDef(ParameterKey key);
+juce::String paramName(ParameterKey key);
