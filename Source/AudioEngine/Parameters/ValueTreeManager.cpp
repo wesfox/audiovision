@@ -2,6 +2,8 @@
 
 #include "AudioEngine/Graph/Runtime/GraphManager.h"
 
+#include <set>
+
 ValueTreeManager::ParameterHost::ParameterHost()
 {
 }
@@ -88,6 +90,89 @@ void ValueTreeManager::setParameterValue(const juce::String& trackId,
         return;
     }
     param->setValueNotifyingHost(param->convertTo0to1(value));
+}
+
+void ValueTreeManager::registerPluginParameters(const juce::String& pluginId,
+                                                 juce::AudioProcessor& processor)
+{
+    std::vector<PluginParamInfo> params;
+    const auto& parameters = processor.getParameters();
+    params.reserve(static_cast<size_t>(parameters.size()));
+
+    std::set<juce::String> usedIds;
+    for (int i = 0; i < parameters.size(); ++i) {
+        auto* param = parameters.getUnchecked(i);
+        if (param == nullptr) {
+            continue;
+        }
+        auto* ranged = dynamic_cast<juce::RangedAudioParameter*>(param);
+        auto id = ranged ? ranged->getParameterID() : juce::String();
+        if (id.isEmpty()) {
+            id = "p" + juce::String(i);
+        }
+        if (usedIds.find(id) != usedIds.end()) {
+            id = id + "_" + juce::String(i);
+        }
+        usedIds.insert(id);
+
+        PluginParamInfo info;
+        info.id = id;
+        info.name = param->getName(256);
+        info.param = param;
+        info.rangedParam = ranged;
+        params.push_back(info);
+    }
+
+    pluginParams[pluginId] = std::move(params);
+}
+
+const std::vector<ValueTreeManager::PluginParamInfo>* ValueTreeManager::getPluginParameters(
+    const juce::String& pluginId) const
+{
+    auto it = pluginParams.find(pluginId);
+    if (it == pluginParams.end()) {
+        return nullptr;
+    }
+    return &it->second;
+}
+
+float ValueTreeManager::getPluginParameterValue(const juce::String& pluginId,
+                                                const juce::String& paramId) const
+{
+    auto it = pluginParams.find(pluginId);
+    if (it == pluginParams.end()) {
+        return 0.0f;
+    }
+    for (const auto& info : it->second) {
+        if (info.id == paramId && info.param != nullptr) {
+            const auto value01 = info.param->getValue();
+            if (info.rangedParam) {
+                return info.rangedParam->convertFrom0to1(value01);
+            }
+            return value01;
+        }
+    }
+    return 0.0f;
+}
+
+void ValueTreeManager::setPluginParameterValue(const juce::String& pluginId,
+                                               const juce::String& paramId,
+                                               float value) const
+{
+    auto it = pluginParams.find(pluginId);
+    if (it == pluginParams.end()) {
+        return;
+    }
+    for (const auto& info : it->second) {
+        if (info.id == paramId && info.param != nullptr) {
+            if (info.rangedParam) {
+                info.param->setValueNotifyingHost(info.rangedParam->convertTo0to1(value));
+            } else {
+                info.param->setValueNotifyingHost(value);
+            }
+            return;
+        }
+    }
 }
 
 juce::String ValueTreeManager::makeParamId(const juce::String& trackId,

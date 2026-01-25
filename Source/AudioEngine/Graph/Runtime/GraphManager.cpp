@@ -89,6 +89,11 @@ juce::AudioProcessorGraph::Node::Ptr GraphManager::findPluginNode(const String& 
     return pluginInstanceStore.find(trackId, pluginName);
 }
 
+juce::AudioProcessorGraph::Node::Ptr GraphManager::findPluginNodeByName(const String& pluginName) const
+{
+    return pluginInstanceStore.findByPluginName(pluginName);
+}
+
 void GraphManager::attachAudioOutput(std::weak_ptr<Track> track) {
     auto newAudioOutputNode = graph->addNode(
         std::make_unique<juce::AudioProcessorGraph::AudioGraphIOProcessor>(

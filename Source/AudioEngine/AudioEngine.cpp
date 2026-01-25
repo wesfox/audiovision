@@ -68,23 +68,6 @@ void AudioEngine::shutdown()
     pluginHost.reset();
 }
 
-std::shared_ptr<PluginRuntime> AudioEngine::createPluginRuntimeByName(const String& name,
-                                                                      double sampleRate,
-                                                                      int blockSize,
-                                                                      juce::String& error) const
-{
-    if (!pluginRegistry || !pluginHost) {
-        error = "Plugin host not initialised";
-        return {};
-    }
-    auto plugin = pluginRegistry->getByName(name);
-    if (!plugin) {
-        error = "Plugin not found";
-        return {};
-    }
-    return pluginHost->createInstance(*plugin, sampleRate, blockSize, error);
-}
-
 juce::AudioProcessorGraph::Node::Ptr AudioEngine::getPluginNode(const String& trackId,
                                                                 const String& pluginName) const
 {
@@ -96,4 +79,24 @@ juce::AudioProcessorGraph::Node::Ptr AudioEngine::getPluginNode(const String& tr
     }
 
     return {};
+}
+
+juce::AudioProcessorGraph::Node::Ptr AudioEngine::getPluginNodeByName(const String& pluginName) const
+{
+    for (const auto& instance : graphInstances) {
+        auto node = instance->getGraphManager().findPluginNodeByName(pluginName);
+        if (node != nullptr) {
+            return node;
+        }
+    }
+
+    return {};
+}
+
+const PluginInstanceStore* AudioEngine::getPluginInstanceStore() const
+{
+    if (graphInstances.empty() || !graphInstances.front()) {
+        return nullptr;
+    }
+    return &graphInstances.front()->getGraphManager().getPluginInstanceStore();
 }

@@ -53,15 +53,3 @@ std::unique_ptr<juce::AudioPluginInstance> PluginInstanceFactory::createProcesso
 
     return instance;
 }
-
-std::shared_ptr<PluginRuntime> PluginInstanceFactory::createInstance(const Plugin& plugin,
-                                                                     double sampleRate,
-                                                                     int blockSize,
-                                                                     juce::String& error) const
-{
-    auto instance = createProcessorInstance(plugin, sampleRate, blockSize, error);
-    if (!instance) {
-        return {};
-    }
-    return std::make_shared<PluginRuntime>(std::move(instance));
-}

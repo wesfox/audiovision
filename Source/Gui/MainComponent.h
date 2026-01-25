@@ -40,6 +40,7 @@ private:
     juce::AudioProcessorParameter* volumeParam = nullptr;
     juce::Slider stereoPanSlider;
     juce::AudioProcessorParameter* stereoPanParam = nullptr;
+    juce::Slider reverbDrySlider;
 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)

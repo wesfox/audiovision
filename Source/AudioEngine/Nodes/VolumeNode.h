@@ -22,5 +22,4 @@ public:
 private:
     std::weak_ptr<Transport> transport;
     const GraphNode* graphNode;
-    const dsp::Panner<float> panner;
 };

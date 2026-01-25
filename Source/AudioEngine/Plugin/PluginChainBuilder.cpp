@@ -4,6 +4,36 @@
 #include "AudioEngine/Plugin/PluginInstanceStore.h"
 #include "Core/Plugin/Plugin.h"
 
+namespace {
+void logPluginParameters(const juce::AudioProcessor& processor, const juce::String& pluginName, const juce::String& trackId)
+{
+    const auto& params = processor.getParameters();
+    juce::Logger::writeToLog("Plugin params [" + pluginName + "] trackId=" + trackId +
+                             " count=" + juce::String(params.size()));
+    for (int i = 0; i < params.size(); ++i) {
+        auto* param = params.getUnchecked(i);
+        if (param == nullptr) {
+            continue;
+        }
+        auto* ranged = dynamic_cast<juce::RangedAudioParameter*>(param);
+        const auto name = param->getName(256);
+        const auto id = ranged ? ranged->getParameterID() : "";
+        const auto value01 = param->getValue();
+        juce::String value = juce::String(value01);
+        if (ranged) {
+            value = juce::String(ranged->convertFrom0to1(value01));
+        }
+        const auto min = ranged ? juce::String(ranged->getNormalisableRange().start) : "";
+        const auto max = ranged ? juce::String(ranged->getNormalisableRange().end) : "";
+        const auto def = ranged ? juce::String(ranged->convertFrom0to1(ranged->getDefaultValue())) : "";
+        juce::Logger::writeToLog("  [" + juce::String(i) + "] " + name +
+                                 " id=" + id +
+                                 " value=" + value +
+                                 (ranged ? " range=[" + min + "," + max + "] default=" + def : ""));
+    }
+}
+}
+
 PluginChainBuilder::PluginChainBuilder(PluginInstanceFactory* pluginFactory,
                                        PluginInstanceStore* pluginInstanceStore)
     : pluginFactory(pluginFactory),
@@ -38,6 +68,9 @@ std::vector<juce::AudioProcessorGraph::Node::Ptr> PluginChainBuilder::createPlug
             nodes.push_back(node);
             if (pluginInstanceStore != nullptr) {
                 pluginInstanceStore->add({ trackId, plugin->getName(), node });
+            }
+            if (auto* processor = node->getProcessor()) {
+                logPluginParameters(*processor, plugin->getName(), trackId);
             }
         }
     }

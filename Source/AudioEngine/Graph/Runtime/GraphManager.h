@@ -49,8 +49,10 @@ public:
     void shutdown();
     juce::AudioProcessorGraph::Node::Ptr findPluginNode(const String& trackId,
                                                         const String& pluginName) const;
+    juce::AudioProcessorGraph::Node::Ptr findPluginNodeByName(const String& pluginName) const;
 
     ValueTreeManager& getValueTreeManager() const { return *valueTreeManager; }
+    const PluginInstanceStore& getPluginInstanceStore() const { return pluginInstanceStore; }
 
 private:
     void buildConnection(const GraphModule* inputModule,

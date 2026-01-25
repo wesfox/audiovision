@@ -5,6 +5,7 @@
 #include <atomic>
 #include <memory>
 #include <map>
+#include <vector>
 
 #include "ParameterFactory.h"
 
@@ -12,6 +13,13 @@ class GraphManager;
 
 class ValueTreeManager {
 public:
+    struct PluginParamInfo {
+        juce::String id;
+        juce::String name;
+        juce::AudioProcessorParameter* param = nullptr;
+        juce::RangedAudioParameter* rangedParam = nullptr;
+    };
+
     ValueTreeManager();
 
     void buildForGraph(const GraphManager& graphManager);
@@ -25,6 +33,12 @@ public:
         const std::vector<ParameterKey>& keys) const;
     float getParameterValue(const juce::String& trackId, ParameterKey key) const;
     void setParameterValue(const juce::String& trackId, ParameterKey key, float value) const;
+    void registerPluginParameters(const juce::String& pluginId, juce::AudioProcessor& processor);
+    const std::vector<PluginParamInfo>* getPluginParameters(const juce::String& pluginId) const;
+    float getPluginParameterValue(const juce::String& pluginId, const juce::String& paramId) const;
+    void setPluginParameterValue(const juce::String& pluginId,
+                                 const juce::String& paramId,
+                                 float value) const;
 
     juce::String makeParamId(const juce::String& trackId,
                              const juce::String& paramName) const;
@@ -60,4 +74,5 @@ private:
 
     ParameterHost host;
     std::unique_ptr<juce::AudioProcessorValueTreeState> apvts;
+    std::map<juce::String, std::vector<PluginParamInfo>> pluginParams;
 };

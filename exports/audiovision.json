@@ -5,7 +5,7 @@
       "name": "reverbAuxTrack",
       "type": "Aux",
       "armed": false,
-      "outputIndex": -1,
+      "outputIndex": 3,
       "clips": [],
       "plugins": [
         {

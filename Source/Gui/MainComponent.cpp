@@ -6,6 +6,7 @@
 #include "Utils/IO/EditSerializer.h"
 #include "AudioEngine/Parameters/ValueTreeManager.h"
 #include "AudioEngine/Parameters/ParameterFactory.h"
+#include "AudioEngine/Plugin/PluginInstanceStore.h"
 
 //==============================================================================
 MainComponent::MainComponent()
@@ -41,6 +42,26 @@ MainComponent::MainComponent()
     audioEngine->start();
 
     // end test sound stuff
+    if (audioEngine != nullptr && edit != nullptr) {
+        juce::String reverbTrackId;
+        for (const auto& track : edit->getTracks()) {
+            if (track != nullptr && track->getName() == "reverbAuxTrack") {
+                reverbTrackId = track->getId();
+                break;
+            }
+        }
+        if (reverbTrackId.isNotEmpty()) {
+            auto node = audioEngine->getPluginNode(reverbTrackId, "TAL-Reverb-2");
+            if (node != nullptr) {
+                pluginEditorWindow->setPluginNode(node);
+                pluginEditorWindow->setVisible(true);
+            } else {
+                juce::Logger::writeToLog("Plugin node not found for TAL-Reverb-2");
+            }
+        } else {
+            juce::Logger::writeToLog("Reverb aux track not found");
+        }
+    }
     volumeSlider.setRange(0.0, 1.0, 0.01);
     volumeSlider.setValue(1.0);
     volumeSlider.onValueChange = [this]() {
@@ -81,6 +102,22 @@ MainComponent::MainComponent()
     };
     addAndMakeVisible(stereoPanSlider);
 
+    auto* pluginStore = audioEngine->getPluginInstanceStore();
+    PluginInstanceStore::ParamInfo roomSizeParam =
+        pluginStore->getParameterByName("TAL-Reverb-2", "room size");
+    reverbDrySlider.setRange(roomSizeParam.minValue, roomSizeParam.maxValue, 0.01);
+    reverbDrySlider.setValue(roomSizeParam.value);
+    reverbDrySlider.onValueChange = [this]() {
+        if (audioEngine == nullptr) {
+            return;
+        }
+        if (auto* store = audioEngine->getPluginInstanceStore()) {
+            store->setParameterValue("TAL-Reverb-2", "room size",
+                                     static_cast<float>(reverbDrySlider.getValue()));
+        }
+    };
+    addAndMakeVisible(reverbDrySlider);
+
     if (audioEngine != nullptr && !audioEngine->getGraphInstances().empty() && edit != nullptr) {
         auto& graphManager = audioEngine->getGraphInstances().front()->getGraphManager();
         auto& valueTreeManager = graphManager.getValueTreeManager();
@@ -111,6 +148,13 @@ MainComponent::MainComponent()
 
         }
     }
+
+    // if (audioEngine != nullptr) {
+    //     if (auto* store = audioEngine->getPluginInstanceStore()) {
+    //         const auto value = store->getParameterValue("TAL-Reverb-2", "dry");
+    //         reverbDrySlider.setValue(value, juce::dontSendNotification);
+    //     }
+    // }
 
     setSize(800, 700);
 }
@@ -158,6 +202,7 @@ void MainComponent::resized()
     }
     volumeSlider.setBounds(sliderArea.removeFromLeft(200).reduced(8, 4));
     stereoPanSlider.setBounds(sliderArea.removeFromLeft(200).reduced(8, 4));
+    reverbDrySlider.setBounds(sliderArea.removeFromLeft(200).reduced(8, 4));
     if (fileSelector != nullptr) {
         fileSelector->setBounds(bounds);
     }

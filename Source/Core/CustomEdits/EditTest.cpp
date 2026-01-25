@@ -59,6 +59,7 @@ EditTest::EditTest() {
     dialAux->addTrack(audioTrack2);
     audioTrack1->setOutput(dialAux); // make audioTrack1 output dialAux
     audioTrack2->setOutput(dialAux); // make audioTrack2 output dialAux
+    reverbAuxTrack->setOutput(dialAux); // make reverbAuxTrack output dialAux
 
     dialAux->setOutput(DTrack);
     // set output
