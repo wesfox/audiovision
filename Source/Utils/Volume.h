@@ -2,14 +2,14 @@
 
 #include <juce_dsp/juce_dsp.h>
 
-// ------------------------ Volume ------------------------
-
-
-
+/// Utility for gain handling and conversions.
 class Volume {
 public:
+    /// Maximum linear gain.
     inline static float MAX_GAIN = 4.0f; // 12.0 db
 
+    /// Create a volume with a clamped linear gain.
+    /// @param linearGain initial linear gain
     explicit Volume(float linearGain) {
         if (linearGain > MAX_GAIN) {
             linearGain = MAX_GAIN;
@@ -24,7 +24,8 @@ public:
     //     return getGainLinear();
     // }
 
-    /// get linear from db must not be used for -infinity
+    /// Convert a linear gain to decibels (not for -infinity).
+    /// @param dbGain linear gain value
     static float getDbFromLinear(float dbGain) {
         juce::dsp::Gain<float> tmpVolume;
         tmpVolume.setGainDecibels(dbGain);

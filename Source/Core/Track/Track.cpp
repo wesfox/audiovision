@@ -1,5 +1,7 @@
 #include "Track.h"
 #include <Utils/Uuid.h>
+
+#include <utility>
 #include "Send.h"
 
 Track::Track(String name)
@@ -12,9 +14,9 @@ Track::Track(String name)
       mute(false),
       format(ChannelsFormat::Stereo),
       outputFormat(ChannelsFormat::Stereo),
-      height(0.0f),
-      name(name),
-      color(juce::Colours::white)
+      height(100.0f),
+      name(std::move(name)),
+      colour(juce::Colour(0xFF63A129))
 {
 }
 

@@ -8,18 +8,26 @@
 
 #include "juce_graphics/fonts/harfbuzz/hb-cplusplus.hh"
 
-/// Allows to read with low latency from a file
-/// TODO : Handle multi-mono files
+/// Read audio data from disk with low-latency access.
+/// TODO: handle multi-mono files.
 class AudioFile {
 public:
+    /// Create an audio file reader from a path.
+    /// @param filePath file path to load
     explicit AudioFile(String filePath);
     ~AudioFile() = default;
 
+    /// Get a cached AudioFile instance for a file.
+    /// @param file audio file to load
     static std::shared_ptr<AudioFile> get (const juce::File& file);
 
-    // Getters
+    /// File identifier.
     String getId() const;
+
+    /// Full file path.
     String getFilePath() const;
+
+    /// File name only.
     String getFileName() const;
 
     /// Channel format used by the file, can be inferred by metadata or filenames used for the import

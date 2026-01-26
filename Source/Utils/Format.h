@@ -2,6 +2,7 @@
 #include <string_view>
 #include <cstdint>
 
+/// Channel layout identifier used across the engine.
 enum class ChannelsFormat : std::uint8_t
 {
     Mono,      // 1
@@ -14,6 +15,8 @@ enum class ChannelsFormat : std::uint8_t
     SevenOne   // 8 (7.1)
 };
 
+/// Return the channel count for a format.
+/// @param f channel format
 constexpr int ChannelCount(const ChannelsFormat f) noexcept
 {
     switch (f)
@@ -30,6 +33,8 @@ constexpr int ChannelCount(const ChannelsFormat f) noexcept
     return 0;
 }
 
+/// Return a display name for a format.
+/// @param f channel format
 inline String ChannelsFormatName(const ChannelsFormat f) noexcept
 {
     switch (f)
@@ -46,6 +51,8 @@ inline String ChannelsFormatName(const ChannelsFormat f) noexcept
     return "Unknown";
 }
 
+/// Map a format to a JUCE AudioChannelSet.
+/// @param f channel format
 inline const juce::AudioChannelSet& GetAudioChannelSet (const ChannelsFormat f) noexcept
 {
     static const juce::AudioChannelSet mono       = juce::AudioChannelSet::mono();

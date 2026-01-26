@@ -35,11 +35,31 @@ MainComponent::MainComponent()
     };
     addAndMakeVisible(recordComponent.get());
 
+    zoomInButton.onClick = [this]() {
+        if (edit != nullptr) {
+            edit->zoom(-0.1f);
+            repaint();
+            resized();
+        }
+    };
+    addAndMakeVisible(zoomInButton);
+
+    zoomOutButton.onClick = [this]() {
+        if (edit != nullptr) {
+            edit->zoom(0.1f);
+            repaint();
+            resized();
+            trackContentPanel->resized();
+            trackContentPanel->repaint();
+        }
+    };
+    addAndMakeVisible(zoomOutButton);
+
     pluginEditorWindow = std::make_unique<PluginEditorWindow>();
 
     // Test sound stuff
     audioEngine = std::make_unique<AudioEngine>(edit);
-    audioEngine->start();
+    // audioEngine->start();
 
     // end test sound stuff
     if (audioEngine != nullptr && edit != nullptr) {
@@ -156,6 +176,12 @@ MainComponent::MainComponent()
     //     }
     // }
 
+    trackHeaderPanel = std::make_unique<TrackHeaderPanel>(*edit);
+    addAndMakeVisible(trackHeaderPanel.get());
+
+    trackContentPanel = std::make_unique<TrackContentPanel>(*edit);
+    addAndMakeVisible(trackContentPanel.get());
+
     setSize(800, 700);
 }
 
@@ -198,12 +224,20 @@ void MainComponent::resized()
     auto controlsArea = bounds.removeFromTop(40);
     auto sliderArea = bounds.removeFromTop(40);
     if (recordComponent != nullptr) {
-        recordComponent->setBounds(controlsArea);
+        recordComponent->setBounds(controlsArea.removeFromLeft(200));
     }
+    zoomOutButton.setBounds(controlsArea.removeFromLeft(40).reduced(4));
+    zoomInButton.setBounds(controlsArea.removeFromLeft(40).reduced(4));
     volumeSlider.setBounds(sliderArea.removeFromLeft(200).reduced(8, 4));
     stereoPanSlider.setBounds(sliderArea.removeFromLeft(200).reduced(8, 4));
     reverbDrySlider.setBounds(sliderArea.removeFromLeft(200).reduced(8, 4));
     if (fileSelector != nullptr) {
         fileSelector->setBounds(bounds);
+    }
+    if (trackHeaderPanel != nullptr) {
+        trackHeaderPanel->setBounds(bounds.removeFromLeft(200));
+    }
+    if (trackContentPanel !=nullptr) {
+        trackContentPanel->setBounds(bounds);
     }
 }

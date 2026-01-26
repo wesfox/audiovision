@@ -4,17 +4,21 @@
 #include "Track.h"
 #include <Core/AudioClip/AudioClip.h>
 
+/// Track that owns and renders audio clips.
 class AudioTrack : public Track {
 public:
+    /// Create an audio track with an optional name.
+    /// @param name display name
     AudioTrack(const String &name="");
 
-    /// This function returns a new AudioTrack
+    /// Create a shared audio track.
+    /// @param name display name
     static std::shared_ptr<AudioTrack> create(const String& name="")
     {
         return std::make_shared<AudioTrack>(name);
     }
 
-    /// If true, the audio track works as an aux track and ignores its clips
+    /// True when the track monitors input instead of clips.
     bool isInputMonitoring() const {
         return inputMonitoring;
     }
@@ -26,17 +30,20 @@ public:
         audioClips.push_back(std::move(audioClip));
     }
 
-    /// If true, if a record start, a new audio clip will be created at the end of the record calling addAudioClip()
+    /// True when recording will create a new clip.
     /// @see addAudioClip()
     /// @see RecordManager()
     bool isArmed() const {
         return armed;
     }
+
+    /// Arm or disarm this track for recording.
+    /// @param shouldArm new armed state
     void setArmed(bool shouldArm) {
         armed = shouldArm;
     }
 
-    /// Returns the list of Clips owned by the AudioTrack
+    /// Access clips owned by this track.
     const std::vector<std::unique_ptr<AudioClip>>& getAudioClips() const noexcept{
         return audioClips;
     }

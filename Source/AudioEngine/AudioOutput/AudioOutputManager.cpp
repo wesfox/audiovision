@@ -53,21 +53,23 @@ void AudioOutputManager::audioDeviceIOCallbackWithContext(
 
     juce::MidiBuffer midi;
 
-    for (auto& instance : graphInstances) {
+    for (const auto& instance : graphInstances) {
         if (!instance) {
             continue;
         }
         tempBuffer.clear();
-        if (auto transportPtr = transport.lock()) {
-            instance->processBlock(tempBuffer, midi);
+        if (const auto transportPtr = transport.lock()) {
+            if (transportPtr->isPlaying())
+                instance->processBlock(tempBuffer, midi);
         }
         for (int channel = 0; channel < numOutputChannels; ++channel) {
             mixBuffer.addFrom(channel, 0, tempBuffer, channel, 0, numSamples);
         }
     }
 
-    if (auto transportPtr = transport.lock()) {
-        transportPtr->advance(numSamples);
+    if (const auto transportPtr = transport.lock()) {
+        if (transportPtr->isPlaying())
+            transportPtr->advance(numSamples);
     }
 
     for (int channel = 0; channel < numOutputChannels; ++channel) {

@@ -65,7 +65,12 @@ EditTest::EditTest() {
     // set output
     setAudioOutputTrack(DTrack);
     // arm to record
-    DTrack.get()->setArmed(true);
+    DTrack->setArmed(true);
+
+    auto scene1 = std::make_shared<Scene>(0,48000*24, "Scene 1");
+    auto scene2 = std::make_shared<Scene>(48000*24,48000*40, "Scene 2");
+    addScene(std::move(scene1));
+    addScene(std::move(scene2));
 
     // fill the constructed EditTest with these tracks that have already correct routing
     addTrack(std::move(reverbAuxTrack));

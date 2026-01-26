@@ -7,14 +7,25 @@
 #include "FadeOut.h"
 #include "GainLine.h"
 
+/// Audio clip with timing, fades, and gain automation.
 class AudioClip {
 public:
+    /// Create a clip bound to an audio file.
+    /// @param audioFile source audio file
     AudioClip(const std::shared_ptr<AudioFile> &audioFile);
-    /// This function returns a new AudioClip
+
+    /// Create a clip with default timing.
+    /// @param audioFile source audio file
     static std::unique_ptr<AudioClip> create(const std::shared_ptr<AudioFile>& audioFile)
     {
         return std::make_unique<AudioClip>(audioFile);
     }
+
+    /// Create a clip with explicit timing.
+    /// @param audioFile source audio file
+    /// @param fileStartSample start sample within the file
+    /// @param sessionStartSample start sample in the session timeline
+    /// @param sessionEndSample end sample in the session timeline
     static std::unique_ptr<AudioClip> create(const std::shared_ptr<AudioFile>& audioFile,
                                              int64 fileStartSample,
                                              int64 sessionStartSample,
@@ -29,27 +40,43 @@ public:
 
     ~AudioClip() = default;
 
-    // Getters
+    /// Clip identifier.
     String getId() const;
+
+    /// Clip display name.
     String getName() const;
+
+    /// Clip color used in the UI.
     juce::Colour getColor() const;
+
+    /// Source audio file path.
     String getAudioFilePath() const;
+
+    /// Start sample within the audio file.
     int64 getFileStartSample() const;
+
+    /// Start sample in the session timeline.
     int64 getSessionStartSample() const;
 
     /// End sample of the Clip, when reading, only [startSample, endSample - 1] are read
     int64 getSessionEndSample() const;
+
+    /// Clip length in samples.
     int64 getClipLength() const;
+
+    /// Sample rate of the source file.
     double getSampleRate() const;
+
+    /// Channel format of the clip.
     ChannelsFormat getFormat() const;
 
-    // Methods
-    std::vector<float> getWaveformData();
+    /// Compute waveform data for display.
+    std::vector<float> getWaveformData() const;
 
     /// Reads a chunk of the Clip
     /// @param startSample positive integer, relative start sample FROM the beginning of the Clip
     /// @param numberOfSamples number of samples to read. If the length of the Clip is < startSample + numberOfSamples (the clips ends before), it is filled with zeros
-    juce::AudioBuffer<float> read(int64 startSample, int64 numberOfSamples);
+    juce::AudioBuffer<float> read(int64 startSample, int64 numberOfSamples) const;
 
     /// Move the clip to a new start sample in the timeline (keeping its exact length)
     /// @param newSessionStartSample positive integer, absolute new position of the clip start sample
@@ -82,13 +109,27 @@ public:
     /// @param keepFade si the fade also trimmed or moved with the head
     void trimTail(int64 newSessionEndSample, bool keepFade = false);
 
+    /// Set the start sample in the session timeline.
+    /// @param newSessionStartSample new start sample
     void setSessionStartSample(int64 newSessionStartSample);
+
+    /// Set the end sample in the session timeline.
+    /// @param newSessionEndSample new end sample
     void setSessionEndSample(int64 newSessionEndSample);
+
+    /// Set the clip sample rate.
+    /// @param newSampleRate new sample rate
     void setSampleRate(double newSampleRate);
+
+    /// Set the start sample within the audio file.
+    /// @param newFileStartSample new file start sample
     void setFileStartSample(int64 newFileStartSample);
 
     /// If true, the read method returns an empty (cleared), buffer
     bool isMuted() const { return muted; }
+
+    /// Mute or unmute the clip.
+    /// @param isMuted new mute state
     void mute(const bool isMuted){ muted = isMuted; }
 
 private:
@@ -110,4 +151,7 @@ private:
 
     String name;
     juce::Colour color;
+
+    mutable std::vector<float> waveformCache;
+    mutable int64 waveformCacheLength = -1;
 };

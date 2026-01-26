@@ -11,8 +11,10 @@
 
 class GraphManager;
 
+/// Own app parameters and provide access helpers for UI and nodes.
 class ValueTreeManager {
 public:
+    /// Plugin parameter view for UI and automation helpers.
     struct PluginParamInfo {
         juce::String id;
         juce::String name;
@@ -22,32 +24,79 @@ public:
 
     ValueTreeManager();
 
+    /// Build app-owned parameters for the current graph.
+    /// @param graphManager graph manager providing nodes
     void buildForGraph(const GraphManager& graphManager);
 
+    /// Get a raw parameter pointer by track id and name.
+    /// @param trackId track id owning the parameter
+    /// @param paramName parameter name
     std::atomic<float>* getRawParameterValue(const juce::String& trackId,
                                              const juce::String& paramName) const;
+
+    /// Get a raw parameter pointer by track id and key.
+    /// @param trackId track id owning the parameter
+    /// @param key parameter identifier
     std::atomic<float>* getRawParameterValue(const juce::String& trackId,
                                              ParameterKey key) const;
+
+    /// Build a map of raw parameter pointers for a node.
+    /// @param trackId track id owning the parameters
+    /// @param keys parameter identifiers to fetch
     std::map<ParameterKey, std::atomic<float>*> buildParamMap(
         const juce::String& trackId,
         const std::vector<ParameterKey>& keys) const;
+
+    /// Read a parameter value in real units.
+    /// @param trackId track id owning the parameter
+    /// @param key parameter identifier
     float getParameterValue(const juce::String& trackId, ParameterKey key) const;
+
+    /// Set a parameter value in real units.
+    /// @param trackId track id owning the parameter
+    /// @param key parameter identifier
+    /// @param value new value in real units
     void setParameterValue(const juce::String& trackId, ParameterKey key, float value) const;
+
+    /// Register plugin parameters for lookup by plugin id.
+    /// @param pluginId unique plugin id
+    /// @param processor plugin processor instance
     void registerPluginParameters(const juce::String& pluginId, juce::AudioProcessor& processor);
+
+    /// Access cached plugin parameters by plugin id.
+    /// @param pluginId unique plugin id
     const std::vector<PluginParamInfo>* getPluginParameters(const juce::String& pluginId) const;
+
+    /// Read a plugin parameter value in real units.
+    /// @param pluginId unique plugin id
+    /// @param paramId parameter id or name
     float getPluginParameterValue(const juce::String& pluginId, const juce::String& paramId) const;
+
+    /// Set a plugin parameter value in real units.
+    /// @param pluginId unique plugin id
+    /// @param paramId parameter id or name
+    /// @param value new value in real units
     void setPluginParameterValue(const juce::String& pluginId,
                                  const juce::String& paramId,
                                  float value) const;
 
+    /// Build a stable app parameter id for APVTS.
+    /// @param trackId track id owning the parameter
+    /// @param paramName parameter name
     juce::String makeParamId(const juce::String& trackId,
                              const juce::String& paramName) const;
+
+    /// Build a stable app parameter id for APVTS.
+    /// @param trackId track id owning the parameter
+    /// @param key parameter identifier
     juce::String makeParamId(const juce::String& trackId,
                              ParameterKey key) const;
 
+    /// Access the underlying APVTS.
     juce::AudioProcessorValueTreeState* getState() const { return apvts.get(); }
 
 private:
+    /// Minimal AudioProcessor host for APVTS (no-op overrides are required by JUCE).
     class ParameterHost final : public juce::AudioProcessor {
     public:
         ParameterHost();

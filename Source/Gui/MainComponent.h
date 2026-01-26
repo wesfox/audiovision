@@ -7,29 +7,29 @@
 #include <Utils/Transport.h>
 
 #include "AudioEngine/AudioEngine.h"
+#include "Components/Track/TrackContentPanel.h"
+#include "Components/Track/TrackHeaderPanel.h"
 
 class EditTest;
 
-//==============================================================================
-/*
-    This component lives inside our window, and this is where you should put all
-    your controls and content.
-*/
+/// Main application UI root component.
 class MainComponent  : public juce::Component
 {
 public:
-    //==============================================================================
+    /// Create the main UI and engine.
     MainComponent();
     ~MainComponent() override;
+
+    /// Release resources and stop audio.
     void shutdown();
 
-    //==============================================================================
+    /// Draw the background.
     void paint (juce::Graphics&) override;
+
+    /// Layout child components.
     void resized() override;
 
 private:
-    //==============================================================================
-    // Your private member variables go here...
     std::unique_ptr<FileSelectorComponent> fileSelector;
     std::unique_ptr<RecordComponent> recordComponent;
     std::unique_ptr<PluginEditorWindow> pluginEditorWindow;
@@ -41,6 +41,11 @@ private:
     juce::Slider stereoPanSlider;
     juce::AudioProcessorParameter* stereoPanParam = nullptr;
     juce::Slider reverbDrySlider;
+    juce::TextButton zoomInButton{ "+" };
+    juce::TextButton zoomOutButton{ "-" };
+
+    std::unique_ptr<TrackHeaderPanel> trackHeaderPanel;
+    std::unique_ptr<TrackContentPanel> trackContentPanel;
 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)

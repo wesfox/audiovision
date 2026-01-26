@@ -2,33 +2,37 @@
 
 #include <atomic>
 
-// ------------------------ Transport ------------------------
-
+/// Thread-safe playback transport state.
 class Transport
 {
 public:
+    /// Initialise transport with a sample rate.
+    /// @param sr sample rate
     void prepare(double sr)
     {
         sampleRate = sr;
         currentSample.store(0);
     }
 
+    /// Start playback.
     void play()
     {
         playing.store(true);
     }
 
+    /// Stop playback.
     void stop()
     {
         playing.store(false);
     }
 
-    /// set transport to 0
+    /// Reset transport position to zero.
     void rewind()
     {
         currentSample.store(0);
     }
 
+    /// True when playback is active.
     bool isPlaying() const
     {
         return playing.load();
@@ -42,22 +46,28 @@ public:
             currentSample.fetch_add(numSamples);
     }
 
+    /// Current sample rate.
     double getSampleRate() const {
         return sampleRate.load();
     }
 
+    /// Current block size.
     int getCurrentBlockSize() const {
         return blockSize.load();
     }
 
+    /// Set the current block size.
+    /// @param newBlockSize new block size
     void setCurrentBlockSize(int newBlockSize) {
         blockSize.store(newBlockSize);
     }
 
+    /// Current playhead position in samples.
     int64_t getCursorPosition() const {
         return currentSample.load();
     }
 
+    /// Current playhead position in milliseconds.
     double getMs() const {
         return static_cast<double>(currentSample.load()) / static_cast<double>(sampleRate.load()) * 1000.0;
     }

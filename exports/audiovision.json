@@ -92,6 +92,19 @@
       "sends": []
     }
   ],
-  "scenes": [],
+  "scenes": [
+    {
+      "name": "Scene 1",
+      "startSample": 0,
+      "endSample": 1152000,
+      "trackIndices": []
+    },
+    {
+      "name": "Scene 2",
+      "startSample": 1152000,
+      "endSample": 1920000,
+      "trackIndices": []
+    }
+  ],
   "audioOutputIndex": 4
 }

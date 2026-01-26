@@ -7,23 +7,29 @@
 
 #include "AudioEngine/Parameters/ParameterFactory.h"
 
+/// Base audio node with parameter binding and JUCE boilerplate.
 class AudioNode : public juce::AudioProcessor {
 public:
     AudioNode() = default;
     ~AudioNode() override = default;
 
+    /// Bind parameter pointers for this node (call after construction).
+    /// @param params map of parameter keys to raw parameter values
     void bindParameters(const std::map<ParameterKey, std::atomic<float>*>& params)
     {
         parameters = params;
     }
 
 protected:
+    /// Read a bound parameter pointer by key (returns nullptr if missing).
+    /// @param key parameter identifier
     std::atomic<float>* getParameter(ParameterKey key) const
     {
         const auto it = parameters.find(key);
         return (it != parameters.end()) ? it->second : nullptr;
     }
 
+    /// JUCE AudioProcessor no-op overrides required by the base interface.
     void prepareToPlay(double, int) override {}
     void releaseResources() override {}
     bool isBusesLayoutSupported(const BusesLayout&) const override { return true; }

@@ -3,7 +3,7 @@
 juce::AudioProcessorGraph::Node::Ptr PluginInstanceStore::find(const String& trackId,
                                                                const String& pluginName) const
 {
-    for (const auto& entry : entries) {
+    for (const auto& entry : pluginInstances) {
         if (entry.trackId == trackId && entry.pluginName == pluginName) {
             return entry.node;
         }
@@ -14,7 +14,7 @@ juce::AudioProcessorGraph::Node::Ptr PluginInstanceStore::find(const String& tra
 
 juce::AudioProcessorGraph::Node::Ptr PluginInstanceStore::findByPluginName(const String& pluginName) const
 {
-    for (const auto& entry : entries) {
+    for (const auto& entry : pluginInstances) {
         if (entry.pluginName == pluginName) {
             return entry.node;
         }

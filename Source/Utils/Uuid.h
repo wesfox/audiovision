@@ -1,12 +1,14 @@
 #include <random>
 #include <sstream>
 
+/// UUID helpers for generating ids.
 namespace uuid {
     static std::random_device              rd;
     static std::mt19937_64                    gen(rd());
     static std::uniform_int_distribution<> dis(0, 15);
     static std::uniform_int_distribution<> dis2(8, 11);
 
+    /// Generate a random UUID v4 string.
     inline std::string generate_uuid_v4() {
         std::stringstream ss;
         int i;

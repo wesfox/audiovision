@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 
+/// Channel identifiers used by routing and panning.
 enum class Channel
 {
     Mono,

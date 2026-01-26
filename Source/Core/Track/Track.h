@@ -8,6 +8,7 @@
 
 class Send;
 
+/// Track category used for routing and UI.
 enum class TrackType {
     Audio,
     Aux,
@@ -15,50 +16,72 @@ enum class TrackType {
     Unknown
 };
 
+/// Base track model with routing, plugins, and automation.
 class Track {
 public:
+    /// Create a track with an optional name.
+    /// @param name display name
     Track(String name = "");
     virtual ~Track();
 
-    // Methods
+    /// Add a send to this track.
+    /// @param send send to add
     virtual void addSend(std::unique_ptr<Send> send);
 
+    /// Access sends attached to this track.
     const std::vector<std::unique_ptr<Send>>& getSends();
 
+    /// Add a plugin to this track.
+    /// @param plugin plugin to add
     void addPlugin(std::shared_ptr<Plugin> plugin) {
         plugins.push_back(std::move(plugin));
     }
 
+    /// Access plugins attached to this track.
     const std::vector<std::shared_ptr<Plugin>>& getPlugins() const {
         return plugins;
     }
 
-    /// Make this track output to the defined track
+    /// Route this track to the given output track.
+    /// @param newOutputTrack output track to use
     void setOutput(std::weak_ptr<Track> newOutputTrack);
 
+    /// Track id.
     String getId() {
         return id;
     }
 
+    /// Track display name.
     String getName() {
         return name;
     }
 
-
+    /// Output track (may be empty).
     std::weak_ptr<Track> getOutput() {
         return outputTrack;
     }
 
+    /// True if this is an audio track.
     [[nodiscard]] bool isAudioTrack() const {
         return isAudioTrack_;
     }
 
+    /// Track type for routing.
     [[nodiscard]] TrackType getTrackType() const {
         return trackType;
     }
 
+    /// Channel format for this track.
     ChannelsFormat getFormat() {
         return format;
+    }
+
+    float getHeight(){
+        return height;
+    }
+
+    [[nodiscard]] juce::Colour getColour() const {
+        return colour;
     }
 
 protected:
@@ -81,5 +104,5 @@ protected:
     TrackType trackType = TrackType::Unknown;
     float height;
     String name;
-    juce::Colour color;
+    juce::Colour colour;
 };

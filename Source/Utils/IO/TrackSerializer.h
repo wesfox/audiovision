@@ -2,11 +2,11 @@
 
 #include <JuceHeader.h>
 
-// ------------------------ Track Serializer ------------------------
-
+/// Import and export track clip timing metadata.
 class TrackSerializer
 {
 public:
+    /// Clip timing data in milliseconds for session I/O.
     struct ClipsWithMilliseconds
     {
         juce::File file;
@@ -17,9 +17,12 @@ public:
         bool operator==(const juce::File& other) const { return file.getFullPathName() == other.getFullPathName(); }
     };
 
-    // Import tracks from a session file
+    /// Import clips from a session file.
+    /// @param sessionFile input file
     static juce::Array<ClipsWithMilliseconds> importFromFile(const juce::File& sessionFile);
 
-    // Export tracks to a session file
+    /// Export clips to a session file.
+    /// @param tracks clip timing data
+    /// @param sessionFile output file
     static bool exportToFile(const juce::Array<ClipsWithMilliseconds>& tracks, const juce::File& sessionFile);
 };

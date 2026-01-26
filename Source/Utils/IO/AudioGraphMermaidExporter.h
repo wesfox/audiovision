@@ -2,9 +2,10 @@
 
 #include <JuceHeader.h>
 
+/// Export an AudioProcessorGraph to Mermaid syntax.
 class AudioGraphMermaidExporter {
 public:
-    /// static function to use in order to get a mermaid export of the AudioProcessorGraph passed as a parameter.
-    /// @param graph a reference to the AudioProcessorGraph to export
+    /// Export a graph to Mermaid text (for debugging).
+    /// @param graph audio processor graph to export
     static juce::String exportMermaid(const juce::AudioProcessorGraph& graph);
 };
