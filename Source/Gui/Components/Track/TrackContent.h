@@ -9,6 +9,7 @@ class TrackContent : public juce::Component {
 public:
     TrackContent(const Edit& edit, std::shared_ptr<Track> track);
 
+    void updateLayout();
     void resized() override;
     void paint(juce::Graphics& g) override;
 

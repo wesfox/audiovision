@@ -7,7 +7,9 @@
 
 // ------------------------ MainComponent Implementation ------------------------
 
-TrackContentPanel::TrackContentPanel(const Edit& edit) : edit(edit) {
+TrackContentPanel::TrackContentPanel(Edit& edit) : edit(edit) {
+    timelineRuler = std::make_unique<TimelineRuler>(edit);
+    addAndMakeVisible(timelineRuler.get());
     for (const auto& track : edit.getTracks()) {
         if (!track) {
             continue;
@@ -16,10 +18,22 @@ TrackContentPanel::TrackContentPanel(const Edit& edit) : edit(edit) {
         addAndMakeVisible(*trackContent);
         trackContentComponents.emplace(track->getId(), std::move(trackContent));
     }
+    edit.getState().getRoot().addListener(this);
+}
+
+TrackContentPanel::~TrackContentPanel() {
+    edit.getState().getRoot().removeListener(this);
 }
 
 void TrackContentPanel::resized() {
+    updateLayout();
+}
+
+void TrackContentPanel::updateLayout() {
     auto bounds = getLocalBounds();
+    if (timelineRuler != nullptr) {
+        timelineRuler->setBounds(bounds.removeFromTop(20));
+    }
     for (const auto& track : edit.getTracks()) {
         if (!track) {
             continue;
@@ -29,11 +43,13 @@ void TrackContentPanel::resized() {
             continue;
         }
         it->second->setBounds(bounds.removeFromTop(std::max(1, static_cast<int>(track->getHeight()))));
+        it->second->updateLayout();
     }
 }
 
 void TrackContentPanel::paint(juce::Graphics& g) {
     auto bounds = getLocalBounds();
+    bounds.removeFromTop(20);
     g.setColour(juce::Colour::fromRGB(245, 245, 245));
     g.fillRect(bounds);
 
@@ -102,4 +118,13 @@ void TrackContentPanel::paint(juce::Graphics& g) {
             }
         }
     }
+}
+
+void TrackContentPanel::valueTreePropertyChanged(juce::ValueTree&, const juce::Identifier&) {
+    triggerAsyncUpdate();
+}
+
+void TrackContentPanel::handleAsyncUpdate() {
+    updateLayout();
+    repaint();
 }

@@ -43,6 +43,8 @@ private:
     juce::Slider reverbDrySlider;
     juce::TextButton zoomInButton{ "+" };
     juce::TextButton zoomOutButton{ "-" };
+    juce::TextButton undoButton{ "Undo" };
+    juce::TextButton redoButton{ "Redo" };
 
     std::unique_ptr<TrackHeaderPanel> trackHeaderPanel;
     std::unique_ptr<TrackContentPanel> trackContentPanel;

@@ -1,4 +1,8 @@
-Comments must be :
+### Behavior
+- Challenge me if my idea contains a bad smell or if I miss something.
+- Never update the code but if I explicitily said to.
+
+### Comments
 - Short, specific, and action‑oriented (describe the role/intent, not implementation).
 - Usage context included when helpful, in one short clause.
 - Keep it synthetic, but if the usage/context is very complexe, prefer exaustivness

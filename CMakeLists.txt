@@ -77,6 +77,8 @@ file(GLOB_RECURSE COMMON_SOURCES
         "Source/AudioEngine/*/*.cpp"
         "Source/AudioEngine/*/*/*.cpp"
         "Source/Gui/Components/*.cpp"
+        "Source/Gui/Components/*/*.cpp"
+        "Source/Gui/Assets/*.cpp"
         "Source/Gui/*/*.cpp"
         "Source/Utils/*.cpp"
         "Source/Utils/*/*.cpp"

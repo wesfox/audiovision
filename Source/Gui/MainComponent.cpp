@@ -38,8 +38,6 @@ MainComponent::MainComponent()
     zoomInButton.onClick = [this]() {
         if (edit != nullptr) {
             edit->zoom(-0.1f);
-            repaint();
-            resized();
         }
     };
     addAndMakeVisible(zoomInButton);
@@ -47,13 +45,25 @@ MainComponent::MainComponent()
     zoomOutButton.onClick = [this]() {
         if (edit != nullptr) {
             edit->zoom(0.1f);
-            repaint();
-            resized();
-            trackContentPanel->resized();
-            trackContentPanel->repaint();
         }
     };
     addAndMakeVisible(zoomOutButton);
+
+    undoButton.onClick = [this]() {
+        if (edit != nullptr) {
+            edit->getUndoManager().undo();
+            repaint();
+        }
+    };
+    addAndMakeVisible(undoButton);
+
+    redoButton.onClick = [this]() {
+        if (edit != nullptr) {
+            edit->getUndoManager().redo();
+            repaint();
+        }
+    };
+    addAndMakeVisible(redoButton);
 
     pluginEditorWindow = std::make_unique<PluginEditorWindow>();
 
@@ -228,6 +238,8 @@ void MainComponent::resized()
     }
     zoomOutButton.setBounds(controlsArea.removeFromLeft(40).reduced(4));
     zoomInButton.setBounds(controlsArea.removeFromLeft(40).reduced(4));
+    undoButton.setBounds(controlsArea.removeFromLeft(60).reduced(4));
+    redoButton.setBounds(controlsArea.removeFromLeft(60).reduced(4));
     volumeSlider.setBounds(sliderArea.removeFromLeft(200).reduced(8, 4));
     stereoPanSlider.setBounds(sliderArea.removeFromLeft(200).reduced(8, 4));
     reverbDrySlider.setBounds(sliderArea.removeFromLeft(200).reduced(8, 4));

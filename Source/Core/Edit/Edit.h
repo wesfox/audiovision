@@ -5,6 +5,7 @@
 #include "Scene.h"
 #include <Core/Automation/AutomationManager.h>
 #include <Core/Video/Video.h>
+#include "EditActions.h"
 
 /// Edit model containing tracks, scenes, and global media.
 class Edit {
@@ -62,15 +63,15 @@ public:
     }
 
     int64 getViewStartSample() const {
-        return viewStartSample;
+        return editState.getViewStartSample();
     }
 
     int64 getViewEndSample() const {
-        return viewEndSample;
+        return editState.getViewEndSample();
     }
 
-    int64 getFrameRate() const {
-        return frameRate;
+    float getFrameRate() const {
+        return editState.getFrameRate();
     }
 
     float getHeight() const {
@@ -84,11 +85,38 @@ public:
     }
 
     void zoom(float ratio) {
-        viewEndSample = viewEndSample + static_cast<float>(viewEndSample - viewStartSample) * ratio;
-        viewStartSample = viewStartSample + static_cast<float>(viewEndSample - viewStartSample) * ratio;
-        viewStartSample = std::max(0LL, viewStartSample);
+        actionStore.dispatch(EditAction::makeZoom(ratio));
     }
 
+    /// Access the edit state.
+    EditState& getState() {
+        return editState;
+    }
+
+    /// Access the edit state (const).
+    const EditState& getState() const {
+        return editState;
+    }
+
+    /// Access the edit action store.
+    EditActionStore& getActionStore() {
+        return actionStore;
+    }
+
+    /// Access the edit action store (const).
+    const EditActionStore& getActionStore() const {
+        return actionStore;
+    }
+
+    /// Access the undo manager.
+    juce::UndoManager& getUndoManager() {
+        return undoManager;
+    }
+
+    /// Access the undo manager (const).
+    const juce::UndoManager& getUndoManager() const {
+        return undoManager;
+    }
 
 private:
     Transport transport;
@@ -101,7 +129,7 @@ private:
     std::vector<std::shared_ptr<Track>> tracks;
     std::weak_ptr<Track> audioOutputTrack;
 
-    int64 viewStartSample = 0;
-    int64 viewEndSample = 48000 * 30;
-    float frameRate=25;
+    EditState editState;
+    juce::UndoManager undoManager;
+    EditActionStore actionStore;
 };

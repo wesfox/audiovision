@@ -6,6 +6,8 @@ Edit::Edit()
       automationManager(),
       videoStartFrame(0),
       video(),
-      videoSyncOffset(0)
-{
+      videoSyncOffset(0),
+      editState(),
+      undoManager(),
+      actionStore(editState, undoManager) {
 }

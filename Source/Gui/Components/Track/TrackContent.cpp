@@ -23,6 +23,10 @@ TrackContent::TrackContent(const Edit& edit, std::shared_ptr<Track> track)
 }
 
 void TrackContent::resized() {
+    updateLayout();
+}
+
+void TrackContent::updateLayout() {
     if (!track) {
         return;
     }
