@@ -18,7 +18,10 @@ TrackContentPanel::TrackContentPanel(Edit& edit) : edit(edit) {
         addAndMakeVisible(*trackContent);
         trackContentComponents.emplace(track->getId(), std::move(trackContent));
     }
+    cursorTimeline = std::make_unique<CursorTimeline>(edit);
+    addAndMakeVisible(cursorTimeline.get());
     edit.getState().getRoot().addListener(this);
+    startTimerHz(30);
 }
 
 TrackContentPanel::~TrackContentPanel() {
@@ -30,7 +33,11 @@ void TrackContentPanel::resized() {
 }
 
 void TrackContentPanel::updateLayout() {
-    auto bounds = getLocalBounds();
+    auto fullBounds = getLocalBounds();
+    if (cursorTimeline != nullptr) {
+        cursorTimeline->setBounds(fullBounds);
+    }
+    auto bounds = fullBounds;
     if (timelineRuler != nullptr) {
         timelineRuler->setBounds(bounds.removeFromTop(20));
     }
@@ -127,4 +134,38 @@ void TrackContentPanel::valueTreePropertyChanged(juce::ValueTree&, const juce::I
 void TrackContentPanel::handleAsyncUpdate() {
     updateLayout();
     repaint();
+}
+
+void TrackContentPanel::timerCallback() {
+    const auto transport = edit.getTransport();
+    if (!transport || !transport->isPlaying()) {
+        return;
+    }
+
+    if (cursorTimeline != nullptr) {
+        cursorTimeline->repaint();
+    }
+
+    const auto cursorSample = transport->getCursorPosition();
+    const auto viewStart = edit.getViewStartSample();
+    const auto viewEnd = edit.getViewEndSample();
+    const auto viewLength = viewEnd - viewStart;
+    if (viewLength <= 0) {
+        return;
+    }
+
+    const auto step = std::max<int64>(1, viewLength / 5);
+    if (cursorSample > viewEnd) {
+        auto newStart = viewStart + step;
+        auto newEnd = viewEnd + step;
+        edit.getActionStore().dispatch(EditAction::makeViewRange(newStart, newEnd));
+    } else if (cursorSample < viewStart) {
+        auto newStart = viewStart - step;
+        auto newEnd = viewEnd - step;
+        if (newStart < 0) {
+            newStart = 0;
+            newEnd = viewLength;
+        }
+        edit.getActionStore().dispatch(EditAction::makeViewRange(newStart, newEnd));
+    }
 }

@@ -6,7 +6,12 @@
 // ------------------------ MainComponent Implementation ------------------------
 
 AudioEngine::AudioEngine(const std::weak_ptr<Edit>& edit):edit(edit) {
-    transport = std::make_shared<Transport>();
+    if (auto editPtr = edit.lock()) {
+        transport = editPtr->getTransport();
+    }
+    if (!transport) {
+        transport = std::make_shared<Transport>();
+    }
 
     if (auto editPtr = edit.lock()) {
         auto graphInstance = std::make_unique<GraphInstance>(editPtr, transport);

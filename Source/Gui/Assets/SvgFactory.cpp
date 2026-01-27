@@ -1,29 +1,30 @@
 #include "SvgFactory.h"
 
-namespace {
-juce::File getProjectRoot() {
-    return juce::File::getCurrentWorkingDirectory();
-}
-}
+#include "BinaryData.h"
 
-juce::File SvgFactory::getFile(SvgAsset asset) {
-    const auto root = getProjectRoot();
+std::optional<SvgFactory::SvgData> SvgFactory::getData(SVG_Assets asset) {
+    int size = 0;
     switch (asset) {
-        case SvgAsset::TimelineCursorSvg:
-            return root.getChildFile("Source/Gui/Assets/TimelineCursor.svg");
+        case SVG_Assets::TimelineCursorSvg: {
+            auto* data = BinaryData::getNamedResource("TimelineCursor_svg", size);
+            if (data == nullptr || size <= 0) {
+                return std::nullopt;
+            }
+            return SvgData{ data, size };
+        }
         default:
-            return {};
+            return std::nullopt;
     }
 }
 
-std::unique_ptr<juce::Drawable> SvgFactory::load(SvgAsset asset,
+std::unique_ptr<juce::Drawable> SvgFactory::load(SVG_Assets asset,
                                                  std::optional<juce::Colour> overrideFill) {
-    auto file = getFile(asset);
-    if (!file.existsAsFile()) {
+    const auto data = getData(asset);
+    if (!data.has_value()) {
         return nullptr;
     }
-
-    auto xml = juce::XmlDocument::parse(file);
+    const auto xmlText = juce::String::fromUTF8(static_cast<const char*>(data->data), data->size);
+    auto xml = juce::XmlDocument::parse(xmlText);
     if (xml == nullptr) {
         return nullptr;
     }

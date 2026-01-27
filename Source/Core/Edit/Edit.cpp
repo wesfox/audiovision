@@ -1,7 +1,7 @@
 #include "Edit.h"
 
 Edit::Edit()
-    : transport(),
+    : transport(std::make_shared<Transport>()),
       projectName(""),
       automationManager(),
       videoStartFrame(0),

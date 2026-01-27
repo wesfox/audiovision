@@ -3,12 +3,15 @@
 #include <JuceHeader.h>
 
 #include "Core/Edit/Edit.h"
+#include "Core/Edit/EditActions.h"
 #include "Core/Edit/EditState.h"
+#include "CursorTimeline.h"
 #include "TimelineRuler.h"
 
 class TrackContentPanel : public juce::Component,
                           public juce::ValueTree::Listener,
-                          private juce::AsyncUpdater {
+                          private juce::AsyncUpdater,
+                          private juce::Timer {
 public:
     explicit TrackContentPanel(Edit& edit);
     ~TrackContentPanel() override;
@@ -19,7 +22,9 @@ public:
 
 private:
     void handleAsyncUpdate() override;
+    void timerCallback() override;
 
+    std::unique_ptr<CursorTimeline> cursorTimeline;
     std::unique_ptr<TimelineRuler> timelineRuler;
 
     Edit& edit;

@@ -45,6 +45,7 @@ private:
     juce::TextButton zoomOutButton{ "-" };
     juce::TextButton undoButton{ "Undo" };
     juce::TextButton redoButton{ "Redo" };
+    juce::TextButton playStopButton{ "Play" };
 
     std::unique_ptr<TrackHeaderPanel> trackHeaderPanel;
     std::unique_ptr<TrackContentPanel> trackContentPanel;

@@ -118,8 +118,14 @@ public:
         return undoManager;
     }
 
+    /// Access the shared transport.
+    std::shared_ptr<Transport> getTransport() const {
+        return transport;
+    }
+
 private:
-    Transport transport;
+    /// Shared transport for timeline state.
+    std::shared_ptr<Transport> transport;
     std::vector<std::shared_ptr<Scene>> scenes;
     String projectName;
     AutomationManager automationManager;

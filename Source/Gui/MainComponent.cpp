@@ -49,6 +49,20 @@ MainComponent::MainComponent()
     };
     addAndMakeVisible(zoomOutButton);
 
+    playStopButton.onClick = [this]() {
+        if (audioEngine == nullptr || audioEngine->transport == nullptr) {
+            return;
+        }
+        if (audioEngine->transport->isPlaying()) {
+            audioEngine->transport->stop();
+            playStopButton.setButtonText("Play");
+        } else {
+            audioEngine->transport->play();
+            playStopButton.setButtonText("Stop");
+        }
+    };
+    addAndMakeVisible(playStopButton);
+
     undoButton.onClick = [this]() {
         if (edit != nullptr) {
             edit->getUndoManager().undo();
@@ -240,6 +254,7 @@ void MainComponent::resized()
     zoomInButton.setBounds(controlsArea.removeFromLeft(40).reduced(4));
     undoButton.setBounds(controlsArea.removeFromLeft(60).reduced(4));
     redoButton.setBounds(controlsArea.removeFromLeft(60).reduced(4));
+    playStopButton.setBounds(controlsArea.removeFromLeft(70).reduced(4));
     volumeSlider.setBounds(sliderArea.removeFromLeft(200).reduced(8, 4));
     stereoPanSlider.setBounds(sliderArea.removeFromLeft(200).reduced(8, 4));
     reverbDrySlider.setBounds(sliderArea.removeFromLeft(200).reduced(8, 4));

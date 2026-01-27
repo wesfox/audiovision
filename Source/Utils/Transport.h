@@ -67,6 +67,12 @@ public:
         return currentSample.load();
     }
 
+    /// Set playhead position in samples.
+    /// @param sample new playhead sample position
+    void setCursorPosition(int64_t sample) {
+        currentSample.store(sample);
+    }
+
     /// Current playhead position in milliseconds.
     double getMs() const {
         return static_cast<double>(currentSample.load()) / static_cast<double>(sampleRate.load()) * 1000.0;

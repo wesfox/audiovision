@@ -66,6 +66,10 @@ set_target_properties(${TARGET_NAME} PROPERTIES
         C_VISIBILITY_PRESET hidden
         CXX_VISIBILITY_PRESET hidden)
 
+juce_add_binary_data(AudioVisionBinaryData
+        SOURCES
+        Source/Gui/Assets/TimelineCursor.svg)
+
 ### Target include directories
 target_include_directories(${TARGET_NAME}
         PRIVATE
@@ -113,6 +117,7 @@ target_sources(AudioVisionTests PRIVATE ${TEST_SOURCES} ${COMMON_SOURCES})
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/.. PREFIX Tests FILES ${TEST_SOURCES})
 
 target_link_libraries(AudioVisionTests PRIVATE
+        AudioVisionBinaryData
         spdlog::spdlog
         juce::juce_audio_basics
         juce::juce_audio_devices
@@ -158,6 +163,7 @@ target_compile_definitions(${TARGET_NAME} PRIVATE
         JUCE_STRICT_REFCOUNTEDPOINTER=1)
 
 target_link_libraries(${TARGET_NAME} PRIVATE
+        AudioVisionBinaryData
         spdlog::spdlog
         juce::juce_audio_basics
         juce::juce_audio_devices
