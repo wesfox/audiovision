@@ -14,6 +14,7 @@ public:
 
     void paint(juce::Graphics& g) override;
 private:
+    Edit& edit;
     std::vector<std::shared_ptr<Track>>& tracks;
 
     std::map<String, std::shared_ptr<TrackHeader>> trackHeaderComponents;

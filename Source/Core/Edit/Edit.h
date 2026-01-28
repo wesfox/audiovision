@@ -118,6 +118,14 @@ public:
         return undoManager;
     }
 
+    /// Perform an undoable action as a new transaction.
+    /// @param name transaction name for the undo history
+    /// @param action undoable action (owned by the undo manager)
+    void performUndoable(const juce::String& name, juce::UndoableAction* action) {
+        undoManager.beginNewTransaction(name);
+        undoManager.perform(action);
+    }
+
     /// Access the shared transport.
     std::shared_ptr<Transport> getTransport() const {
         return transport;

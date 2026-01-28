@@ -8,8 +8,10 @@
 // ------------------------ MainComponent Implementation ------------------------
 
 TrackContentPanel::TrackContentPanel(Edit& edit) : edit(edit) {
-    timelineRuler = std::make_unique<TimelineRuler>(edit);
+    const auto rulerHeight = edit.getState().getTimelineHeight();
+    timelineRuler = std::make_unique<TimelineRuler>(edit, rulerHeight);
     addAndMakeVisible(timelineRuler.get());
+    playheadController = std::make_unique<PlayheadFollowController>(edit);
     for (const auto& track : edit.getTracks()) {
         if (!track) {
             continue;
@@ -18,7 +20,14 @@ TrackContentPanel::TrackContentPanel(Edit& edit) : edit(edit) {
         addAndMakeVisible(*trackContent);
         trackContentComponents.emplace(track->getId(), std::move(trackContent));
     }
-    cursorTimeline = std::make_unique<CursorTimeline>(edit);
+    cursorTimeline = std::make_unique<CursorTimeline>(edit, rulerHeight);
+    cursorTimeline->setCallbacks({
+        [this](int64 previousSample, int64 newSample) { playheadController->onPointerDown(previousSample, newSample); },
+        [this](int64 sample) { playheadController->onPointerDrag(sample); },
+        [this](int64 previousSample, int64 newSample, bool wasDrag) {
+            playheadController->onPointerUp(previousSample, newSample, wasDrag);
+        }
+    });
     addAndMakeVisible(cursorTimeline.get());
     edit.getState().getRoot().addListener(this);
     startTimerHz(30);
@@ -33,13 +42,16 @@ void TrackContentPanel::resized() {
 }
 
 void TrackContentPanel::updateLayout() {
+    const auto rulerHeight = edit.getState().getTimelineHeight();
     auto fullBounds = getLocalBounds();
     if (cursorTimeline != nullptr) {
+        cursorTimeline->setRulerHeight(rulerHeight);
         cursorTimeline->setBounds(fullBounds);
     }
     auto bounds = fullBounds;
     if (timelineRuler != nullptr) {
-        timelineRuler->setBounds(bounds.removeFromTop(20));
+        timelineRuler->setRulerHeight(rulerHeight);
+        timelineRuler->setBounds(bounds.removeFromTop(rulerHeight));
     }
     for (const auto& track : edit.getTracks()) {
         if (!track) {
@@ -55,8 +67,13 @@ void TrackContentPanel::updateLayout() {
 }
 
 void TrackContentPanel::paint(juce::Graphics& g) {
+    const auto rulerHeight = edit.getState().getTimelineHeight();
     auto bounds = getLocalBounds();
-    bounds.removeFromTop(20);
+    juce::Path clipPath;
+    clipPath.addRoundedRectangle(bounds.toFloat(), 6.0f);
+    g.saveState();
+    g.reduceClipRegion(clipPath);
+    bounds.removeFromTop(rulerHeight);
     g.setColour(juce::Colour::fromRGB(245, 245, 245));
     g.fillRect(bounds);
 
@@ -125,6 +142,7 @@ void TrackContentPanel::paint(juce::Graphics& g) {
             }
         }
     }
+    g.restoreState();
 }
 
 void TrackContentPanel::valueTreePropertyChanged(juce::ValueTree&, const juce::Identifier&) {
@@ -147,25 +165,7 @@ void TrackContentPanel::timerCallback() {
     }
 
     const auto cursorSample = transport->getCursorPosition();
-    const auto viewStart = edit.getViewStartSample();
-    const auto viewEnd = edit.getViewEndSample();
-    const auto viewLength = viewEnd - viewStart;
-    if (viewLength <= 0) {
-        return;
-    }
-
-    const auto step = std::max<int64>(1, viewLength / 5);
-    if (cursorSample > viewEnd) {
-        auto newStart = viewStart + step;
-        auto newEnd = viewEnd + step;
-        edit.getActionStore().dispatch(EditAction::makeViewRange(newStart, newEnd));
-    } else if (cursorSample < viewStart) {
-        auto newStart = viewStart - step;
-        auto newEnd = viewEnd - step;
-        if (newStart < 0) {
-            newStart = 0;
-            newEnd = viewLength;
-        }
-        edit.getActionStore().dispatch(EditAction::makeViewRange(newStart, newEnd));
+    if (playheadController != nullptr) {
+        playheadController->onPlaybackTick(cursorSample);
     }
 }

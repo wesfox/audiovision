@@ -19,6 +19,11 @@ TrackHeader::TrackHeader(Track& track): track(track) {
     trackName->setContent(track.getName());
     addAndMakeVisible(trackName.get());
 
+    selector = std::make_unique<SelectableList>();
+    selector->setItems({ { "waveform", 1 }, { "volume", 2 } });
+    selector->getComboBox().setSelectedId(1, juce::dontSendNotification);
+    addAndMakeVisible(selector.get());
+
     auto toggleBackgroundColour = juce::Colour(0xFFE7E1FB);
     auto toggleTextColor = juce::Colour(0xFF000000);
     // toggle buttons
@@ -68,6 +73,9 @@ void TrackHeader::resized() {
     grid.performLayout (topLine.removeFromRight(24*4+8+6).reduced(4,0));
 
     ////////////////////
+
+    auto selectorLine = b.withTrimmedTop(40).removeFromTop(20).withTrimmedLeft(12);
+    selector->setBounds(selectorLine.removeFromLeft(100));
 }
 
 void TrackHeader::paint(juce::Graphics &g) {

@@ -6,10 +6,15 @@
 /// Timeline ruler showing timecode based on edit state.
 class TimelineRuler : public juce::Component {
 public:
-    explicit TimelineRuler(const Edit& edit);
+    TimelineRuler(const Edit& edit, int rulerHeight);
 
     void paint(juce::Graphics& g) override;
 
+    /// Update the ruler height used for layout and drawing.
+    /// @param height new ruler height in pixels
+    void setRulerHeight(int height);
+
 private:
     const Edit& edit;
+    int rulerHeight = 0;
 };

@@ -39,6 +39,22 @@ public:
     /// @param undo optional undo manager for transactions
     void setFrameRate(float frameRate, juce::UndoManager* undo = nullptr);
 
+    /// Timeline ruler height in pixels.
+    int getTimelineHeight() const;
+
+    /// Set the timeline ruler height in pixels.
+    /// @param height new ruler height in pixels
+    /// @param undo optional undo manager for transactions
+    void setTimelineHeight(int height, juce::UndoManager* undo = nullptr);
+
+    /// Header height in pixels.
+    int getHeaderHeight() const;
+
+    /// Set the header height in pixels.
+    /// @param height new header height in pixels
+    /// @param undo optional undo manager for transactions
+    void setHeaderHeight(int height, juce::UndoManager* undo = nullptr);
+
 private:
     juce::ValueTree root;
     juce::ValueTree globals;

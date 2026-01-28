@@ -1,7 +1,6 @@
 #include "TimelineRuler.h"
 
 namespace {
-constexpr int kRulerHeight = 20;
 constexpr float kMinTickSpacingPx = 3.0f;
 constexpr float kMinLabelSpacingPx = 60.0f;
 
@@ -82,8 +81,13 @@ int64 getMajorStepFrames(double frameRate, const TickRate& minor, const TickRate
 }
 }
 
-TimelineRuler::TimelineRuler(const Edit& edit) : edit(edit) {
-    setSize(0, kRulerHeight);
+TimelineRuler::TimelineRuler(const Edit& edit, int rulerHeight)
+    : edit(edit), rulerHeight(rulerHeight) {
+    setSize(0, rulerHeight);
+}
+
+void TimelineRuler::setRulerHeight(int height) {
+    rulerHeight = height;
 }
 
 void TimelineRuler::paint(juce::Graphics& g) {
@@ -133,23 +137,23 @@ void TimelineRuler::paint(juce::Graphics& g) {
             const bool canShowLabel = (alignedX - lastLabelX) >= kMinLabelSpacingPx;
             if (canShowLabel) {
                 g.setColour(juce::Colour::fromRGB(120, 120, 120));
-                g.drawLine(alignedX, 0.0f, alignedX, static_cast<float>(kRulerHeight), 1.0f);
+                g.drawLine(alignedX, 0.0f, alignedX, static_cast<float>(rulerHeight), 1.0f);
                 const auto label = formatTimecode(snappedTime, frameRate);
-                g.drawText(label, static_cast<int>(std::floor(alignedX)) + 2, 0, 80, kRulerHeight,
+                g.drawText(label, static_cast<int>(std::floor(alignedX)) + 2, 0, 80, rulerHeight,
                            juce::Justification::topLeft, false);
                 lastLabelX = alignedX;
             } else {
                 g.setColour(juce::Colour::fromRGBA(60, 60, 60, 160));
-                const float y0 = static_cast<float>(kRulerHeight) * (2.0f / 3.0f);
-                g.drawLine(alignedX, y0, alignedX, static_cast<float>(kRulerHeight), 1.0f);
+                const float y0 = static_cast<float>(rulerHeight) * (2.0f / 3.0f);
+                g.drawLine(alignedX, y0, alignedX, static_cast<float>(rulerHeight), 1.0f);
             }
         } else {
             g.setColour(juce::Colour::fromRGBA(60, 60, 60, 160));
-            const float y0 = static_cast<float>(kRulerHeight) * (2.0f / 3.0f);
-            g.drawLine(alignedX, y0, alignedX, static_cast<float>(kRulerHeight), 1.0f);
+            const float y0 = static_cast<float>(rulerHeight) * (2.0f / 3.0f);
+            g.drawLine(alignedX, y0, alignedX, static_cast<float>(rulerHeight), 1.0f);
         }
     }
 
     g.setColour(juce::Colour::fromRGBA(60, 60, 60, 180));
-    g.drawLine(0.0f, static_cast<float>(kRulerHeight - 1), width, static_cast<float>(kRulerHeight - 1), 1.0f);
+    g.drawLine(0.0f, static_cast<float>(rulerHeight - 1), width, static_cast<float>(rulerHeight - 1), 1.0f);
 }

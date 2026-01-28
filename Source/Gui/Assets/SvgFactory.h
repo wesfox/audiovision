@@ -5,6 +5,14 @@
 
 /// SVG assets available in the app.
 enum class SVG_Assets {
+    FaderButtonSvg,
+    FaderSvg,
+    MoveLeftSvg,
+    MoveRightSvg,
+    PlaySvg,
+    RecordSvg,
+    RewindSvg,
+    StopSvg,
     TimelineCursorSvg
 };
 

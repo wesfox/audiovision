@@ -10,3 +10,7 @@
 - Add a blank line between a function and the next comment (if it exists).
 - Do not add a blank line between a function and its comment.
 - Do not comment overriden function with default implementation (that do nothing), if there is a lot of them, add a comment to clarify why they exist and where they come frome
+
+### Architecure decision
+- When adding UI or utility code, prefer reusable components in Common/ (or a shared module) over local/private classes. If something could reasonably be reused in another panel, design it as a shared component with clean APIs and minimal coupling.
+- If you choose a local/private class instead, briefly justify why reuse isn’t warranted.

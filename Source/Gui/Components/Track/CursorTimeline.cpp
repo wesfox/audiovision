@@ -1,10 +1,6 @@
 #include "CursorTimeline.h"
 
-namespace {
-constexpr int kRulerHeight = 20;
-}
-
-CursorTimeline::CursorTimeline(const Edit& edit) : edit(edit) {
+CursorTimeline::CursorTimeline(const Edit& edit, int rulerHeight) : edit(edit), rulerHeight(rulerHeight) {
     cursorDrawable = SvgFactory::load(SVG_Assets::TimelineCursorSvg, fillColour);
 }
 
@@ -50,16 +46,16 @@ void CursorTimeline::paint(juce::Graphics& g) {
     const float alignedX = std::floor(x) + 0.5f;
 
     const auto drawableBounds = cursorDrawable->getDrawableBounds();
-    const float targetHeight = static_cast<float>(kRulerHeight) * (2.0f / 3.0f);
+    const float targetHeight = static_cast<float>(rulerHeight) * (2.0f / 3.0f);
     const float scale = drawableBounds.getHeight() > 0.0f
         ? (targetHeight / drawableBounds.getHeight())
         : 1.0f;
     const float scaledWidth = drawableBounds.getWidth() * scale;
     const float drawX = (x - scaledWidth * 0.5f);
-    const float drawY = static_cast<float>(kRulerHeight) - (drawableBounds.getHeight() * scale);
+    const float drawY = static_cast<float>(rulerHeight) - (drawableBounds.getHeight() * scale);
 
     g.setColour(juce::Colour::fromRGBA(76, 44, 126, 120));
-    g.drawLine(alignedX, static_cast<float>(kRulerHeight), alignedX, static_cast<float>(bounds.getHeight()), 1.0f);
+    g.drawLine(alignedX, static_cast<float>(rulerHeight), alignedX, static_cast<float>(bounds.getHeight()), 1.0f);
 
     juce::AffineTransform transform = juce::AffineTransform::scale(scale)
         .translated(drawX, drawY);
@@ -67,36 +63,51 @@ void CursorTimeline::paint(juce::Graphics& g) {
 }
 
 bool CursorTimeline::hitTest(int x, int y) {
-    return y >= 0 && y <= kRulerHeight;
+    return y >= 0 && y <= rulerHeight;
 }
 
 void CursorTimeline::mouseDown(const juce::MouseEvent& event) {
+    isDragging = false;
+    const auto newSample = positionToSample(edit, event.position.x, static_cast<float>(getWidth()));
     if (auto transport = edit.getTransport()) {
-        dragStartSample = transport->getCursorPosition();
-        const auto newSample = positionToSample(edit, event.position.x, static_cast<float>(getWidth()));
-        transport->setCursorPosition(newSample);
-        repaint();
+        pointerDownSample = transport->getCursorPosition();
+    } else {
+        pointerDownSample = newSample;
     }
+    if (callbacks.onPointerDown) {
+        callbacks.onPointerDown(pointerDownSample, newSample);
+    }
+    repaint();
 }
 
 void CursorTimeline::mouseDrag(const juce::MouseEvent& event) {
-    if (auto transport = edit.getTransport()) {
-        const auto newSample = positionToSample(edit, event.position.x, static_cast<float>(getWidth()));
-        transport->setCursorPosition(newSample);
-        repaint();
+    isDragging = true;
+    const auto newSample = positionToSample(edit, event.position.x, static_cast<float>(getWidth()));
+    if (callbacks.onPointerDrag) {
+        callbacks.onPointerDrag(newSample);
     }
+    repaint();
 }
 
 void CursorTimeline::mouseUp(const juce::MouseEvent& event) {
-    if (auto transport = edit.getTransport()) {
-        const auto newSample = positionToSample(edit, event.position.x, static_cast<float>(getWidth()));
-        transport->setCursorPosition(newSample);
-        repaint();
+    const auto newSample = positionToSample(edit, event.position.x, static_cast<float>(getWidth()));
+    if (callbacks.onPointerUp) {
+        callbacks.onPointerUp(pointerDownSample, newSample, isDragging);
     }
+    isDragging = false;
+    repaint();
+}
+
+void CursorTimeline::setCallbacks(Callbacks newCallbacks) {
+    callbacks = std::move(newCallbacks);
 }
 
 void CursorTimeline::setColour(juce::Colour colour) {
     fillColour = colour;
     cursorDrawable = SvgFactory::load(SVG_Assets::TimelineCursorSvg, fillColour);
     repaint();
+}
+
+void CursorTimeline::setRulerHeight(int height) {
+    rulerHeight = height;
 }

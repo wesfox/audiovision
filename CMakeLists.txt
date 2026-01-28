@@ -68,7 +68,18 @@ set_target_properties(${TARGET_NAME} PROPERTIES
 
 juce_add_binary_data(AudioVisionBinaryData
         SOURCES
-        Source/Gui/Assets/TimelineCursor.svg)
+        Source/Gui/Assets/TimelineCursor.svg
+        Source/Gui/Assets/fader-button.svg
+        Source/Gui/Assets/fader.svg
+        Source/Gui/Assets/move-left.svg
+        Source/Gui/Assets/move-right.svg
+        Source/Gui/Assets/play.svg
+        Source/Gui/Assets/record.svg
+        Source/Gui/Assets/rewind.svg
+        Source/Gui/Assets/stop.svg
+        Source/Gui/Style/Fonts/Roboto-Regular.ttf
+        Source/Gui/Style/Fonts/Roboto-Bold.ttf
+        Source/Gui/Style/Fonts/Roboto-Thin.ttf)
 
 ### Target include directories
 target_include_directories(${TARGET_NAME}

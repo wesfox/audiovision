@@ -3,9 +3,9 @@
 #include <JuceHeader.h>
 
 #include "Core/Edit/Edit.h"
-#include "Core/Edit/EditActions.h"
 #include "Core/Edit/EditState.h"
 #include "CursorTimeline.h"
+#include "PlayheadFollowController.h"
 #include "TimelineRuler.h"
 
 class TrackContentPanel : public juce::Component,
@@ -26,6 +26,7 @@ private:
 
     std::unique_ptr<CursorTimeline> cursorTimeline;
     std::unique_ptr<TimelineRuler> timelineRuler;
+    std::unique_ptr<PlayheadFollowController> playheadController;
 
     Edit& edit;
     std::map<String, std::shared_ptr<class TrackContent>> trackContentComponents;

@@ -1,10 +1,8 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "Components/Components.h"
-#include "Plugin/PluginEditorWindow.h"
-
-#include <Utils/Transport.h>
+#include "Components/Header/Header.h"
+#include "Components/ContextualSection/ContextualSection.h"
 
 #include "AudioEngine/AudioEngine.h"
 #include "Components/Track/TrackContentPanel.h"
@@ -30,25 +28,14 @@ public:
     void resized() override;
 
 private:
-    std::unique_ptr<FileSelectorComponent> fileSelector;
-    std::unique_ptr<RecordComponent> recordComponent;
-    std::unique_ptr<PluginEditorWindow> pluginEditorWindow;
     std::shared_ptr<Edit> edit;
     std::unique_ptr<AudioEngine> audioEngine;
     bool isShutDown = false;
-    juce::Slider volumeSlider;
-    juce::AudioProcessorParameter* volumeParam = nullptr;
-    juce::Slider stereoPanSlider;
-    juce::AudioProcessorParameter* stereoPanParam = nullptr;
-    juce::Slider reverbDrySlider;
-    juce::TextButton zoomInButton{ "+" };
-    juce::TextButton zoomOutButton{ "-" };
-    juce::TextButton undoButton{ "Undo" };
-    juce::TextButton redoButton{ "Redo" };
-    juce::TextButton playStopButton{ "Play" };
 
     std::unique_ptr<TrackHeaderPanel> trackHeaderPanel;
     std::unique_ptr<TrackContentPanel> trackContentPanel;
+    std::unique_ptr<Header> header;
+    std::unique_ptr<ContextualSection> contextualSection;
 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)

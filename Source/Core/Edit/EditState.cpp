@@ -7,6 +7,8 @@ const juce::Identifier kViewType("VIEW");
 const juce::Identifier kViewStartSampleId("viewStartSample");
 const juce::Identifier kViewEndSampleId("viewEndSample");
 const juce::Identifier kFrameRateId("frameRate");
+const juce::Identifier kTimelineHeightId("timelineHeight");
+const juce::Identifier kHeaderHeightId("headerHeight");
 
 int64 getInt64Property(const juce::ValueTree& tree, const juce::Identifier& propertyId, int64 fallback) {
     if (!tree.hasProperty(propertyId)) {
@@ -31,6 +33,8 @@ EditState::EditState() {
     viewState.setProperty(kViewStartSampleId, static_cast<int64>(0), nullptr);
     viewState.setProperty(kViewEndSampleId, static_cast<int64>(48000 * 30), nullptr);
     globals.setProperty(kFrameRateId, 25.0f, nullptr);
+    globals.setProperty(kTimelineHeightId, 20, nullptr);
+    globals.setProperty(kHeaderHeightId, 90, nullptr);
 
     root.addChild(globals, -1, nullptr);
     root.addChild(viewState, -1, nullptr);
@@ -46,6 +50,14 @@ int64 EditState::getViewEndSample() const {
 
 float EditState::getFrameRate() const {
     return getFloatProperty(globals, kFrameRateId, 25.0f);
+}
+
+int EditState::getTimelineHeight() const {
+    return static_cast<int>(getInt64Property(globals, kTimelineHeightId, 20));
+}
+
+int EditState::getHeaderHeight() const {
+    return static_cast<int>(getInt64Property(globals, kHeaderHeightId, 90));
 }
 
 void EditState::setViewRange(int64 startSample, int64 endSample, juce::UndoManager* undo) {
@@ -65,4 +77,12 @@ void EditState::zoom(float ratio, juce::UndoManager* undo) {
 
 void EditState::setFrameRate(float frameRate, juce::UndoManager* undo) {
     globals.setProperty(kFrameRateId, frameRate, undo);
+}
+
+void EditState::setTimelineHeight(int height, juce::UndoManager* undo) {
+    globals.setProperty(kTimelineHeightId, height, undo);
+}
+
+void EditState::setHeaderHeight(int height, juce::UndoManager* undo) {
+    globals.setProperty(kHeaderHeightId, height, undo);
 }

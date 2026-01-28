@@ -4,6 +4,7 @@
 
 #include "Core/Track/Track.h"
 #include "Gui/Components/Common/EditableText.h"
+#include "Gui/Components/Common/SelectableList.h"
 #include "Gui/Components/Common/ToggleTextButton.h"
 
 class TrackHeader : public juce::Component {
@@ -36,6 +37,7 @@ private:
 
     // subComponents
     std::unique_ptr<EditableText> trackName;
+    std::unique_ptr<SelectableList> selector;
     std::unique_ptr<ToggleTextButton> armedToggle;
     std::unique_ptr<ToggleTextButton> inputMonitoringToggle;
     std::unique_ptr<ToggleTextButton> soloToggle;
