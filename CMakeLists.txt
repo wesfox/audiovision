@@ -76,6 +76,7 @@ juce_add_binary_data(AudioVisionBinaryData
         Source/Gui/Assets/play.svg
         Source/Gui/Assets/record.svg
         Source/Gui/Assets/rewind.svg
+        Source/Gui/Assets/rotating-fader.svg
         Source/Gui/Assets/stop.svg
         Source/Gui/Style/Fonts/Roboto-Regular.ttf
         Source/Gui/Style/Fonts/Roboto-Bold.ttf

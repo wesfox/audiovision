@@ -5,9 +5,9 @@
 #include "Gui/Assets/SvgFactory.h"
 
 /// Displays a draggable fader with SVG assets.
-class Fader : public juce::Component {
+class VerticalFader : public juce::Component {
 public:
-    Fader();
+    VerticalFader();
 
     void paint(juce::Graphics& g) override;
     void mouseDown(const juce::MouseEvent& event) override;
@@ -22,21 +22,14 @@ public:
     static constexpr float kMinVolumeDb = -60.0f;
     static constexpr float kMaxVolumeDb = 12.0f;
     static constexpr float kZeroDbPosition = 2.0f / 9.0f;
+    static constexpr float kDragSensitivity = 0.3f;
 
 private:
-    struct LayoutMetrics {
-        float scale = 1.0f;
-        float lineX = 0.0f;
-        float minY = 0.0f;
-        float maxY = 0.0f;
-        float buttonWidth = 0.0f;
-        float buttonHeight = 0.0f;
-    };
-
-    LayoutMetrics getMetrics() const;
     void updateValueFromPosition(float y);
 
     std::unique_ptr<juce::Drawable> faderDrawable;
     std::unique_ptr<juce::Drawable> buttonDrawable;
     float value = 0.5f;
+    float dragStartValue = 0.0f;
+    float dragStartY = 0.0f;
 };

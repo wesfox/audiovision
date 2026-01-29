@@ -19,6 +19,13 @@ std::optional<SvgFactory::SvgData> SvgFactory::getData(SVG_Assets asset) {
             }
             return SvgData{ data, size };
         }
+        case SVG_Assets::RotaryFaderSvg: {
+            auto* data = BinaryData::getNamedResource("rotatingfader_svg", size);
+            if (data == nullptr || size <= 0) {
+                return std::nullopt;
+            }
+            return SvgData{ data, size };
+        }
         case SVG_Assets::MoveLeftSvg: {
             auto* data = BinaryData::getNamedResource("moveleft_svg", size);
             if (data == nullptr || size <= 0) {

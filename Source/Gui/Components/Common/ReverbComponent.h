@@ -4,7 +4,7 @@
 
 #include <vector>
 
-#include "Gui/Components/Common/Fader.h"
+#include "Gui/Components/Common/VerticalFader.h"
 #include "Gui/Components/Common/RoundedButton.h"
 #include "Gui/Components/Common/SecondaryContainer.h"
 
@@ -24,5 +24,5 @@ private:
     std::vector<juce::String> reverbs;
     std::unique_ptr<RoundedButton> firstButton;
     std::unique_ptr<RoundedButton> addButton;
-    Fader fader;
+    VerticalFader fader;
 };

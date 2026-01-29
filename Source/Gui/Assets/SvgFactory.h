@@ -7,6 +7,7 @@
 enum class SVG_Assets {
     FaderButtonSvg,
     FaderSvg,
+    RotaryFaderSvg,
     MoveLeftSvg,
     MoveRightSvg,
     PlaySvg,

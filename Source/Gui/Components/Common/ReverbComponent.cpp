@@ -16,11 +16,11 @@ ReverbComponent::ReverbComponent(const Edit* edit)
 
 void ReverbComponent::resized() {
     auto bounds = getLocalBounds();
-    auto faderBounds = bounds.removeFromRight(bounds.getWidth() - 89);
+    auto faderBounds = bounds.withTrimmedLeft(89).reduced(0,4).withTrimmedRight(4);
     fader.setBounds(faderBounds);
 
     auto contentBounds = getContainerBounds();
-    auto listBounds = contentBounds.removeFromLeft(89).reduced(8, 10);
+    auto listBounds = contentBounds.removeFromLeft(89).reduced(4, 4);
     const int rowHeight = 32;
     const int rowGap = 8;
     const int labelWidth = 18;
@@ -53,7 +53,7 @@ void ReverbComponent::paint(juce::Graphics& g) {
     const int rowGap = 8;
     const int labelWidth = 18;
 
-    g.setColour(juce::Colour::fromString("#2F2C3F"));
+    g.setColour(juce::Colour::fromString("#FF2F2C3F"));
     g.setFont(juce::Font(12.0f));
 
     auto firstRow = listBounds.removeFromTop(rowHeight);

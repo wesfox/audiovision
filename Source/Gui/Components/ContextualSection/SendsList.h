@@ -3,7 +3,7 @@
 #include <JuceHeader.h>
 
 #include "Gui/Components/Common/PrimaryContainer.h"
-#include "ReverbComponent.h"
+#include "Gui/Components/Common/ReverbComponent.h"
 
 /// Displays a list of send components stacked vertically.
 class SendsList : public PrimaryContainer {
@@ -17,4 +17,5 @@ public:
 private:
     ReverbComponent reverbA;
     ReverbComponent reverbB;
+    RoundedButton addSendButton;
 };
