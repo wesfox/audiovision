@@ -2,10 +2,10 @@
 
 #include <JuceHeader.h>
 
-#include "Gui/Components/Common/RoundedButton.h"
-#include "Gui/Components/Common/SecondaryContainer.h"
-#include "Gui/Components/Common/SelectableList.h"
-#include "Gui/Components/Common/RectToggleButton.h"
+#include "../Common/ui/RoundedButton.h"
+#include "../Common/Containers/SecondaryContainer.h"
+#include "../Common/ui/SelectableList.h"
+#include "../Common/ui/RectToggleButton.h"
 
 /// Displays automation controls inside a secondary container.
 class AutomationPanel : public SecondaryContainer {

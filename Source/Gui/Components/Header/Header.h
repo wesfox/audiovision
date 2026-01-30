@@ -12,13 +12,13 @@
 /// Top-level header component.
 class Header : public juce::Component {
 public:
-    explicit Header(const Edit& edit);
+    explicit Header(Edit& edit);
 
     void paint(juce::Graphics& g) override;
     void resized() override;
 
 private:
-    const Edit& edit;
+    Edit& edit;
     ControlsPanel controlsPanel;
     TimecodesDisplay timecodesDisplay;
     AutomationPanel automationPanel;

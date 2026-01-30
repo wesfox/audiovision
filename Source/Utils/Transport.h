@@ -40,10 +40,13 @@ public:
 
     /// advance (or go back) from numSample
     /// @param numSamples number of sample to move (can be negative, move backward)
-    void advance(int numSamples)
+    void advance(int64 numSamples)
     {
-        if (playing.load())
+        if (currentSample.load() <= -numSamples){
+            currentSample.store(0LL);
+        }else{
             currentSample.fetch_add(numSamples);
+        }
     }
 
     /// Current sample rate.

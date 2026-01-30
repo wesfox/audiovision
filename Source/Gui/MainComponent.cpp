@@ -4,6 +4,7 @@
 #include "Core/CustomEdits/ImportEdit.h"
 #include "Utils/IO/EditSerializer.h"
 #include "Gui/Style/Font.h"
+#include "Command/Commands.h"
 
 //==============================================================================
 MainComponent::MainComponent()
@@ -11,6 +12,11 @@ MainComponent::MainComponent()
     setSize (600, 400);
 
     edit = ImportEdit::importEdit();
+    commandCenter = std::make_unique<CommandCenter>(*edit);
+    wheelCommandManager = std::make_unique<WheelCommandManager>(commandCenter->getCommandManager());
+    addKeyListener(&commandCenter->getKeyMappings());
+    setWantsKeyboardFocus(true);
+    grabKeyboardFocus();
 
     const auto baseFont = Fonts::p(14.0f, Fonts::Weight::Regular);
     juce::LookAndFeel::getDefaultLookAndFeel().setDefaultSansSerifTypeface(baseFont.getTypefacePtr());
@@ -28,7 +34,7 @@ MainComponent::MainComponent()
     trackContentPanel = std::make_unique<TrackContentPanel>(*edit);
     addAndMakeVisible(trackContentPanel.get());
 
-    setSize(1080/9*16, 700);
+    setSize(1080/9*16, 1080);
 }
 
 MainComponent::~MainComponent()
@@ -78,5 +84,22 @@ void MainComponent::resized()
     }
     if (trackContentPanel !=nullptr) {
         trackContentPanel->setBounds(bounds);
+    }
+}
+
+bool MainComponent::keyPressed(const juce::KeyPress& key) {
+    if (commandCenter != nullptr) {
+        commandCenter->getKeyMappings().keyPressed(key, this);
+    }
+    return true;
+}
+
+void MainComponent::mouseWheelMove(const juce::MouseEvent& event, const juce::MouseWheelDetails& details) {
+    if (commandCenter == nullptr) {
+        return;
+    }
+
+    if (wheelCommandManager != nullptr) {
+        wheelCommandManager->handleWheel(event, details);
     }
 }

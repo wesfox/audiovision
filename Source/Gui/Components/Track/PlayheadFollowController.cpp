@@ -66,6 +66,16 @@ void PlayheadFollowController::followRightEdge(int64 cursorSample) {
         return;
     }
 
+    if (cursorSample < viewStart || cursorSample > viewEnd) {
+        const auto leftInset = static_cast<int64>(viewLength * 0.1);
+        auto newStart = cursorSample - leftInset;
+        if (newStart < 0) {
+            newStart = 0;
+        }
+        edit.getState().setViewRange(newStart, newStart + viewLength, nullptr);
+        return;
+    }
+
     if (cursorSample > viewEnd) {
         const auto step = std::max<int64>(1, viewLength / 5);
         shiftViewBy(step);

@@ -156,7 +156,8 @@ void TrackContentPanel::handleAsyncUpdate() {
 
 void TrackContentPanel::timerCallback() {
     const auto transport = edit.getTransport();
-    if (!transport || !transport->isPlaying()) {
+    // TODO : add transport.isPlaying(), it is okay, but that may create some perf issues
+    if (!transport) {
         return;
     }
 

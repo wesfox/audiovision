@@ -1,0 +1,32 @@
+#pragma once
+
+#include <JuceHeader.h>
+
+#include "Command/Definitions/TransportCommands.h"
+#include "Command/Definitions/EditCommands.h"
+#include "Command/Definitions/WaveformCommands.h"
+
+/// Owns the app-wide command manager and command targets.
+class CommandCenter : public juce::ApplicationCommandTarget {
+public:
+    /// Create the command center for a given edit.
+    /// @param edit edit owning transport actions
+    explicit CommandCenter(Edit& edit);
+
+    /// Access the command manager.
+    juce::ApplicationCommandManager& getCommandManager();
+
+    /// Access key mappings for key listener registration.
+    juce::KeyPressMappingSet& getKeyMappings();
+
+    void getAllCommands(juce::Array<juce::CommandID>& commands) override;
+    void getCommandInfo(juce::CommandID commandID, juce::ApplicationCommandInfo& result) override;
+    bool perform(const InvocationInfo& info) override;
+    juce::ApplicationCommandTarget* getNextCommandTarget() override;
+
+private:
+    juce::ApplicationCommandManager commandManager;
+    TransportCommands transportCommands;
+    EditCommands editCommands;
+    WaveformCommands waveformCommands;
+};

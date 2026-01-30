@@ -9,6 +9,11 @@ const juce::Identifier kViewEndSampleId("viewEndSample");
 const juce::Identifier kFrameRateId("frameRate");
 const juce::Identifier kTimelineHeightId("timelineHeight");
 const juce::Identifier kHeaderHeightId("headerHeight");
+}
+
+const juce::Identifier EditState::kWaveformScaleId("waveformScale");
+
+namespace {
 
 int64 getInt64Property(const juce::ValueTree& tree, const juce::Identifier& propertyId, int64 fallback) {
     if (!tree.hasProperty(propertyId)) {
@@ -35,6 +40,7 @@ EditState::EditState() {
     globals.setProperty(kFrameRateId, 25.0f, nullptr);
     globals.setProperty(kTimelineHeightId, 20, nullptr);
     globals.setProperty(kHeaderHeightId, 90, nullptr);
+    globals.setProperty(kWaveformScaleId, 1.0f, nullptr);
 
     root.addChild(globals, -1, nullptr);
     root.addChild(viewState, -1, nullptr);
@@ -60,19 +66,34 @@ int EditState::getHeaderHeight() const {
     return static_cast<int>(getInt64Property(globals, kHeaderHeightId, 90));
 }
 
+float EditState::getWaveformScale() const {
+    return getFloatProperty(globals, kWaveformScaleId, 1.0f);
+}
+
 void EditState::setViewRange(int64 startSample, int64 endSample, juce::UndoManager* undo) {
     viewState.setProperty(kViewStartSampleId, startSample, undo);
     viewState.setProperty(kViewEndSampleId, endSample, undo);
 }
 
-void EditState::zoom(float ratio, juce::UndoManager* undo) {
-    auto viewStartSample = getViewStartSample();
-    auto viewEndSample = getViewEndSample();
-    viewEndSample = viewEndSample + static_cast<float>(viewEndSample - viewStartSample) * ratio;
-    viewStartSample = viewStartSample - static_cast<float>(viewEndSample - viewStartSample) * ratio;
-    viewStartSample = std::max<int64>(0, viewStartSample);
-    juce::Logger::writeToLog(String(ratio) + "-" + String(viewStartSample) + "-" + String(viewEndSample));
-    setViewRange(viewStartSample, viewEndSample, undo);
+void EditState::zoom(float ratio, int64 centerSample, juce::UndoManager* undo) {
+    const auto viewStartSample = getViewStartSample();
+    const auto viewEndSample = getViewEndSample();
+    const auto viewLength = viewEndSample - viewStartSample;
+    if (viewLength <= 0) {
+        // View length must be positive to compute zoom.
+        jassert(false);
+        return;
+    }
+
+    const double nextLength = std::max(1.0, static_cast<double>(viewLength) * (1.0 + 2.0 * ratio));
+    const double halfLength = nextLength * 0.5;
+    auto newStart = static_cast<int64>(std::llround(static_cast<double>(centerSample) - halfLength));
+    auto newEnd = static_cast<int64>(std::llround(static_cast<double>(centerSample) + halfLength));
+    if (newStart < 0) {
+        newStart = 0;
+        newEnd = static_cast<int64>(std::llround(nextLength));
+    }
+    setViewRange(newStart, newEnd, undo);
 }
 
 void EditState::setFrameRate(float frameRate, juce::UndoManager* undo) {
@@ -85,4 +106,8 @@ void EditState::setTimelineHeight(int height, juce::UndoManager* undo) {
 
 void EditState::setHeaderHeight(int height, juce::UndoManager* undo) {
     globals.setProperty(kHeaderHeightId, height, undo);
+}
+
+void EditState::setWaveformScale(float scale, juce::UndoManager* undo) {
+    globals.setProperty(kWaveformScaleId, scale, undo);
 }

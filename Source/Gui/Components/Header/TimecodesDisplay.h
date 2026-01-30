@@ -2,10 +2,13 @@
 
 #include <JuceHeader.h>
 
+#include "Core/Edit/Edit.h"
+
 /// Renders the header timecode readouts.
-class TimecodesDisplay : public juce::Component {
+class TimecodesDisplay : public juce::Component,
+                         private juce::Timer {
 public:
-    TimecodesDisplay();
+    explicit TimecodesDisplay(Edit& edit);
 
     void paint(juce::Graphics& g) override;
 
@@ -22,7 +25,15 @@ public:
     static constexpr int kWidth = kLeftWidth + kRightWidth;
 
 private:
-    juce::String timecode = "01:15:21:05";
+    void timerCallback() override;
+    void updateTimecodes(bool force);
+
+    Edit& edit;
+    int64 currentSampleFrame = 0;
+    int64 inFrame = 0;
+    int64 outFrame = 0;
+
+    juce::String timecode = "00:00:00:00";
     juce::String inTimecode = "01:15:21:05";
     juce::String outTimecode = "01:15:22:06";
     juce::String lengthTimecode = "00:00:01:01";

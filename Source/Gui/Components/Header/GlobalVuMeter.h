@@ -2,8 +2,8 @@
 
 #include <JuceHeader.h>
 
-#include "Gui/Components/Common/SecondaryContainer.h"
-#include "Gui/Components/Common/VuMeter.h"
+#include "../Common/Containers/SecondaryContainer.h"
+#include "../Common/tools/VuMeter.h"
 
 /// Displays the global VU meters inside a secondary container.
 class GlobalVuMeter : public SecondaryContainer {

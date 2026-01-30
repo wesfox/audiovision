@@ -8,14 +8,12 @@ Recorder::Recorder() {
 
     outputStream = outFile.createOutputStream();
 
-    juce::WavAudioFormat wavFormat;
-    writer.reset(wavFormat.createWriterFor(
-        outputStream.get(),
-        44100.0,
-        2,
-        16,
-        {},
-        0));
+    auto options = juce::AudioFormatWriterOptions()
+                       .withSampleRate(44100.0)
+                       .withNumChannels(2)
+                       .withBitsPerSample(16)
+                       .withMetadataValues({});
+    writer = format.createWriterFor(outputStream, options);
 }
 
 void Recorder::record(AudioBuffer<float>& buffer) {

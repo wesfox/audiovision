@@ -2,8 +2,8 @@
 
 #include <JuceHeader.h>
 
-#include "Gui/Components/Common/RectToggleButton.h"
-#include "Gui/Components/Common/SecondaryContainer.h"
+#include "../Common/ui/RectToggleButton.h"
+#include "../Common/Containers/SecondaryContainer.h"
 
 /// Displays track folder activation toggles.
 class TrackFolderActivationPanel : public SecondaryContainer {

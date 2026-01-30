@@ -52,11 +52,10 @@ inline juce::Font h3(Weight weight = Weight::Bold) {
             break;
     }
     if (typeface != nullptr) {
-        juce::Font font(typeface);
-        font.setHeight(16.0f);
-        return font;
+        return {juce::FontOptions(typeface).withHeight(16.0f)};
     }
-    return juce::Font(16.0f, weight == Weight::Bold ? juce::Font::bold : juce::Font::plain);
+    return {juce::FontOptions(16.0f,
+                                        weight == Weight::Bold ? juce::Font::bold : juce::Font::plain)};
 }
 
 inline juce::Font p(float size, Weight weight = Weight::Regular) {
@@ -77,11 +76,10 @@ inline juce::Font p(float size, Weight weight = Weight::Regular) {
             break;
     }
     if (typeface != nullptr) {
-        juce::Font font(typeface);
-        font.setHeight(size);
-        return font;
+        return juce::Font(juce::FontOptions(typeface).withHeight(size));
     }
-    return juce::Font(size, weight == Weight::Bold ? juce::Font::bold : juce::Font::plain);
+    return juce::Font(juce::FontOptions(size,
+                                        weight == Weight::Bold ? juce::Font::bold : juce::Font::plain));
 }
 
 inline juce::Font p() {

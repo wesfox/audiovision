@@ -8,6 +8,8 @@
 
 #include "juce_graphics/fonts/harfbuzz/hb-cplusplus.hh"
 
+class ThumbnailCache;
+
 /// Read audio data from disk with low-latency access.
 /// TODO: handle multi-mono files.
 class AudioFile {
@@ -45,6 +47,9 @@ public:
     /// Called at initialization, another call is only needed if the file content has changed.
     /// Todo : Make optimized reader that allow to read only parts of the files that are used.
     void readWholeFileInCache();
+
+    /// Access the shared waveform thumbnail.
+    juce::AudioThumbnail* getThumbnail() const;
 private:
 
     String id;
@@ -54,4 +59,5 @@ private:
     int64 originalTimeReference;
     Channel channel;
     ChannelsFormat format;
+    mutable std::unique_ptr<juce::AudioThumbnail> thumbnail;
 };

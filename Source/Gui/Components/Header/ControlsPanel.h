@@ -2,14 +2,15 @@
 
 #include <JuceHeader.h>
 
+#include "Core/Edit/Edit.h"
+
 /// Displays the transport control icons in the header.
 class ControlsPanel : public juce::Component {
 public:
-    ControlsPanel();
+    ControlsPanel(Edit& edit);
     ~ControlsPanel() override;
 
     void paint(juce::Graphics& g) override;
-    void mouseUp(const juce::MouseEvent& event) override;
     void resized() override;
 
     static constexpr int kIconSize = 30;

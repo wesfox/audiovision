@@ -52,6 +52,9 @@ public:
     /// Source audio file path.
     String getAudioFilePath() const;
 
+    /// Access the source audio file.
+    std::shared_ptr<AudioFile> getAudioFile() const;
+
     /// Start sample within the audio file.
     int64 getFileStartSample() const;
 

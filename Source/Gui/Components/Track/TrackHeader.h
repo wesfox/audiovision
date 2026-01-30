@@ -3,9 +3,9 @@
 #include <JuceHeader.h>
 
 #include "Core/Track/Track.h"
-#include "Gui/Components/Common/EditableText.h"
-#include "Gui/Components/Common/SelectableList.h"
-#include "Gui/Components/Common/ToggleTextButton.h"
+#include "../Common/ui/EditableText.h"
+#include "../Common/ui/SelectableList.h"
+#include "../Common/ui/ToggleTextButton.h"
 
 class TrackHeader : public juce::Component {
 public:

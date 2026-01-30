@@ -29,7 +29,7 @@ void SceneContextPanel::paint(juce::Graphics& g) {
 }
 
 void SceneContextPanel::resized() {
-    auto contentBounds = getContainerBounds().reduced(8, 8);
+    auto contentBounds = getContainerBounds();
     const int buttonRowHeight = 25;
     auto buttonsBounds = contentBounds.removeFromBottom(buttonRowHeight);
 

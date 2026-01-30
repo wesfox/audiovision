@@ -2,7 +2,10 @@
 
 #include "Gui/Style/Font.h"
 
-Header::Header(const Edit& edit) : edit(edit) {
+Header::Header(Edit& edit)
+    : edit(edit),
+      controlsPanel(edit),
+      timecodesDisplay(edit) {
     addAndMakeVisible(controlsPanel);
     addAndMakeVisible(timecodesDisplay);
     addAndMakeVisible(globalVuMeter);

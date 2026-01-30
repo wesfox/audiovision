@@ -85,7 +85,9 @@ public:
     }
 
     void zoom(float ratio) {
-        actionStore.dispatch(EditAction::makeZoom(ratio));
+        const auto transport = getTransport();
+        const auto cursorSample = transport ? transport->getCursorPosition() : getViewStartSample();
+        actionStore.dispatch(EditAction::makeZoom(ratio, cursorSample));
     }
 
     /// Access the edit state.

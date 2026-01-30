@@ -16,6 +16,7 @@ struct EditAction {
     int64 startSample = 0;
     int64 endSample = 0;
     float zoomRatio = 0.0f;
+    int64 zoomCenterSample = 0;
     float frameRate = 0.0f;
 
     /// Create a view range update action.
@@ -23,7 +24,9 @@ struct EditAction {
 
 
     /// Create a zoom action.
-    static EditAction makeZoom(float ratio);
+    /// @param ratio zoom ratio (positive to zoom out, negative to zoom in)
+    /// @param centerSample sample around which to center the view
+    static EditAction makeZoom(float ratio, int64 centerSample);
 
 
     /// Create a frame rate update action.

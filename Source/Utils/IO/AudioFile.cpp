@@ -1,5 +1,6 @@
 #include "AudioFile.h"
 #include <Utils/Uuid.h>
+#include "Utils/Waveform/ThumbnailCache.h"
 
 AudioFile::AudioFile(String filePath)
     : id(uuid::generate_uuid_v4()),
@@ -77,4 +78,22 @@ void AudioFile::readWholeFileInCache() {
     audioFormat->createMemoryMappedReader(juce::File(filePath))
     );
     reader->mapEntireFile();
+
+    const auto file = juce::File(filePath);
+    if (thumbnail == nullptr) {
+        auto& thumbnailCache = ThumbnailCache::get();
+        thumbnail = std::make_unique<juce::AudioThumbnail>(thumbnailCache.getSamplesPerThumbSample(),
+                                                           thumbnailCache.getFormatManager(),
+                                                           thumbnailCache.getCache());
+        thumbnail->setSource(new juce::FileInputSource(file));
+    }
+}
+
+juce::AudioThumbnail* AudioFile::getThumbnail() const {
+    if (thumbnail == nullptr) {
+        // Thumbnail must be created during file load to avoid painting without a source.
+        jassert(false);
+        return nullptr;
+    }
+    return thumbnail.get();
 }

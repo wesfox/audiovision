@@ -3,10 +3,9 @@
 #include <JuceHeader.h>
 
 #include "SceneContextPanel.h"
-#include "SendsList.h"
-#include "InspectorSection.h"
-#include "ContextualComponent/VolumeAndPan.h"
-#include "ContextualComponent/InsertsComponent.h"
+#include "SendsList/SendsList.h"
+#include "InspectorSection/InspectorSection.h"
+#include "InspectorSection/InsertsComponent.h"
 
 /// Hosts contextual tools in the right column.
 class ContextualSection : public juce::Component {
@@ -20,5 +19,4 @@ private:
     SceneContextPanel sceneContextPanel;
     SendsList sendsList;
     InspectorSection inspectorSection;
-    VolumeAndPan volumeAndPan;
 };

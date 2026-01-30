@@ -8,7 +8,7 @@
 
 // ------------------------ MainComponent Implementation ------------------------
 
-TrackContent::TrackContent(const Edit& edit, std::shared_ptr<Track> track)
+TrackContent::TrackContent(Edit& edit, std::shared_ptr<Track> track)
     : edit(edit), track(std::move(track)) {
     if (auto audioTrack = std::dynamic_pointer_cast<AudioTrack>(this->track)) {
         for (const auto& clip : audioTrack->getAudioClips()) {
@@ -20,6 +20,12 @@ TrackContent::TrackContent(const Edit& edit, std::shared_ptr<Track> track)
             clipComponents.push_back(std::move(clipComponent));
         }
     }
+    edit.getState().getRoot().addListener(this);
+    applyWaveformScale();
+}
+
+TrackContent::~TrackContent() {
+    edit.getState().getRoot().removeListener(this);
 }
 
 void TrackContent::resized() {
@@ -41,7 +47,6 @@ void TrackContent::updateLayout() {
     const auto bounds = getLocalBounds();
     const float width = static_cast<float>(bounds.getWidth());
     const float height = static_cast<float>(bounds.getHeight());
-
     for (auto& clipComponent : clipComponents) {
         const auto& clip = clipComponent->getClip();
         const auto clipStart = clip.getSessionStartSample();
@@ -58,6 +63,7 @@ void TrackContent::updateLayout() {
         const int clipX = static_cast<int>(std::floor(startX));
         const int clipWidth = std::max(1, static_cast<int>(std::ceil(endX - startX)));
         clipComponent->setBounds(clipX, 0, clipWidth, static_cast<int>(height));
+        clipComponent->setViewRange(viewStart, viewEnd);
         clipComponent->setVisible(true);
     }
 }
@@ -66,4 +72,18 @@ void TrackContent::paint(juce::Graphics& g) {
     g.setColour(juce::Colour::fromRGBA(0, 0, 0, 80));
     const auto b = getLocalBounds().toFloat();
     g.drawLine(b.getX(), b.getBottom() + 0.5f, b.getWidth(), b.getBottom() + 0.5f, 2.0f );
+}
+
+void TrackContent::valueTreePropertyChanged(juce::ValueTree&, const juce::Identifier& property) {
+    if (property != EditState::kWaveformScaleId) {
+        return;
+    }
+    applyWaveformScale();
+}
+
+void TrackContent::applyWaveformScale() {
+    const float waveformScale = edit.getState().getWaveformScale();
+    for (auto& clipComponent : clipComponents) {
+        clipComponent->setWaveformScale(waveformScale);
+    }
 }

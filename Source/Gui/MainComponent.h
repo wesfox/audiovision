@@ -3,6 +3,8 @@
 #include <JuceHeader.h>
 #include "Components/Header/Header.h"
 #include "Components/ContextualSection/ContextualSection.h"
+#include "Command/CommandCenter.h"
+#include "Command/WheelCommandManager.h"
 
 #include "AudioEngine/AudioEngine.h"
 #include "Components/Track/TrackContentPanel.h"
@@ -26,11 +28,15 @@ public:
 
     /// Layout child components.
     void resized() override;
+    bool keyPressed(const juce::KeyPress& key) override;
+    void mouseWheelMove(const juce::MouseEvent& event, const juce::MouseWheelDetails& details) override;
 
 private:
     std::shared_ptr<Edit> edit;
     std::unique_ptr<AudioEngine> audioEngine;
     bool isShutDown = false;
+    std::unique_ptr<CommandCenter> commandCenter;
+    std::unique_ptr<WheelCommandManager> wheelCommandManager;
 
     std::unique_ptr<TrackHeaderPanel> trackHeaderPanel;
     std::unique_ptr<TrackContentPanel> trackContentPanel;

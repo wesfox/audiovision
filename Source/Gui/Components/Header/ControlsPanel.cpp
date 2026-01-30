@@ -1,13 +1,13 @@
 #include "ControlsPanel.h"
 
-#include "Gui/Components/Common/SvgButton.h"
+#include "../Common/ui/SvgButton.h"
 
 class ControlsPanel::SvgButton : public ::SvgButton {
 public:
     using ::SvgButton::SvgButton;
 };
 
-ControlsPanel::ControlsPanel() {
+ControlsPanel::ControlsPanel(Edit& edit) {
     const auto iconColour = juce::Colour::fromString("#4C2C7E");
 
     rewind = std::make_unique<SvgButton>(SVG_Assets::RewindSvg, iconColour);
@@ -24,11 +24,23 @@ ControlsPanel::ControlsPanel() {
     moveLeft->setName("move-left");
     moveRight->setName("move-right");
 
+    rewind->onClick = [&edit] { edit.getTransport()->rewind(); };
+
+    play->onClick = [&edit] { edit.getTransport()->play(); };
+
+    stop->onClick = [&edit] { edit.getTransport()->stop(); };
+
+    record->onClick = [&edit] { edit.getTransport()->stop(); };
+
+    int64 jumpSize = (edit.getViewEndSample() - edit.getViewStartSample())/4;
+
+    moveLeft->onClick = [&edit, jumpSize] { edit.getTransport()->advance(-jumpSize); };
+
+    moveRight->onClick = [&edit, jumpSize] { edit.getTransport()->advance(jumpSize); };
+
     for (auto* icon : { rewind.get(), play.get(), stop.get(), record.get(), moveLeft.get(), moveRight.get() }) {
         addAndMakeVisible(icon);
     }
-
-    addMouseListener(this, true);
 }
 
 ControlsPanel::~ControlsPanel() = default;
@@ -44,14 +56,6 @@ void ControlsPanel::resized() {
     }
 
     grid.performLayout(getLocalBounds().withSizeKeepingCentre(kGridWidth, kGridHeight));
-}
-
-void ControlsPanel::mouseUp(const juce::MouseEvent& event) {
-    auto* component = event.originalComponent;
-    if (component == nullptr || component == this) {
-        return;
-    }
-    juce::Logger::writeToLog(component->getName());
 }
 
 void ControlsPanel::paint(juce::Graphics& g) {

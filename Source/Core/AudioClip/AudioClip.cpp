@@ -39,6 +39,10 @@ String AudioClip::getAudioFilePath() const
     return audioFile ? audioFile->getFilePath() : String();
 }
 
+std::shared_ptr<AudioFile> AudioClip::getAudioFile() const {
+    return audioFile;
+}
+
 int64 AudioClip::getFileStartSample() const
 {
     return fileStartSample;

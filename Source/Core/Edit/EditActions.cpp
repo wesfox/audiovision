@@ -8,10 +8,11 @@ EditAction EditAction::makeViewRange(int64 start, int64 end) {
     return action;
 }
 
-EditAction EditAction::makeZoom(float ratio) {
+EditAction EditAction::makeZoom(float ratio, int64 centerSample) {
     EditAction action;
     action.type = EditActionType::Zoom;
     action.zoomRatio = ratio;
+    action.zoomCenterSample = centerSample;
     return action;
 }
 
@@ -59,7 +60,7 @@ void EditActionStore::applyAction(const EditAction& action) {
             state.setViewRange(action.startSample, action.endSample, &undoManager);
             break;
         case EditActionType::Zoom:
-            state.zoom(action.zoomRatio, &undoManager);
+            state.zoom(action.zoomRatio, action.zoomCenterSample, &undoManager);
             break;
         case EditActionType::SetFrameRate:
             state.setFrameRate(action.frameRate, &undoManager);

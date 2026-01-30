@@ -4,8 +4,8 @@
 
 #include <vector>
 
-#include "Gui/Components/Common/PrimaryContainer.h"
-#include "Gui/Components/Common/RoundedButton.h"
+#include "../Common/Containers/PrimaryContainer.h"
+#include "../Common/ui/RoundedButton.h"
 
 /// Displays scene context information in the contextual section.
 class SceneContextPanel : public PrimaryContainer {

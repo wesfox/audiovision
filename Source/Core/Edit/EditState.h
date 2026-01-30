@@ -5,6 +5,8 @@
 /// Edit view and global state backed by a ValueTree.
 class EditState {
 public:
+    static const juce::Identifier kWaveformScaleId;
+
     /// Create a state tree with default values.
     EditState();
 
@@ -31,8 +33,9 @@ public:
 
     /// Apply a zoom ratio to the current view.
     /// @param ratio zoom ratio (positive to zoom out, negative to zoom in)
+    /// @param centerSample sample around which to center the view
     /// @param undo optional undo manager for transactions
-    void zoom(float ratio, juce::UndoManager* undo = nullptr);
+    void zoom(float ratio, int64 centerSample, juce::UndoManager* undo = nullptr);
 
     /// Set the frame rate.
     /// @param frameRate new frame rate
@@ -54,6 +57,14 @@ public:
     /// @param height new header height in pixels
     /// @param undo optional undo manager for transactions
     void setHeaderHeight(int height, juce::UndoManager* undo = nullptr);
+
+    /// Waveform vertical scale factor.
+    float getWaveformScale() const;
+
+    /// Set the waveform vertical scale factor.
+    /// @param scale new waveform scale factor
+    /// @param undo optional undo manager for transactions
+    void setWaveformScale(float scale, juce::UndoManager* undo = nullptr);
 
 private:
     juce::ValueTree root;

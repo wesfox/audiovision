@@ -86,12 +86,16 @@ juce_add_binary_data(AudioVisionBinaryData
 target_include_directories(${TARGET_NAME}
         PRIVATE
             ${CMAKE_CURRENT_SOURCE_DIR}/Source
+            ${CMAKE_CURRENT_SOURCE_DIR}/Source/Gui
 )
 
 file(GLOB_RECURSE COMMON_SOURCES
         "Source/AudioEngine/*.cpp"
         "Source/AudioEngine/*/*.cpp"
         "Source/AudioEngine/*/*/*.cpp"
+        "Source/Command/*.cpp"
+        "Source/Command/*/*.cpp"
+        "Source/Command/*/*/*.cpp"
         "Source/Gui/Components/*.cpp"
         "Source/Gui/Components/*/*.cpp"
         "Source/Gui/Assets/*.cpp"
