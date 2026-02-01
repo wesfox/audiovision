@@ -3,13 +3,16 @@
 #include <JuceHeader.h>
 
 #include "Core/Track/Track.h"
+#include "Gui/Utils/SelectionManager.h"
 #include "../Common/ui/EditableText.h"
 #include "../Common/ui/SelectableList.h"
 #include "../Common/ui/ToggleTextButton.h"
 
-class TrackHeader : public juce::Component {
+class TrackHeader : public juce::Component,
+                    private SelectionManager::Listener {
 public:
-    explicit TrackHeader(Track& track);
+    TrackHeader(Track& track, SelectionManager& selectionManager);
+    ~TrackHeader() override;
 
     void resized() override;
 
@@ -17,6 +20,8 @@ public:
 
     void setTrackName(const String &name) const;
 private:
+    void selectionChanged() override;
+
     /// constructor values
     String trackId;
 
@@ -34,6 +39,8 @@ private:
 
     // track ref
     Track& track;
+    SelectionManager& selectionManager;
+    bool isSelected = false;
 
     // subComponents
     std::unique_ptr<EditableText> trackName;

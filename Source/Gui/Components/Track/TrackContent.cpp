@@ -8,8 +8,10 @@
 
 // ------------------------ MainComponent Implementation ------------------------
 
-TrackContent::TrackContent(Edit& edit, std::shared_ptr<Track> track)
-    : edit(edit), track(std::move(track)) {
+TrackContent::TrackContent(Edit& edit, SelectionManager& selectionManager, std::shared_ptr<Track> track)
+    : edit(edit),
+      selectionManager(selectionManager),
+      track(std::move(track)) {
     if (auto audioTrack = std::dynamic_pointer_cast<AudioTrack>(this->track)) {
         for (const auto& clip : audioTrack->getAudioClips()) {
             if (!clip) {
@@ -21,11 +23,16 @@ TrackContent::TrackContent(Edit& edit, std::shared_ptr<Track> track)
         }
     }
     edit.getState().getRoot().addListener(this);
+    selectionManager.addListener(this);
+    if (this->track != nullptr) {
+        isSelected = selectionManager.isSelected(this->track->getId());
+    }
     applyWaveformScale();
 }
 
 TrackContent::~TrackContent() {
     edit.getState().getRoot().removeListener(this);
+    selectionManager.removeListener(this);
 }
 
 void TrackContent::resized() {
@@ -69,9 +76,68 @@ void TrackContent::updateLayout() {
 }
 
 void TrackContent::paint(juce::Graphics& g) {
+    if (isSelected) {
+        g.setColour(juce::Colour(0x114C2C7E));
+        g.fillRect(getLocalBounds());
+    }
     g.setColour(juce::Colour::fromRGBA(0, 0, 0, 80));
     const auto b = getLocalBounds().toFloat();
     g.drawLine(b.getX(), b.getBottom() + 0.5f, b.getWidth(), b.getBottom() + 0.5f, 2.0f );
+
+}
+
+void TrackContent::paintOverChildren(juce::Graphics& g) {
+    if (!isSelected) {
+        return;
+    }
+    const auto viewStart = edit.getViewStartSample();
+    const auto viewEnd = edit.getViewEndSample();
+    const auto viewLength = viewEnd - viewStart;
+    if (viewLength <= 0) {
+        // View length must be positive to map the cursor.
+        jassert(false);
+        return;
+    }
+
+    const auto selectionRange = selectionManager.getSelectionRangeSamples();
+    if (selectionRange.has_value()) {
+        const auto rangeStart = std::min(selectionRange->first, selectionRange->second);
+        const auto rangeEnd = std::max(selectionRange->first, selectionRange->second);
+        if (rangeEnd >= viewStart && rangeStart <= viewEnd) {
+            const auto clampedStart = std::max(rangeStart, viewStart);
+            const auto clampedEnd = std::min(rangeEnd, viewEnd);
+            const float startX = (static_cast<float>(clampedStart - viewStart)
+                / static_cast<float>(viewLength)) * static_cast<float>(getWidth());
+            const float endX = (static_cast<float>(clampedEnd - viewStart)
+                / static_cast<float>(viewLength)) * static_cast<float>(getWidth());
+            const auto x = std::min(startX, endX);
+            const auto width = std::max(1.0f, std::abs(endX - startX));
+            g.setColour(juce::Colour::fromString("#99000000"));
+            g.fillRect(x, 0.0f, width, static_cast<float>(getHeight()));
+        }
+    }
+
+    const auto transport = edit.getTransport();
+    if (!transport) {
+        return;
+    }
+    if (transport->isPlaying()) {
+        return;
+    }
+    const auto playheadSample = transport->getCursorPosition();
+    if (playheadSample < viewStart || playheadSample > viewEnd) {
+        return;
+    }
+
+    const auto tick = juce::Time::getMillisecondCounter() / 500;
+    if ((tick % 2) == 0) {
+        return;
+    }
+
+    const float x = (static_cast<float>(playheadSample - viewStart)
+        / static_cast<float>(viewLength)) * static_cast<float>(getWidth());
+    g.setColour(juce::Colour::fromString("#FF333333"));
+    g.drawLine(x, 0.0f, x, static_cast<float>(getHeight()), 1.0f);
 }
 
 void TrackContent::valueTreePropertyChanged(juce::ValueTree&, const juce::Identifier& property) {
@@ -86,4 +152,16 @@ void TrackContent::applyWaveformScale() {
     for (auto& clipComponent : clipComponents) {
         clipComponent->setWaveformScale(waveformScale);
     }
+}
+
+void TrackContent::selectionChanged() {
+    if (track == nullptr) {
+        return;
+    }
+    const bool nextSelected = selectionManager.isSelected(track->getId());
+    if (nextSelected == isSelected) {
+        return;
+    }
+    isSelected = nextSelected;
+    repaint();
 }

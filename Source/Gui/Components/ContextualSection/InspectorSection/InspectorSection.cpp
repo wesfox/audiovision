@@ -4,7 +4,6 @@ InspectorSection::InspectorSection() {
     setTitle("Inspecteur");
     insertsComponent.addInsert("Effet 1");
     insertsComponent.addInsert("Effet 2");
-    insertsComponent.addInsert("Effet 3");
     addAndMakeVisible(insertsComponent);
     sendsComponent.addSend("Send 1");
     sendsComponent.addSend("Send 2");

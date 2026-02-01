@@ -94,6 +94,7 @@ protected:
     Automation volumeAutomation;
     Automation panAutomation;
     std::vector<Automation> sendsAutomation;
+    bool focused = false;
     int automationMode;
     bool solo;
     bool soloSafe;

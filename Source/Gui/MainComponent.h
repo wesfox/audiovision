@@ -5,6 +5,7 @@
 #include "Components/ContextualSection/ContextualSection.h"
 #include "Command/CommandCenter.h"
 #include "Command/WheelCommandManager.h"
+#include "Gui/Utils/SelectionManager.h"
 
 #include "AudioEngine/AudioEngine.h"
 #include "Components/Track/TrackContentPanel.h"
@@ -37,6 +38,7 @@ private:
     bool isShutDown = false;
     std::unique_ptr<CommandCenter> commandCenter;
     std::unique_ptr<WheelCommandManager> wheelCommandManager;
+    std::unique_ptr<SelectionManager> selectionManager;
 
     std::unique_ptr<TrackHeaderPanel> trackHeaderPanel;
     std::unique_ptr<TrackContentPanel> trackContentPanel;

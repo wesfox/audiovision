@@ -54,8 +54,10 @@ void CursorTimeline::paint(juce::Graphics& g) {
     const float drawX = (x - scaledWidth * 0.5f);
     const float drawY = static_cast<float>(rulerHeight) - (drawableBounds.getHeight() * scale);
 
-    g.setColour(juce::Colour::fromRGBA(76, 44, 126, 120));
-    g.drawLine(alignedX, static_cast<float>(rulerHeight), alignedX, static_cast<float>(bounds.getHeight()), 1.0f);
+    if (transport->isPlaying()){
+        g.setColour(juce::Colour::fromRGBA(76, 44, 126, 120));
+        g.drawLine(alignedX, static_cast<float>(rulerHeight), alignedX, static_cast<float>(bounds.getHeight()), 1.0f);
+    }
 
     juce::AffineTransform transform = juce::AffineTransform::scale(scale)
         .translated(drawX, drawY);

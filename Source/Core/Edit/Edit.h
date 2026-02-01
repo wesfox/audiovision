@@ -120,6 +120,7 @@ public:
         return undoManager;
     }
 
+
     /// Perform an undoable action as a new transaction.
     /// @param name transaction name for the undo history
     /// @param action undoable action (owned by the undo manager)

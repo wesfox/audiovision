@@ -7,7 +7,9 @@
 
 // ------------------------ MainComponent Implementation ------------------------
 
-TrackContentPanel::TrackContentPanel(Edit& edit) : edit(edit) {
+TrackContentPanel::TrackContentPanel(Edit& edit, SelectionManager& selectionManager)
+    : edit(edit),
+      selectionManager(selectionManager) {
     const auto rulerHeight = edit.getState().getTimelineHeight();
     timelineRuler = std::make_unique<TimelineRuler>(edit, rulerHeight);
     addAndMakeVisible(timelineRuler.get());
@@ -16,7 +18,7 @@ TrackContentPanel::TrackContentPanel(Edit& edit) : edit(edit) {
         if (!track) {
             continue;
         }
-        auto trackContent = std::make_shared<TrackContent>(edit, track);
+        auto trackContent = std::make_shared<TrackContent>(edit, selectionManager, track);
         addAndMakeVisible(*trackContent);
         trackContentComponents.emplace(track->getId(), std::move(trackContent));
     }
@@ -31,6 +33,7 @@ TrackContentPanel::TrackContentPanel(Edit& edit) : edit(edit) {
     addAndMakeVisible(cursorTimeline.get());
     edit.getState().getRoot().addListener(this);
     startTimerHz(30);
+    addMouseListener(this, true);
 }
 
 TrackContentPanel::~TrackContentPanel() {
@@ -165,8 +168,57 @@ void TrackContentPanel::timerCallback() {
         cursorTimeline->repaint();
     }
 
-    const auto cursorSample = transport->getCursorPosition();
+    const auto playheadSample = transport->getCursorPosition();
     if (playheadController != nullptr) {
-        playheadController->onPlaybackTick(cursorSample);
+        playheadController->onPlaybackTick(playheadSample);
     }
+
+    for (const auto& [trackId, trackContent] : trackContentComponents) {
+        if (!trackContent) {
+            continue;
+        }
+        if (selectionManager.isSelected(trackId)) {
+            trackContent->repaint();
+        }
+    }
+}
+
+void TrackContentPanel::mouseDown(const juce::MouseEvent& event) {
+    selectionManager.mouseDown(event, this);
+    const auto transport = edit.getTransport();
+    if (transport != nullptr) {
+        if (transport->isPlaying()) {
+            return;
+        }
+        const auto viewStart = edit.getViewStartSample();
+        const auto viewEnd = edit.getViewEndSample();
+        const auto viewLength = viewEnd - viewStart;
+        if (viewLength <= 0) {
+            // View length must be positive to map cursor position.
+            jassert(false);
+        } else {
+            const auto relative = event.getEventRelativeTo(this);
+            const float width = static_cast<float>(getWidth());
+            const float x = juce::jlimit(0.0f, width, relative.position.x);
+            const auto cursorSample = viewStart
+                + static_cast<int64>(std::llround((x / width) * static_cast<float>(viewLength)));
+            transport->setCursorPosition(cursorSample);
+        }
+    }
+}
+
+void TrackContentPanel::mouseDrag(const juce::MouseEvent& event) {
+    selectionManager.mouseDrag(event, this);
+}
+
+void TrackContentPanel::mouseMove(const juce::MouseEvent& event) {
+    selectionManager.mouseMove(event, this);
+}
+
+void TrackContentPanel::mouseEnter(const juce::MouseEvent& event) {
+    selectionManager.mouseEnter(event, this);
+}
+
+void TrackContentPanel::mouseUp(const juce::MouseEvent&) {
+    selectionManager.mouseUp();
 }

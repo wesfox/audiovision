@@ -66,6 +66,11 @@ public:
     /// @param undo optional undo manager for transactions
     void setWaveformScale(float scale, juce::UndoManager* undo = nullptr);
 
+    /// Convert a pixel position to a sample position in the current view.
+    /// @param pixelX x position in pixels
+    /// @param viewWidth width of the view in pixels
+    int64 mapPixelToSample(float pixelX, float viewWidth) const;
+
 private:
     juce::ValueTree root;
     juce::ValueTree globals;

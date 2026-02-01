@@ -14,6 +14,7 @@ MainComponent::MainComponent()
     edit = ImportEdit::importEdit();
     commandCenter = std::make_unique<CommandCenter>(*edit);
     wheelCommandManager = std::make_unique<WheelCommandManager>(commandCenter->getCommandManager());
+    selectionManager = std::make_unique<SelectionManager>(*edit);
     addKeyListener(&commandCenter->getKeyMappings());
     setWantsKeyboardFocus(true);
     grabKeyboardFocus();
@@ -28,10 +29,10 @@ MainComponent::MainComponent()
     contextualSection = std::make_unique<ContextualSection>();
     addAndMakeVisible(contextualSection.get());
 
-    trackHeaderPanel = std::make_unique<TrackHeaderPanel>(*edit);
+    trackHeaderPanel = std::make_unique<TrackHeaderPanel>(*edit, *selectionManager);
     addAndMakeVisible(trackHeaderPanel.get());
 
-    trackContentPanel = std::make_unique<TrackContentPanel>(*edit);
+    trackContentPanel = std::make_unique<TrackContentPanel>(*edit, *selectionManager);
     addAndMakeVisible(trackContentPanel.get());
 
     setSize(1080/9*16, 1080);

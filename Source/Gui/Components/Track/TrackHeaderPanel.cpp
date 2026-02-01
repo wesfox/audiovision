@@ -5,12 +5,13 @@
 
 // ------------------------ MainComponent Implementation ------------------------
 
-TrackHeaderPanel::TrackHeaderPanel(Edit& edit)
+TrackHeaderPanel::TrackHeaderPanel(Edit& edit, SelectionManager& selectionManager)
     : edit(edit),
+      selectionManager(selectionManager),
       tracks(edit.getTracks()),
       trackHeaderComponents(std::map<String, std::shared_ptr<TrackHeader> >()) {
     for (const auto& track: tracks) {
-        auto trackHeader = std::make_shared<TrackHeader>(*track);
+        auto trackHeader = std::make_shared<TrackHeader>(*track, selectionManager);
         addAndMakeVisible(*trackHeader);
         trackHeaderComponents.emplace(track->getId(), std::move(trackHeader));
     }

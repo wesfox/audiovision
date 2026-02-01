@@ -2,9 +2,16 @@
 
 #include "Core/Track/Track.h"
 
+#include <algorithm>
+
 // ------------------------ MainComponent Implementation ------------------------
 
-TrackHeader::TrackHeader(Track& track): track(track) {
+TrackHeader::TrackHeader(Track& track, SelectionManager& selectionManager)
+    : track(track),
+      selectionManager(selectionManager) {
+    trackId = track.getId();
+    isSelected = selectionManager.isSelected(trackId);
+    selectionManager.addListener(this);
     // defining properties from track
     if (const auto outputTrack = track.getOutput().lock())
         outputTrackName = outputTrack->getName();
@@ -49,6 +56,10 @@ TrackHeader::TrackHeader(Track& track): track(track) {
     // trackOutputName defined in paint()
 }
 
+TrackHeader::~TrackHeader() {
+    selectionManager.removeListener(this);
+}
+
 void TrackHeader::resized() {
     const auto b = getLocalBounds();
 
@@ -86,6 +97,11 @@ void TrackHeader::paint(juce::Graphics &g) {
     g.setColour(juce::Colour::fromRGB(16*14+4,16*14+1,16*14+14));
     g.drawRoundedRectangle(b.toFloat(), 8, 1);
 
+    if (isSelected) {
+        g.setColour(juce::Colour::fromString("#FFE0CCDD"));
+        g.fillRoundedRectangle(b.toFloat(), 8);
+    }
+
     // add padding
     b.removeFromTop(6);
     b.removeFromBottom(6);
@@ -106,4 +122,13 @@ void TrackHeader::paint(juce::Graphics &g) {
 
 void TrackHeader::setTrackName(const String &name) const {
     trackName->setName(name);
+}
+
+void TrackHeader::selectionChanged() {
+    const bool nextSelected = selectionManager.isSelected(trackId);
+    if (nextSelected == isSelected) {
+        return;
+    }
+    isSelected = nextSelected;
+    repaint();
 }
