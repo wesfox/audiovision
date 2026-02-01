@@ -37,7 +37,7 @@ EditState::EditState() {
 
     viewState.setProperty(kViewStartSampleId, static_cast<int64>(0), nullptr);
     viewState.setProperty(kViewEndSampleId, static_cast<int64>(48000 * 30), nullptr);
-    globals.setProperty(kFrameRateId, 25.0f, nullptr);
+    globals.setProperty(kFrameRateId, 24.0f, nullptr);
     globals.setProperty(kTimelineHeightId, 20, nullptr);
     globals.setProperty(kHeaderHeightId, 90, nullptr);
     globals.setProperty(kWaveformScaleId, 1.0f, nullptr);

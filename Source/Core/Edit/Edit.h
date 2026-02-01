@@ -110,6 +110,16 @@ public:
         return actionStore;
     }
 
+    /// Access the video container.
+    Video& getVideo() {
+        return video;
+    }
+
+    /// Access the video container (const).
+    const Video& getVideo() const {
+        return video;
+    }
+
     /// Access the undo manager.
     juce::UndoManager& getUndoManager() {
         return undoManager;

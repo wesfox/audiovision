@@ -1,5 +1,7 @@
 #include "TimelineRuler.h"
 
+#include "Gui/Utils/ViewRangeMapper.h"
+
 namespace {
 constexpr float kMinTickSpacingPx = 3.0f;
 constexpr float kMinLabelSpacingPx = 60.0f;
@@ -95,12 +97,10 @@ void TimelineRuler::paint(juce::Graphics& g) {
     g.setColour(juce::Colour::fromRGB(245, 245, 245));
     g.fillRect(bounds);
 
-    const auto viewStart = edit.getViewStartSample();
-    const auto viewEnd = edit.getViewEndSample();
-    const auto viewLength = viewEnd - viewStart;
-    if (viewLength <= 0) {
-        return;
-    }
+    const auto mapper = getMapper();
+    const auto viewStart = mapper.getViewStartSample();
+    const auto viewEnd = mapper.getViewEndSample();
+    const auto viewLength = mapper.getViewLengthSamples();
 
     const double sampleRate = 48000.0;
     const double frameRate = static_cast<double>(edit.getFrameRate());
@@ -127,8 +127,7 @@ void TimelineRuler::paint(juce::Graphics& g) {
     for (double t = minorStart; t <= minorEnd; t += minorTick.secondsPerTick, ++tickIndex) {
         const double snappedTime = snapToFrame(t, frameRate);
         const double sampleAtTime = snappedTime * sampleRate;
-        const float x = static_cast<float>((sampleAtTime - static_cast<double>(viewStart)) /
-                                           static_cast<double>(viewLength)) * width;
+        const float x = mapper.sampleToX(static_cast<int64>(std::llround(sampleAtTime)));
         const float alignedX = std::floor(x) + 0.5f;
         if (alignedX < 0.0f || alignedX > width) {
             continue;
@@ -156,4 +155,13 @@ void TimelineRuler::paint(juce::Graphics& g) {
 
     g.setColour(juce::Colour::fromRGBA(60, 60, 60, 180));
     g.drawLine(0.0f, static_cast<float>(rulerHeight - 1), width, static_cast<float>(rulerHeight - 1), 1.0f);
+}
+
+ViewRangeMapper TimelineRuler::getMapper() const {
+    ViewRangeMapper mapper(edit, static_cast<float>(getWidth()));
+    if (!mapper.isValid()) {
+        // View range and width must be valid to map samples.
+        jassert(false);
+    }
+    return mapper;
 }

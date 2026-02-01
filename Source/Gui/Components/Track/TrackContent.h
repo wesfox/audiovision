@@ -4,6 +4,7 @@
 
 #include "Core/Edit/Edit.h"
 #include "Gui/Utils/SelectionManager.h"
+#include "Gui/Utils/ViewRangeMapper.h"
 #include "AudioClipComponent.h"
 
 class TrackContent : public juce::Component,
@@ -23,6 +24,7 @@ public:
 private:
     void applyWaveformScale();
     void selectionChanged() override;
+    ViewRangeMapper getMapper() const;
 
     Edit& edit;
     SelectionManager& selectionManager;

@@ -4,6 +4,7 @@
 #include <cmath>
 
 #include "TrackContent.h"
+#include "Gui/Utils/ViewRangeMapper.h"
 
 // ------------------------ MainComponent Implementation ------------------------
 
@@ -80,12 +81,10 @@ void TrackContentPanel::paint(juce::Graphics& g) {
     g.setColour(juce::Colour::fromRGB(245, 245, 245));
     g.fillRect(bounds);
 
-    const auto viewStart = edit.getViewStartSample();
-    const auto viewEnd = edit.getViewEndSample();
-    const auto viewLength = viewEnd - viewStart;
-    if (viewLength <= 0) {
-        return;
-    }
+    const auto mapper = getMapper(static_cast<float>(bounds.getWidth()));
+    const auto viewStart = mapper.getViewStartSample();
+    const auto viewEnd = mapper.getViewEndSample();
+    const auto viewLength = mapper.getViewLengthSamples();
 
     const float width = static_cast<float>(bounds.getWidth());
     const float height = static_cast<float>(bounds.getHeight());
@@ -102,10 +101,9 @@ void TrackContentPanel::paint(juce::Graphics& g) {
             continue;
         }
 
-        const auto clippedStart = std::max(sceneStart, viewStart);
-        const auto clippedEnd = std::min(sceneEnd, viewEnd);
-        const float startX = (static_cast<float>(clippedStart - viewStart) / static_cast<float>(viewLength)) * width;
-        const float endX = (static_cast<float>(clippedEnd - viewStart) / static_cast<float>(viewLength)) * width;
+        const auto [clippedStart, clippedEnd] = mapper.clampRangeToView(sceneStart, sceneEnd);
+        const float startX = mapper.sampleToX(clippedStart);
+        const float endX = mapper.sampleToX(clippedEnd);
         const float sceneWidth = std::max(1.0f, endX - startX);
 
         auto color = (sceneIndex % 2 == 0)
@@ -136,7 +134,7 @@ void TrackContentPanel::paint(juce::Graphics& g) {
             g.setColour(lineColour);
             for (int64 frameIndex = firstFrameIndex; frameIndex <= lastFrameIndex; ++frameIndex) {
                 const double frameSample = static_cast<double>(frameIndex) * samplesPerFrame;
-                float x = static_cast<float>((frameSample - static_cast<double>(viewStart)) / static_cast<double>(viewLength)) * width;
+                float x = mapper.sampleToX(static_cast<int64>(std::llround(frameSample)));
                 x = std::floor(x) + 0.5f;
                 if (x < 0.0f || x > width) {
                     continue;
@@ -190,21 +188,20 @@ void TrackContentPanel::mouseDown(const juce::MouseEvent& event) {
         if (transport->isPlaying()) {
             return;
         }
-        const auto viewStart = edit.getViewStartSample();
-        const auto viewEnd = edit.getViewEndSample();
-        const auto viewLength = viewEnd - viewStart;
-        if (viewLength <= 0) {
-            // View length must be positive to map cursor position.
-            jassert(false);
-        } else {
-            const auto relative = event.getEventRelativeTo(this);
-            const float width = static_cast<float>(getWidth());
-            const float x = juce::jlimit(0.0f, width, relative.position.x);
-            const auto cursorSample = viewStart
-                + static_cast<int64>(std::llround((x / width) * static_cast<float>(viewLength)));
-            transport->setCursorPosition(cursorSample);
-        }
+        const auto mapper = getMapper(static_cast<float>(getWidth()));
+        const auto relative = event.getEventRelativeTo(this);
+        const auto cursorSample = mapper.xToSample(relative.position.x);
+        transport->setCursorPosition(cursorSample);
     }
+}
+
+ViewRangeMapper TrackContentPanel::getMapper(float width) const {
+    ViewRangeMapper mapper(edit, width);
+    if (!mapper.isValid()) {
+        // View range and width must be valid to map samples.
+        jassert(false);
+    }
+    return mapper;
 }
 
 void TrackContentPanel::mouseDrag(const juce::MouseEvent& event) {

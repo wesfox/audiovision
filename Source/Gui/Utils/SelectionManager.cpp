@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <cmath>
 
+#include "Gui/Utils/ViewRangeMapper.h"
+
 SelectionManager::SelectionManager(Edit& edit)
     : edit(edit) {
 }
@@ -191,23 +193,16 @@ std::optional<int64_t> SelectionManager::getSampleAtPosition(const juce::MouseEv
     if (relativeTo == nullptr) {
         return std::nullopt;
     }
-    const float width = static_cast<float>(relativeTo->getWidth());
-    if (width <= 0.0f) {
-        // Component width must be positive to map a sample.
-        jassert(false);
-        return std::nullopt;
-    }
-    const auto viewStart = edit.getViewStartSample();
-    const auto viewEnd = edit.getViewEndSample();
-    const auto viewLength = viewEnd - viewStart;
-    if (viewLength <= 0) {
-        // View length must be positive to map cursor position.
-        jassert(false);
-        return std::nullopt;
-    }
+    const auto mapper = getMapperForComponent(*relativeTo);
     const auto relative = event.getEventRelativeTo(relativeTo);
-    const float x = juce::jlimit(0.0f, width, relative.position.x);
-    const auto cursorSample = viewStart
-        + static_cast<int64>(std::llround((x / width) * static_cast<float>(viewLength)));
-    return cursorSample;
+    return mapper.xToSample(relative.position.x);
+}
+
+ViewRangeMapper SelectionManager::getMapperForComponent(const juce::Component& component) const {
+    ViewRangeMapper mapper(edit, static_cast<float>(component.getWidth()));
+    if (!mapper.isValid()) {
+        // View range and width must be valid to map samples.
+        jassert(false);
+    }
+    return mapper;
 }

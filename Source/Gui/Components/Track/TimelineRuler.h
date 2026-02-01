@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include "Core/Edit/Edit.h"
+#include "Gui/Utils/ViewRangeMapper.h"
 
 /// Timeline ruler showing timecode based on edit state.
 class TimelineRuler : public juce::Component {
@@ -15,6 +16,7 @@ public:
     void setRulerHeight(int height);
 
 private:
+    ViewRangeMapper getMapper() const;
     const Edit& edit;
     int rulerHeight = 0;
 };

@@ -5,6 +5,7 @@
 
 #include "AudioClipComponent.h"
 #include "Core/Track/AudioTrack.h"
+#include "Gui/Utils/ViewRangeMapper.h"
 
 // ------------------------ MainComponent Implementation ------------------------
 
@@ -90,26 +91,16 @@ void TrackContent::paintOverChildren(juce::Graphics& g) {
     if (!isSelected) {
         return;
     }
-    const auto viewStart = edit.getViewStartSample();
-    const auto viewEnd = edit.getViewEndSample();
-    const auto viewLength = viewEnd - viewStart;
-    if (viewLength <= 0) {
-        // View length must be positive to map the cursor.
-        jassert(false);
-        return;
-    }
+    const auto mapper = getMapper();
 
     const auto selectionRange = selectionManager.getSelectionRangeSamples();
     if (selectionRange.has_value()) {
         const auto rangeStart = std::min(selectionRange->first, selectionRange->second);
         const auto rangeEnd = std::max(selectionRange->first, selectionRange->second);
-        if (rangeEnd >= viewStart && rangeStart <= viewEnd) {
-            const auto clampedStart = std::max(rangeStart, viewStart);
-            const auto clampedEnd = std::min(rangeEnd, viewEnd);
-            const float startX = (static_cast<float>(clampedStart - viewStart)
-                / static_cast<float>(viewLength)) * static_cast<float>(getWidth());
-            const float endX = (static_cast<float>(clampedEnd - viewStart)
-                / static_cast<float>(viewLength)) * static_cast<float>(getWidth());
+        const auto [clampedStart, clampedEnd] = mapper.clampRangeToView(rangeStart, rangeEnd);
+        if (clampedEnd >= clampedStart) {
+            const float startX = mapper.sampleToX(clampedStart);
+            const float endX = mapper.sampleToX(clampedEnd);
             const auto x = std::min(startX, endX);
             const auto width = std::max(1.0f, std::abs(endX - startX));
             g.setColour(juce::Colour::fromString("#99000000"));
@@ -125,7 +116,7 @@ void TrackContent::paintOverChildren(juce::Graphics& g) {
         return;
     }
     const auto playheadSample = transport->getCursorPosition();
-    if (playheadSample < viewStart || playheadSample > viewEnd) {
+    if (playheadSample < mapper.getViewStartSample() || playheadSample > mapper.getViewEndSample()) {
         return;
     }
 
@@ -134,8 +125,7 @@ void TrackContent::paintOverChildren(juce::Graphics& g) {
         return;
     }
 
-    const float x = (static_cast<float>(playheadSample - viewStart)
-        / static_cast<float>(viewLength)) * static_cast<float>(getWidth());
+    const float x = mapper.sampleToX(playheadSample);
     g.setColour(juce::Colour::fromString("#FF333333"));
     g.drawLine(x, 0.0f, x, static_cast<float>(getHeight()), 1.0f);
 }
@@ -164,4 +154,13 @@ void TrackContent::selectionChanged() {
     }
     isSelected = nextSelected;
     repaint();
+}
+
+ViewRangeMapper TrackContent::getMapper() const {
+    ViewRangeMapper mapper(edit, static_cast<float>(getWidth()));
+    if (!mapper.isValid()) {
+        // View range and width must be valid to map samples.
+        jassert(false);
+    }
+    return mapper;
 }

@@ -4,6 +4,7 @@
 
 #include "Core/Edit/Edit.h"
 #include "Gui/Assets/SvgFactory.h"
+#include "Gui/Utils/ViewRangeMapper.h"
 
 /// Transport cursor overlay for the timeline.
 class CursorTimeline : public juce::Component {
@@ -35,6 +36,7 @@ public:
     void setRulerHeight(int height);
 
 private:
+    ViewRangeMapper getMapper() const;
     const Edit& edit;
     std::unique_ptr<juce::Drawable> cursorDrawable;
     juce::Colour fillColour = juce::Colour::fromRGB(76, 44, 126);

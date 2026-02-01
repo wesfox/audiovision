@@ -6,6 +6,7 @@
 #include "Command/CommandCenter.h"
 #include "Command/WheelCommandManager.h"
 #include "Gui/Utils/SelectionManager.h"
+#include "Gui/Video/VideoView.h"
 
 #include "AudioEngine/AudioEngine.h"
 #include "Components/Track/TrackContentPanel.h"
@@ -44,6 +45,8 @@ private:
     std::unique_ptr<TrackContentPanel> trackContentPanel;
     std::unique_ptr<Header> header;
     std::unique_ptr<ContextualSection> contextualSection;
+    std::unique_ptr<VideoView> videoView;
+    std::unique_ptr<juce::DocumentWindow> videoWindow;
 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)

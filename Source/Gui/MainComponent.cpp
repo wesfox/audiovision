@@ -19,6 +19,8 @@ MainComponent::MainComponent()
     setWantsKeyboardFocus(true);
     grabKeyboardFocus();
 
+    edit->getTransport()->setFrameRate(24);
+
     const auto baseFont = Fonts::p(14.0f, Fonts::Weight::Regular);
     juce::LookAndFeel::getDefaultLookAndFeel().setDefaultSansSerifTypeface(baseFont.getTypefacePtr());
     audioEngine = std::make_unique<AudioEngine>(edit);
@@ -35,6 +37,22 @@ MainComponent::MainComponent()
     trackContentPanel = std::make_unique<TrackContentPanel>(*edit, *selectionManager);
     addAndMakeVisible(trackContentPanel.get());
 
+    videoView = std::make_unique<VideoView>(*edit);
+    videoWindow = std::make_unique<juce::DocumentWindow>(
+        "Video",
+        juce::Colours::black,
+        juce::DocumentWindow::allButtons);
+    videoWindow->setUsingNativeTitleBar(true);
+    videoWindow->setResizable(true, true);
+    videoView->onActiveClipChanged([this](const juce::String& name) {
+        if (videoWindow != nullptr) {
+            videoWindow->setName(name);
+        }
+    });
+    videoWindow->setContentOwned(videoView.release(), true);
+    videoWindow->centreWithSize(640, 360);
+    videoWindow->setVisible(true);
+
     setSize(1080/9*16, 1080);
 }
 
@@ -50,6 +68,11 @@ void MainComponent::shutdown()
         return;
     }
     isShutDown = true;
+    if (videoWindow != nullptr) {
+        videoWindow->setVisible(false);
+        videoWindow.reset();
+    }
+    videoView.reset();
     if (audioEngine != nullptr) {
         audioEngine->shutdown();
     }

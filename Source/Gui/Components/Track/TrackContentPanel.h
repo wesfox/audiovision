@@ -8,6 +8,7 @@
 #include "PlayheadFollowController.h"
 #include "TimelineRuler.h"
 #include "Gui/Utils/SelectionManager.h"
+#include "Gui/Utils/ViewRangeMapper.h"
 
 class TrackContentPanel : public juce::Component,
                           public juce::ValueTree::Listener,
@@ -29,6 +30,7 @@ public:
 private:
     void handleAsyncUpdate() override;
     void timerCallback() override;
+    ViewRangeMapper getMapper(float width) const;
     int getTrackIndexAtY(int y) const;
     void updateSelectionRange(int hoverIndex);
 

@@ -6,6 +6,7 @@
 #include <unordered_set>
 
 #include "Core/Edit/Edit.h"
+#include "Gui/Utils/ViewRangeMapper.h"
 
 /// Tracks selection state for timeline tracks.
 class SelectionManager {
@@ -85,4 +86,5 @@ private:
 
     std::optional<int64_t> getSampleAtPosition(const juce::MouseEvent& event,
                                                juce::Component* relativeTo) const;
+    ViewRangeMapper getMapperForComponent(const juce::Component& component) const;
 };

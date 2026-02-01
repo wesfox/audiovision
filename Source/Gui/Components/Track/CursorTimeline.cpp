@@ -1,20 +1,9 @@
 #include "CursorTimeline.h"
 
+#include "Gui/Utils/ViewRangeMapper.h"
+
 CursorTimeline::CursorTimeline(const Edit& edit, int rulerHeight) : edit(edit), rulerHeight(rulerHeight) {
     cursorDrawable = SvgFactory::load(SVG_Assets::TimelineCursorSvg, fillColour);
-}
-
-namespace {
-int64 positionToSample(const Edit& edit, float x, float width) {
-    const auto viewStart = edit.getViewStartSample();
-    const auto viewEnd = edit.getViewEndSample();
-    const auto viewLength = viewEnd - viewStart;
-    if (viewLength <= 0 || width <= 0.0f) {
-        return viewStart;
-    }
-    const double proportion = std::clamp(static_cast<double>(x / width), 0.0, 1.0);
-    return viewStart + static_cast<int64>(std::llround(proportion * static_cast<double>(viewLength)));
-}
 }
 
 void CursorTimeline::paint(juce::Graphics& g) {
@@ -22,12 +11,7 @@ void CursorTimeline::paint(juce::Graphics& g) {
         return;
     }
 
-    const auto viewStart = edit.getViewStartSample();
-    const auto viewEnd = edit.getViewEndSample();
-    const auto viewLength = viewEnd - viewStart;
-    if (viewLength <= 0) {
-        return;
-    }
+    const auto mapper = getMapper();
 
     const auto transport = edit.getTransport();
     if (!transport) {
@@ -35,14 +19,12 @@ void CursorTimeline::paint(juce::Graphics& g) {
     }
 
     const auto cursorSample = transport->getCursorPosition();
-    const double position = (static_cast<double>(cursorSample - viewStart) /
-                             static_cast<double>(viewLength));
-    if (position < 0.0 || position > 1.0) {
+    if (cursorSample < mapper.getViewStartSample() || cursorSample > mapper.getViewEndSample()) {
         return;
     }
 
     const auto bounds = getLocalBounds();
-    const float x = static_cast<float>(position) * static_cast<float>(bounds.getWidth());
+    const float x = mapper.sampleToX(cursorSample);
     const float alignedX = std::floor(x) + 0.5f;
 
     const auto drawableBounds = cursorDrawable->getDrawableBounds();
@@ -70,7 +52,8 @@ bool CursorTimeline::hitTest(int x, int y) {
 
 void CursorTimeline::mouseDown(const juce::MouseEvent& event) {
     isDragging = false;
-    const auto newSample = positionToSample(edit, event.position.x, static_cast<float>(getWidth()));
+    const auto mapper = getMapper();
+    const auto newSample = mapper.xToSample(event.position.x);
     if (auto transport = edit.getTransport()) {
         pointerDownSample = transport->getCursorPosition();
     } else {
@@ -84,7 +67,8 @@ void CursorTimeline::mouseDown(const juce::MouseEvent& event) {
 
 void CursorTimeline::mouseDrag(const juce::MouseEvent& event) {
     isDragging = true;
-    const auto newSample = positionToSample(edit, event.position.x, static_cast<float>(getWidth()));
+    const auto mapper = getMapper();
+    const auto newSample = mapper.xToSample(event.position.x);
     if (callbacks.onPointerDrag) {
         callbacks.onPointerDrag(newSample);
     }
@@ -92,7 +76,8 @@ void CursorTimeline::mouseDrag(const juce::MouseEvent& event) {
 }
 
 void CursorTimeline::mouseUp(const juce::MouseEvent& event) {
-    const auto newSample = positionToSample(edit, event.position.x, static_cast<float>(getWidth()));
+    const auto mapper = getMapper();
+    const auto newSample = mapper.xToSample(event.position.x);
     if (callbacks.onPointerUp) {
         callbacks.onPointerUp(pointerDownSample, newSample, isDragging);
     }
@@ -112,4 +97,13 @@ void CursorTimeline::setColour(juce::Colour colour) {
 
 void CursorTimeline::setRulerHeight(int height) {
     rulerHeight = height;
+}
+
+ViewRangeMapper CursorTimeline::getMapper() const {
+    ViewRangeMapper mapper(edit, static_cast<float>(getWidth()));
+    if (!mapper.isValid()) {
+        // View range and width must be valid to map samples.
+        jassert(false);
+    }
+    return mapper;
 }

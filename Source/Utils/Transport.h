@@ -65,6 +65,24 @@ public:
         blockSize.store(newBlockSize);
     }
 
+    /// Set the playback frame rate.
+    /// @param newFrameRate frame rate to use for frame conversions
+    void setFrameRate(double newFrameRate) {
+        frameRate.store(newFrameRate);
+    }
+
+    /// Current playhead position in frames.
+    int64_t getCurrentFrame() const {
+        const auto fr = frameRate.load();
+        if (fr <= 0.0) {
+            // Frame rate must be set before requesting frames.
+            jassert(false);
+            return 0;
+        }
+        return static_cast<int64_t>(std::llround(
+            static_cast<double>(currentSample.load()) * fr / sampleRate.load()));
+    }
+
     /// Current playhead position in samples.
     int64_t getCursorPosition() const {
         return currentSample.load();
@@ -86,4 +104,5 @@ private:
     std::atomic<bool> playing{ false };
     std::atomic<int> sampleRate = 48000;
     std::atomic<int> blockSize = 512;
+    std::atomic<double> frameRate = 0.0;
 };
