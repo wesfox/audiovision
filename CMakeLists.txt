@@ -34,6 +34,7 @@ endif()
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     message ("-- building for macOS")
     set (CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE INTERNAL "")
+    enable_language(OBJCXX)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "iOS")
     set (CMAKE_XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET "17.0" CACHE INTERNAL "")
     set (CMAKE_XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "Apple Development" CACHE INTERNAL "")
@@ -100,6 +101,7 @@ file(GLOB_RECURSE COMMON_SOURCES
         "Source/Gui/Components/*/*.cpp"
         "Source/Gui/Assets/*.cpp"
         "Source/Gui/*/*.cpp"
+        "Source/Gui/Video/Backend/*.mm"
         "Source/Utils/*.cpp"
         "Source/Utils/*/*.cpp"
         "Source/Core/*.cpp"
@@ -158,6 +160,16 @@ target_compile_definitions(AudioVisionTests PRIVATE
 # Set target properties for macOS
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     target_compile_options(AudioVisionTests PRIVATE "-fno-aligned-allocation")
+    set_source_files_properties(Source/Gui/Video/Backend/VideoBackend_AVFoundation.mm PROPERTIES
+            COMPILE_FLAGS "-fobjc-arc")
+    set_source_files_properties(Source/Gui/Video/Backend/VideoThumbnailProvider_AVFoundation.mm PROPERTIES
+            COMPILE_FLAGS "-fobjc-arc")
+    target_link_libraries(AudioVisionTests PRIVATE
+            "-framework AVFoundation"
+            "-framework CoreMedia"
+            "-framework CoreVideo"
+            "-framework QuartzCore"
+            "-framework CoreGraphics")
 endif()
 
 add_test(NAME AudioVisionTests COMMAND AudioVisionTests)
@@ -212,6 +224,16 @@ endif()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     target_compile_options(${TARGET_NAME} PRIVATE "-fno-aligned-allocation")
+    set_source_files_properties(Source/Gui/Video/Backend/VideoBackend_AVFoundation.mm PROPERTIES
+            COMPILE_FLAGS "-fobjc-arc")
+    set_source_files_properties(Source/Gui/Video/Backend/VideoThumbnailProvider_AVFoundation.mm PROPERTIES
+            COMPILE_FLAGS "-fobjc-arc")
+    target_link_libraries(${TARGET_NAME} PRIVATE
+            "-framework AVFoundation"
+            "-framework CoreMedia"
+            "-framework CoreVideo"
+            "-framework QuartzCore"
+            "-framework CoreGraphics")
 endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")

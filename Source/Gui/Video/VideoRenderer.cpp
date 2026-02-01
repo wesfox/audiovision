@@ -1,11 +1,9 @@
 #include "VideoRenderer.h"
 
-VideoRenderer::VideoRenderer()
-    : component(false) {
-}
+#include "Gui/Video/Backend/VideoBackendFactory.h"
 
-juce::VideoComponent& VideoRenderer::getComponent() {
-    return component;
+VideoRenderer::VideoRenderer()
+    : backend(createVideoBackend()) {
 }
 
 void VideoRenderer::setVideoFile(const VideoFile& file) {
@@ -14,21 +12,77 @@ void VideoRenderer::setVideoFile(const VideoFile& file) {
         return;
     }
     currentFile = nextFile;
-    component.load(currentFile);
+    if (backend) {
+        backend->loadFile(currentFile);
+    }
 }
 
 void VideoRenderer::setPositionSeconds(double seconds) {
-    component.setPlayPosition(seconds);
+    if (backend) {
+        backend->setPlayheadSeconds(seconds);
+        refreshFrame();
+    }
+}
+
+void VideoRenderer::setFrameRate(double frameRate) {
+    if (backend) {
+        backend->setFrameRate(frameRate);
+    }
 }
 
 double VideoRenderer::getPlayPositionSeconds() const {
-    return component.getPlayPosition();
+    return backend ? backend->getPlayheadSeconds() : 0.0;
 }
 
 void VideoRenderer::play() {
-    component.play();
+    if (backend) {
+        backend->play();
+    }
 }
 
 void VideoRenderer::stop() {
-    component.stop();
+    if (backend) {
+        backend->stop();
+    }
+}
+
+bool VideoRenderer::isReady() const {
+    return backend && backend->isReady();
+}
+
+bool VideoRenderer::isPlaying() const {
+    return backend && backend->isPlaying();
+}
+
+int64_t VideoRenderer::getLastFrameIndex() const {
+    return backend ? backend->getLastFrameIndex() : -1;
+}
+
+double VideoRenderer::getNominalFrameRate() const {
+    return backend ? backend->getNominalFrameRate() : 0.0;
+}
+
+void VideoRenderer::setPreviewFrame(const juce::Image& frame) {
+    if (!frame.isValid()) {
+        return;
+    }
+    currentFrame = frame;
+    repaint();
+}
+
+void VideoRenderer::refreshFrame() {
+    if (backend) {
+        if (backend->getCurrentFrameImage().isValid()) {
+            currentFrame = backend->getCurrentFrameImage();
+            repaint();
+        }
+    }
+}
+
+void VideoRenderer::paint(juce::Graphics& g) {
+    if (!currentFrame.isValid()) {
+        g.fillAll(juce::Colours::black);
+        return;
+    }
+    g.drawImage(currentFrame, getLocalBounds().toFloat());
 }
