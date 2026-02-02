@@ -47,29 +47,36 @@ bool TransportCommands::handlesCommand(juce::CommandID commandID) const {
 void TransportCommands::togglePlayPause() {
     const auto transport = edit.getTransport();
     if (!transport) {
+        // we should have a transport here
+        jassert(false);
         return;
     }
-    const auto followsPlayback = edit.getState().getInsertionFollowsPlayback();
+
     if (transport->isPlaying()) {
-        const auto playheadSample = transport->getPlayheadSample();
+        transport->stop();
     } else {
+        // get start sample
         int64_t startSample = edit.getState().getCursorSample();
-        std::optional<int64_t> endSample;
-        if (edit.getState().hasSelectionRange()) {
-            const auto selectionStart = edit.getState().getSelectionStartSample();
-            const auto selectionEnd = edit.getState().getSelectionEndSample();
-            startSample = std::min(selectionStart, selectionEnd);
-            const auto orderedEnd = std::max(selectionStart, selectionEnd);
-            if (orderedEnd > startSample) {
-                endSample = std::max<int64_t>(0, orderedEnd - 1);
-            }
-            playSelectionStartSample = startSample;
-        } else {
-            playSelectionStartSample.reset();
-        }
-        edit.getState().setCursorSample(startSample);
         transport->setPlayheadSample(startSample);
-        transport->play(endSample);
+
+        // play either with endSample (if we get a value)
+        std::optional<int64_t> endSample;
+         if (edit.getState().hasSelectionRange()) {
+             endSample = edit.getState().getSelectionEndSample();
+
+             if (!endSample.has_value()) {
+                 // endSample should have a value in this case
+                 jassert(false);
+             }
+
+             // is looping
+             auto looping = edit.getState().getIsLooping();
+             transport->play(endSample.value(), looping);
+         } else {
+             // or directly from the playhead if there is no selection
+             transport->play();
+        }
+
     }
 }
 

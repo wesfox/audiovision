@@ -14,6 +14,14 @@ void SelectionManager::setCursorController(CursorController* controller) {
     cursorController = controller;
 }
 
+CursorController& SelectionManager::getCursorController() {
+    if (cursorController == nullptr) {
+        // CursorController must be set before using SelectionManager.
+        jassert(false);
+    }
+    return *cursorController;
+}
+
 void SelectionManager::setSelection(const std::vector<String>& ids) {
     std::unordered_set<String> next;
     next.reserve(ids.size());
@@ -77,7 +85,7 @@ void SelectionManager::collapseSelectionToSample(int64 sample) {
     if (!selectionAnchorSample.has_value() || !selectionHoverSample.has_value()) {
         selectionAnchorSample = sample;
         selectionHoverSample = sample;
-        edit.getState().setSelectionRange(sample, sample);
+        getCursorController().onSelectionRangeChanged(sample, sample);
         notifyListeners();
         return;
     }
@@ -86,7 +94,7 @@ void SelectionManager::collapseSelectionToSample(int64 sample) {
     }
     selectionAnchorSample = sample;
     selectionHoverSample = sample;
-    edit.getState().setSelectionRange(sample, sample);
+    getCursorController().onSelectionRangeChanged(sample, sample);
     notifyListeners();
 }
 
@@ -100,9 +108,7 @@ void SelectionManager::mouseDown(const juce::MouseEvent& event, juce::Component*
         isSelecting = false;
         selectionAnchorSample.reset();
         selectionHoverSample.reset();
-        if (cursorController != nullptr) {
-            cursorController->onSelectionCleared();
-        }
+        getCursorController().onSelectionCleared();
         notifyListeners();
         return;
     }
@@ -110,9 +116,7 @@ void SelectionManager::mouseDown(const juce::MouseEvent& event, juce::Component*
     selectionHoverSample = selectionAnchorSample;
     if (!selectionAnchorSample.has_value()) {
         isSelecting = false;
-        if (cursorController != nullptr) {
-            cursorController->onSelectionCleared();
-        }
+        getCursorController().onSelectionCleared();
         notifyListeners();
         return;
     }
@@ -177,20 +181,9 @@ void SelectionManager::mouseEnter(const juce::MouseEvent& event, juce::Component
 void SelectionManager::mouseUp() {
     if (selectionAnchorSample.has_value() && selectionHoverSample.has_value()) {
         const auto rangeStart = std::min(selectionAnchorSample.value(), selectionHoverSample.value());
-        if (cursorController != nullptr) {
-            cursorController->setCursorSample(rangeStart);
-        } else {
-            edit.getState().setCursorSample(rangeStart);
-            if (auto transport = edit.getTransport()) {
-                if (!transport->isPlaying()) {
-                    transport->setPlayheadSample(rangeStart);
-                }
-            }
-        }
+        getCursorController().setCursorSample(rangeStart);
     } else {
-        if (cursorController != nullptr) {
-            cursorController->onSelectionCleared();
-        }
+        getCursorController().onSelectionCleared();
     }
     isSelecting = false;
     anchorTrackIndex = -1;
@@ -243,14 +236,10 @@ void SelectionManager::updateSelectionRange(int hoverIndex) {
 
 void SelectionManager::updateSelectionSamples() {
     if (!selectionAnchorSample.has_value() || !selectionHoverSample.has_value()) {
-        if (cursorController != nullptr) {
-            cursorController->onSelectionCleared();
-        }
+        getCursorController().onSelectionCleared();
         return;
     }
-    if (cursorController != nullptr) {
-        cursorController->onSelectionRangeChanged(selectionAnchorSample.value(), selectionHoverSample.value());
-    }
+    getCursorController().onSelectionRangeChanged(selectionAnchorSample.value(), selectionHoverSample.value());
 }
 
 void SelectionManager::notifyListeners() {

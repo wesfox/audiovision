@@ -93,9 +93,13 @@ void TrackContent::paintOverChildren(juce::Graphics& g) {
     }
     const auto mapper = getMapper();
 
-    const auto selectionRange = selectionManager.getSelectionRangeSamples();
+    const bool hasSelectionRange = edit.getState().hasSelectionRange();
     bool hasSelection = false;
-    if (selectionRange.has_value()) {
+    if (hasSelectionRange) {
+        const auto selectionRange = selectionManager.getSelectionRangeSamples();
+        if (!selectionRange.has_value()) {
+            return;
+        }
         const auto rangeStart = std::min(selectionRange->first, selectionRange->second);
         const auto rangeEnd = std::max(selectionRange->first, selectionRange->second);
         const auto [clampedStart, clampedEnd] = mapper.clampRangeToView(rangeStart, rangeEnd);
@@ -114,7 +118,7 @@ void TrackContent::paintOverChildren(juce::Graphics& g) {
     if (!transport) {
         return;
     }
-    if (hasSelection) {
+    if (hasSelectionRange && hasSelection) {
         return;
     }
     if (transport->isPlaying()
@@ -128,13 +132,13 @@ void TrackContent::paintOverChildren(juce::Graphics& g) {
 
     // draw tick
     {
-        const auto tick = juce::Time::getMillisecondCounter() / 500;
+        const auto tick = juce::Time::getMillisecondCounter() / 350;
         if ((tick % 2) == 0) {
             return;
         }
 
         const float x = mapper.sampleToX(cursorSample);
-        g.setColour(juce::Colour::fromString("#FF333333"));
+        g.setColour(juce::Colour::fromString("#FF998893"));
         g.drawLine(x, 0.0f, x, static_cast<float>(getHeight()), 1.0f);
     }
 }

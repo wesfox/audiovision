@@ -10,6 +10,7 @@ const juce::Identifier kFrameRateId("frameRate");
 const juce::Identifier kTimelineHeightId("timelineHeight");
 const juce::Identifier kHeaderHeightId("headerHeight");
 const juce::Identifier kInsertionFollowsPlaybackId("insertionFollowsPlayback");
+const juce::Identifier kIsLoopingId("isLooping");
 const juce::Identifier kHasSelectionRangeId("hasSelectionRange");
 const juce::Identifier kSelectionStartSampleId("selectionStartSample");
 const juce::Identifier kSelectionEndSampleId("selectionEndSample");
@@ -54,6 +55,7 @@ EditState::EditState() {
     globals.setProperty(kHeaderHeightId, 90, nullptr);
     globals.setProperty(kWaveformScaleId, 1.0f, nullptr);
     globals.setProperty(kInsertionFollowsPlaybackId, true, nullptr);
+    globals.setProperty(kIsLoopingId, false, nullptr);
     globals.setProperty(kHasSelectionRangeId, false, nullptr);
     globals.setProperty(kSelectionStartSampleId, static_cast<int64>(0), nullptr);
     globals.setProperty(kSelectionEndSampleId, static_cast<int64>(0), nullptr);
@@ -105,6 +107,10 @@ int64 EditState::getCursorSample() const {
 
 bool EditState::getInsertionFollowsPlayback() const {
     return getBoolProperty(globals, kInsertionFollowsPlaybackId, true);
+}
+
+bool EditState::getIsLooping() const {
+    return getBoolProperty(globals, kIsLoopingId, false);
 }
 
 void EditState::setViewRange(int64 startSample, int64 endSample, juce::UndoManager* undo) {
@@ -165,4 +171,8 @@ void EditState::clearSelectionRange(juce::UndoManager* undo) {
 
 void EditState::setInsertionFollowsPlayback(bool followsPlayback, juce::UndoManager* undo) {
     globals.setProperty(kInsertionFollowsPlaybackId, followsPlayback, undo);
+}
+
+void EditState::setIsLooping(bool isLooping, juce::UndoManager* undo) {
+    globals.setProperty(kIsLoopingId, isLooping, undo);
 }

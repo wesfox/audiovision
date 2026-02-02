@@ -96,10 +96,18 @@ public:
     /// True when the cursor follows playback on stop.
     bool getInsertionFollowsPlayback() const;
 
+    /// True when looping playback is enabled.
+    bool getIsLooping() const;
+
     /// Set whether the cursor follows playback on stop.
     /// @param followsPlayback new mode value
     /// @param undo optional undo manager for transactions
     void setInsertionFollowsPlayback(bool followsPlayback, juce::UndoManager* undo = nullptr);
+
+    /// Set whether looping playback is enabled.
+    /// @param isLooping new loop mode value
+    /// @param undo optional undo manager for transactions
+    void setIsLooping(bool isLooping, juce::UndoManager* undo = nullptr);
 
     /// Convert a pixel position to a sample position in the current view.
     /// @param pixelX x position in pixels

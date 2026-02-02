@@ -3,6 +3,8 @@
 #include <atomic>
 #include <optional>
 
+static constexpr int NEVER = -1;
+
 /// Thread-safe playback transport state.
 class Transport
 {
@@ -22,28 +24,30 @@ public:
     }
 
     /// Start playback looping between startSample and endSample.
-    /// @param startSample sample the loop starts
-    /// @param endSample sample the loop ends
+    /// @param endSample is end sample
+    /// @param isLooping do we need to loop
     void play(int64_t endSample, bool isLooping)
     {
         playStartSample.store(playheadSample.load());
         playEndSample.store(endSample);
-        looping.store(true);
+        looping.store(isLooping);
         playing.store(true);
+        playSelection.store(true);
 
         // ensure reseting other values
-        endReached.store(false);
-        playEndEnabled.store(false);
+        hasStopped.store(false);
     }
 
     /// Start playback with an optional end sample.
     /// @param endSample optional sample where playback should stop after passing it
     void play(std::optional<int64_t> endSample)
     {
-        endReached.store(false);
+        hasStopped.store(false);
         if (endSample.has_value()) {
-            playEndSample.store(*endSample);
             playSelection.store(true);
+            playEndSample.store(endSample.value());
+        } else {
+            playEndEnabled.store(false);
         }
         playing.store(true);
     }
@@ -51,6 +55,8 @@ public:
     /// Stop playback.
     void stop()
     {
+        hasStopped.store(true);
+        playSelection.store(false);
         playing.store(false);
     }
 
@@ -80,11 +86,10 @@ public:
             if (looping.load()){
                 playheadSample.store(playStartSample.load());
             }
-            else {
+            else{
                 playheadSample.store(playEndSample.load()); // remove the overhead
-                endReached.store(true);
                 stop();
-            }
+            } 
         }
     }
 
@@ -139,8 +144,8 @@ public:
     }
 
     /// True once when playback ended at the range end.
-    bool consumeEndReached() {
-        return endReached.exchange(false);
+    bool consumeHasStopped() {
+        return hasStopped.exchange(false);
     }
 
     /// Current playhead position in milliseconds.
@@ -154,7 +159,7 @@ private:
     std::atomic<int64_t> playStartSample{ 0 };
     std::atomic<bool> playing{ false };
     std::atomic<bool> playEndEnabled{ false };
-    std::atomic<bool> endReached{ false };
+    std::atomic<bool> hasStopped{ false };
     std::atomic<bool> looping{ false };
     std::atomic<bool> playSelection{ false };
     std::atomic<int> sampleRate = 48000;

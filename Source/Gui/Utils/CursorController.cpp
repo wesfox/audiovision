@@ -17,14 +17,17 @@ void CursorController::setCursorSample(int64 sample) {
     if (const auto transport = edit.getTransport()) {
         if (!transport->isPlaying()) {
             transport->setPlayheadSample(sample);
+        } else {
+            hasMovedDuringPlayback = true;
         }
     }
-    edit.getState().clearSelectionRange();
+    // edit.getState().clearSelectionRange();
 }
 
 int64 CursorController::onPlayRequested() {
     const auto startSample = getCursorSample();
     playStartSample = startSample;
+    hasMovedDuringPlayback = false;
     return startSample;
 }
 
@@ -39,11 +42,18 @@ void CursorController::onStop(int64 playheadSample) {
             }
         }
     }
-
+    edit.getState().clearSelectionRange();
 }
 
 void CursorController::onSelectionRangeChanged(int64 startSample, int64 endSample) {
-    edit.getState().setSelectionRange(startSample, endSample);
+    if (startSample == endSample) {
+        edit.getState().clearSelectionRange();
+        return;
+    }
+    if (startSample < endSample)
+        edit.getState().setSelectionRange(startSample, endSample);
+    else // inverse stat and end sample if they are reversed
+        edit.getState().setSelectionRange(endSample, startSample);
 }
 
 void CursorController::onSelectionCleared() {
@@ -55,7 +65,7 @@ void CursorController::timerCallback() {
     if (!transport) {
         return;
     }
-    if (!transport->consumeEndReached()) {
+    if (!transport->consumeHasStopped()) {
         return;
     }
     if (!edit.getState().hasSelectionRange()) {
@@ -65,6 +75,7 @@ void CursorController::timerCallback() {
         transport->setPlayheadSample(edit.getState().getCursorSample());
     }
     else {
+        edit.getState().clearSelectionRange();
         if (edit.getState().getInsertionFollowsPlayback()) {
             edit.getState().setCursorSample(transport->getPlayheadSample());
         }

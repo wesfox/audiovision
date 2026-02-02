@@ -110,6 +110,7 @@ file(GLOB_RECURSE COMMON_SOURCES
 set(SourceFiles
         Source/Main.cpp
         Source/Gui/MainComponent.cpp
+        Source/Gui/Utils/CursorController.cpp
         ${COMMON_SOURCES})
 
 target_sources(${TARGET_NAME} PRIVATE ${SourceFiles})

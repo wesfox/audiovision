@@ -29,6 +29,9 @@ public:
     /// @param controller cursor controller to notify
     void setCursorController(CursorController* controller);
 
+    /// Access the cursor controller.
+    CursorController& getCursorController();
+
     /// Replace the selection with the provided track ids.
     /// @param ids selected track ids
     void setSelection(const std::vector<String>& ids);

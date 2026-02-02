@@ -28,6 +28,46 @@ MainComponent::MainComponent()
                                            const auto* editState = static_cast<const EditState*>(state);
                                            return juce::String(editState->getInsertionFollowsPlayback() ? "On" : "Off");
                                        });
+    DebugWatchRegistry::get().setWatch("kHasSelectionRangeId",
+                                       &edit->getState(),
+                                       [](const void* state) {
+                                           const auto* editState = static_cast<const EditState*>(state);
+                                           return juce::String(editState->hasSelectionRange() ? "true" : "false");
+                                       });
+    DebugWatchRegistry::get().setWatch("kSelectionStartSampleId",
+                                       &edit->getState(),
+                                       [](const void* state) {
+                                           const auto* editState = static_cast<const EditState*>(state);
+                                           return juce::String(editState->getSelectionStartSample());
+                                       });
+    DebugWatchRegistry::get().setWatch("kSelectionEndSampleId",
+                                       &edit->getState(),
+                                       [](const void* state) {
+                                           const auto* editState = static_cast<const EditState*>(state);
+                                           return juce::String(editState->getSelectionEndSample());
+                                       });
+    DebugWatchRegistry::get().setWatch("kCursorSampleId",
+                                       &edit->getState(),
+                                       [](const void* state) {
+                                           const auto* editState = static_cast<const EditState*>(state);
+                                           return juce::String(editState->getCursorSample());
+                                       });
+    DebugWatchRegistry::get().setWatch("kIsLoopingId",
+                                       &edit->getState(),
+                                       [](const void* state) {
+                                           const auto* editState = static_cast<const EditState*>(state);
+                                           return juce::String(editState->getIsLooping() ? "true" : "false");
+                                       });
+    DebugWatchRegistry::get().setWatch("PlayheadSample",
+                                       edit.get(),
+                                       [](const void* editPtr) {
+                                           const auto* editRef = static_cast<const Edit*>(editPtr);
+                                           const auto transport = editRef->getTransport();
+                                           if (transport == nullptr) {
+                                               return juce::String("n/a");
+                                           }
+                                           return juce::String(transport->getPlayheadSample());
+                                       });
 
     edit->getTransport()->setFrameRate(24);
 
