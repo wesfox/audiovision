@@ -5,6 +5,8 @@
 void ShortcutMappings::applyDefaultMappings(juce::ApplicationCommandManager& manager) {
     if (auto* mappings = manager.getKeyMappings()) {
         mappings->addKeyPress(CommandIds::Transport::playPause, juce::KeyPress(juce::KeyPress::spaceKey));
+        mappings->addKeyPress(CommandIds::Transport::toggleInsertionFollowsPlayback,
+                              juce::KeyPress('n', juce::ModifierKeys(), 0));
         mappings->addKeyPress(CommandIds::EditView::zoomIn, juce::KeyPress('t', juce::ModifierKeys(), 0));
         mappings->addKeyPress(CommandIds::EditView::zoomOut, juce::KeyPress('r', juce::ModifierKeys(), 0));
     }

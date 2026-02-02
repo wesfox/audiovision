@@ -19,6 +19,10 @@ public:
     /// @param seconds time to display
     void setPositionSeconds(double seconds);
 
+    /// Seek to a time without forcing a refresh.
+    /// @param seconds time to display
+    void setPlayheadSeconds(double seconds);
+
     /// Update the frame rate used by the backend.
     /// @param frameRate frames per second
     void setFrameRate(double frameRate);

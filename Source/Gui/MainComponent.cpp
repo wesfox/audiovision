@@ -50,10 +50,14 @@ MainComponent::MainComponent()
         }
     });
     videoWindow->setContentOwned(videoView.release(), true);
-    videoWindow->centreWithSize(640, 360);
+    const auto displays = juce::Desktop::getInstance().getDisplays();
+    auto videoViewDisplay = displays.displays[displays.displays.size()-1];
+    auto mainDisplay = std::ranges::find_if(displays.displays, [](const auto& d) {return d.isMain;});
+
+    videoWindow->setBounds(videoViewDisplay.userArea);
     videoWindow->setVisible(true);
 
-    setSize(1080/9*16, 1080);
+    setSize(mainDisplay->userArea.getWidth(), mainDisplay->userArea.getHeight());
 }
 
 MainComponent::~MainComponent()

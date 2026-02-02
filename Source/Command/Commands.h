@@ -5,6 +5,7 @@
 /// Command identifiers grouped by domain.
 namespace CommandIds::Transport {
 static constexpr juce::CommandID playPause = 0x2000;
+static constexpr juce::CommandID toggleInsertionFollowsPlayback = 0x2001;
 }
 
 /// Command identifiers for waveform editing.

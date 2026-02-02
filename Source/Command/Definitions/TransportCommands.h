@@ -2,6 +2,8 @@
 
 #include <JuceHeader.h>
 
+#include <optional>
+
 #include "Core/Edit/Edit.h"
 
 /// Handles transport command execution.
@@ -18,6 +20,8 @@ public:
 
 private:
     void togglePlayPause();
+    void toggleInsertionFollowsPlayback();
 
     Edit& edit;
+    std::optional<int64_t> playStartSample;
 };

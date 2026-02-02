@@ -30,4 +30,5 @@ private:
     int64_t lastFrameIndex = -1;
     double frameRate = 0.0;
     double nominalFrameRate = 0.0;
+    double lastSeekHostTime = 0.0;
 };

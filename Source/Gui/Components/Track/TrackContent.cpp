@@ -104,7 +104,7 @@ void TrackContent::paintOverChildren(juce::Graphics& g) {
             const auto x = std::min(startX, endX);
             const auto width = std::max(1.0f, std::abs(endX - startX));
             g.setColour(juce::Colour::fromString("#99000000"));
-            g.fillRect(x, 0.0f, width, static_cast<float>(getHeight()));
+            //g.fillRect(x, 0.0f, width, static_cast<float>(getHeight()));
         }
     }
 
@@ -120,14 +120,17 @@ void TrackContent::paintOverChildren(juce::Graphics& g) {
         return;
     }
 
-    const auto tick = juce::Time::getMillisecondCounter() / 500;
-    if ((tick % 2) == 0) {
-        return;
-    }
+    // draw tick
+    {
+        const auto tick = juce::Time::getMillisecondCounter() / 500;
+        if ((tick % 2) == 0) {
+            return;
+        }
 
-    const float x = mapper.sampleToX(playheadSample);
-    g.setColour(juce::Colour::fromString("#FF333333"));
-    g.drawLine(x, 0.0f, x, static_cast<float>(getHeight()), 1.0f);
+        const float x = mapper.sampleToX(playheadSample);
+        g.setColour(juce::Colour::fromString("#FF333333"));
+        g.drawLine(x, 0.0f, x, static_cast<float>(getHeight()), 1.0f);
+    }
 }
 
 void TrackContent::valueTreePropertyChanged(juce::ValueTree&, const juce::Identifier& property) {

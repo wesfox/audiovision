@@ -162,6 +162,8 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     target_compile_options(AudioVisionTests PRIVATE "-fno-aligned-allocation")
     set_source_files_properties(Source/Gui/Video/Backend/VideoBackend_AVFoundation.mm PROPERTIES
             COMPILE_FLAGS "-fobjc-arc")
+    set_source_files_properties(Source/Gui/Video/Backend/VideoBackend_AVAssetReader.mm PROPERTIES
+            COMPILE_FLAGS "-fobjc-arc")
     set_source_files_properties(Source/Gui/Video/Backend/VideoThumbnailProvider_AVFoundation.mm PROPERTIES
             COMPILE_FLAGS "-fobjc-arc")
     target_link_libraries(AudioVisionTests PRIVATE
@@ -225,6 +227,8 @@ endif()
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     target_compile_options(${TARGET_NAME} PRIVATE "-fno-aligned-allocation")
     set_source_files_properties(Source/Gui/Video/Backend/VideoBackend_AVFoundation.mm PROPERTIES
+            COMPILE_FLAGS "-fobjc-arc")
+    set_source_files_properties(Source/Gui/Video/Backend/VideoBackend_AVAssetReader.mm PROPERTIES
             COMPILE_FLAGS "-fobjc-arc")
     set_source_files_properties(Source/Gui/Video/Backend/VideoThumbnailProvider_AVFoundation.mm PROPERTIES
             COMPILE_FLAGS "-fobjc-arc")

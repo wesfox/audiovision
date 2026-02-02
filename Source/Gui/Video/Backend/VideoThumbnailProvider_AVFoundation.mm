@@ -8,20 +8,16 @@
 namespace {
 juce::Image imageFromCGImage(CGImageRef imageRef) {
     if (!imageRef) {
-        juce::Logger::writeToLog("Thumbnail: missing CGImageRef.");
         return {};
     }
     const auto width = static_cast<int>(CGImageGetWidth(imageRef));
     const auto height = static_cast<int>(CGImageGetHeight(imageRef));
     if (width <= 0 || height <= 0) {
-        juce::Logger::writeToLog("Thumbnail: invalid size " + juce::String(width)
-            + "x" + juce::String(height));
         return {};
     }
     juce::Image image(juce::Image::ARGB, width, height, true);
     juce::Image::BitmapData data(image, juce::Image::BitmapData::writeOnly);
     if (data.data == nullptr) {
-        juce::Logger::writeToLog("Thumbnail: failed to lock image data.");
         return {};
     }
     auto colourSpace = CGColorSpaceCreateDeviceRGB();
@@ -36,7 +32,6 @@ juce::Image imageFromCGImage(CGImageRef imageRef) {
         bitmapInfo);
     CGColorSpaceRelease(colourSpace);
     if (!context) {
-        juce::Logger::writeToLog("Thumbnail: failed to create bitmap context.");
         return {};
     }
     CGContextDrawImage(context, CGRectMake(0.0, 0.0, width, height), imageRef);
@@ -94,12 +89,6 @@ juce::Image VideoThumbnailProvider_AVFoundation::getFrameAtSeconds(double second
     NSError* error = nil;
     CGImageRef imageRef = [state.generator copyCGImageAtTime:time actualTime:nullptr error:&error];
     if (!imageRef) {
-        if (error) {
-            juce::Logger::writeToLog("Thumbnail: copyCGImageAtTime failed: "
-                + juce::String([[error localizedDescription] UTF8String]));
-        } else {
-            juce::Logger::writeToLog("Thumbnail: copyCGImageAtTime failed with no error.");
-        }
         return {};
     }
     auto image = imageFromCGImage(imageRef);

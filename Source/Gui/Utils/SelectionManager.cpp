@@ -131,11 +131,17 @@ void SelectionManager::mouseEnter(const juce::MouseEvent& event, juce::Component
 }
 
 void SelectionManager::mouseUp() {
+    if (selectionAnchorSample.has_value() && selectionHoverSample.has_value()) {
+        const auto rangeStart = std::min(selectionAnchorSample.value(), selectionHoverSample.value());
+        if (auto transport = edit.getTransport()) {
+            if (!transport->isPlaying()) {
+                transport->setCursorPosition(rangeStart);
+            }
+        }
+    }
     isSelecting = false;
     anchorTrackIndex = -1;
     hoverTrackIndex = -1;
-    selectionAnchorSample.reset();
-    selectionHoverSample.reset();
     notifyListeners();
 }
 

@@ -24,6 +24,12 @@ void VideoRenderer::setPositionSeconds(double seconds) {
     }
 }
 
+void VideoRenderer::setPlayheadSeconds(double seconds) {
+    if (backend) {
+        backend->setPlayheadSeconds(seconds);
+    }
+}
+
 void VideoRenderer::setFrameRate(double frameRate) {
     if (backend) {
         backend->setFrameRate(frameRate);
@@ -72,10 +78,12 @@ void VideoRenderer::setPreviewFrame(const juce::Image& frame) {
 
 void VideoRenderer::refreshFrame() {
     if (backend) {
-        if (backend->getCurrentFrameImage().isValid()) {
-            currentFrame = backend->getCurrentFrameImage();
-            repaint();
+        auto frame = backend->getCurrentFrameImage();
+        if (!frame.isValid()) {
+            return;
         }
+        currentFrame = std::move(frame);
+        repaint();
     }
 }
 

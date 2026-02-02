@@ -9,6 +9,7 @@ const juce::Identifier kViewEndSampleId("viewEndSample");
 const juce::Identifier kFrameRateId("frameRate");
 const juce::Identifier kTimelineHeightId("timelineHeight");
 const juce::Identifier kHeaderHeightId("headerHeight");
+const juce::Identifier kInsertionFollowsPlaybackId("insertionFollowsPlayback");
 }
 
 const juce::Identifier EditState::kWaveformScaleId("waveformScale");
@@ -28,6 +29,13 @@ float getFloatProperty(const juce::ValueTree& tree, const juce::Identifier& prop
     }
     return static_cast<float>(tree.getProperty(propertyId));
 }
+
+bool getBoolProperty(const juce::ValueTree& tree, const juce::Identifier& propertyId, bool fallback) {
+    if (!tree.hasProperty(propertyId)) {
+        return fallback;
+    }
+    return static_cast<bool>(tree.getProperty(propertyId));
+}
 }
 
 EditState::EditState() {
@@ -41,6 +49,7 @@ EditState::EditState() {
     globals.setProperty(kTimelineHeightId, 20, nullptr);
     globals.setProperty(kHeaderHeightId, 90, nullptr);
     globals.setProperty(kWaveformScaleId, 1.0f, nullptr);
+    globals.setProperty(kInsertionFollowsPlaybackId, true, nullptr);
 
     root.addChild(globals, -1, nullptr);
     root.addChild(viewState, -1, nullptr);
@@ -68,6 +77,10 @@ int EditState::getHeaderHeight() const {
 
 float EditState::getWaveformScale() const {
     return getFloatProperty(globals, kWaveformScaleId, 1.0f);
+}
+
+bool EditState::getInsertionFollowsPlayback() const {
+    return getBoolProperty(globals, kInsertionFollowsPlaybackId, true);
 }
 
 void EditState::setViewRange(int64 startSample, int64 endSample, juce::UndoManager* undo) {
@@ -110,4 +123,8 @@ void EditState::setHeaderHeight(int height, juce::UndoManager* undo) {
 
 void EditState::setWaveformScale(float scale, juce::UndoManager* undo) {
     globals.setProperty(kWaveformScaleId, scale, undo);
+}
+
+void EditState::setInsertionFollowsPlayback(bool followsPlayback, juce::UndoManager* undo) {
+    globals.setProperty(kInsertionFollowsPlaybackId, followsPlayback, undo);
 }

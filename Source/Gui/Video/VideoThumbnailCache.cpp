@@ -19,10 +19,12 @@ juce::ThreadPoolJob::JobStatus VideoThumbnailCache::RequestJob::runJob() {
     if (cache.provider && cache.provider->isReady()) {
         frame = cache.provider->getFrameAtSeconds(seconds);
     }
-    juce::Logger::writeToLog("ThumbnailCache: job finished for " + juce::String(seconds)
-        + "s, frame valid: " + juce::String(static_cast<int>(frame.isValid())));
     cache.dispatchResult(key, generation, frame);
     return jobHasFinished;
+}
+
+VideoThumbnailCache::~VideoThumbnailCache() {
+    cancelPending();
 }
 
 void VideoThumbnailCache::setVideoFile(const VideoFile& file) {
@@ -30,7 +32,7 @@ void VideoThumbnailCache::setVideoFile(const VideoFile& file) {
     if (currentFile == nextFile) {
         return;
     }
-    pool.removeAllJobs(true, 10000);
+    cancelPending();
     {
         const juce::ScopedLock scopedLock(lock);
         cache.clear();
@@ -43,12 +45,19 @@ void VideoThumbnailCache::setVideoFile(const VideoFile& file) {
     }
 }
 
-void VideoThumbnailCache::requestFrameSeconds(double seconds,
-                                              std::function<void(const juce::Image&)> callback) {
+void VideoThumbnailCache::requestFrameIndex(int64_t frameIndex,
+                                            double frameRate,
+                                            std::function<void(const juce::Image&)> callback) {
     if (!provider) {
         return;
     }
-    const auto key = toKey(seconds);
+    if (frameRate <= 0.0) {
+        // Frame rate must be positive to compute thumbnail time.
+        jassert(false);
+        return;
+    }
+    const double seconds = static_cast<double>(frameIndex) / frameRate;
+    const auto key = frameIndex;
     juce::Image cachedFrame;
     bool shouldQueue = false;
     {
@@ -80,13 +89,19 @@ bool VideoThumbnailCache::isReady() const {
     return provider && provider->isReady();
 }
 
+void VideoThumbnailCache::cancelPending() {
+    pool.removeAllJobs(true, 10000);
+    const juce::ScopedLock scopedLock(lock);
+    pending.clear();
+    ++generation;
+}
+
 void VideoThumbnailCache::dispatchResult(int64_t key, uint32_t requestGeneration,
                                          const juce::Image& frame) {
     std::vector<std::function<void(const juce::Image&)>> callbacks;
     {
         const juce::ScopedLock scopedLock(lock);
         if (requestGeneration != generation.load()) {
-            juce::Logger::writeToLog("ThumbnailCache: drop stale result.");
             pending.erase(key);
             return;
         }
@@ -100,18 +115,11 @@ void VideoThumbnailCache::dispatchResult(int64_t key, uint32_t requestGeneration
         }
     }
     if (callbacks.empty()) {
-        juce::Logger::writeToLog("ThumbnailCache: no callbacks for result.");
         return;
     }
-    juce::Logger::writeToLog("ThumbnailCache: dispatching callbacks, valid: "
-        + juce::String(static_cast<int>(frame.isValid())));
     juce::MessageManager::callAsync([callbacks = std::move(callbacks), frame]() mutable {
         for (auto& callback : callbacks) {
             callback(frame);
         }
     });
-}
-
-int64_t VideoThumbnailCache::toKey(double seconds) {
-    return static_cast<int64_t>(std::llround(seconds * 1000.0));
 }

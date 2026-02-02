@@ -13,17 +13,25 @@
 /// Cache video thumbnails asynchronously for UI usage.
 class VideoThumbnailCache {
 public:
+    ~VideoThumbnailCache();
+
     /// Request a thumbnail for the given file.
     /// @param file video file to read
     void setVideoFile(const VideoFile& file);
 
-    /// Request a still frame at a given time.
-    /// @param seconds time in seconds
+    /// Request a still frame at a given frame index.
+    /// @param frameIndex frame index to fetch
+    /// @param frameRate frames per second
     /// @param callback invoked on the message thread when ready
-    void requestFrameSeconds(double seconds, std::function<void(const juce::Image&)> callback);
+    void requestFrameIndex(int64_t frameIndex,
+                           double frameRate,
+                           std::function<void(const juce::Image&)> callback);
 
     /// Check whether the provider is ready.
     bool isReady() const;
+
+    /// Cancel pending thumbnail work.
+    void cancelPending();
 
 private:
     struct PendingRequest {
@@ -48,7 +56,6 @@ private:
     };
 
     void dispatchResult(int64_t key, uint32_t generation, const juce::Image& frame);
-    static int64_t toKey(double seconds);
 
     juce::ThreadPool pool { 1 };
     std::unique_ptr<VideoThumbnailProvider> provider = createVideoThumbnailProvider();

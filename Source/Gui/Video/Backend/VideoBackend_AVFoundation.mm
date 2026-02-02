@@ -1,11 +1,15 @@
 #import <AVFoundation/AVFoundation.h>
 #import <CoreMedia/CoreMedia.h>
 #import <CoreVideo/CoreVideo.h>
+#import <QuartzCore/QuartzCore.h>
 
 #include <juce_core/juce_core.h>
 #include <juce_graphics/juce_graphics.h>
 
 #include <cstring>
+#include <limits>
+#include <cmath>
+#include <cmath>
 
 #include "VideoBackend_AVFoundation.h"
 
@@ -110,6 +114,8 @@ void VideoBackend_AVFoundation::play() {
     auto* state = (__bridge AVFoundationImpl*)impl;
     if (state.player) {
         state.playing = true;
+        [state.player play];
+        updateFrameAtTime(state.targetSeconds);
     }
 }
 
@@ -117,6 +123,7 @@ void VideoBackend_AVFoundation::stop() {
     auto* state = (__bridge AVFoundationImpl*)impl;
     if (state.player) {
         state.playing = false;
+        [state.player pause];
     }
 }
 
@@ -149,18 +156,55 @@ void VideoBackend_AVFoundation::updateFrameAtTime(double seconds) {
     if (seconds == lastFrameSeconds) {
         return;
     }
-    lastFrameSeconds = seconds;
-    const CMTime time = CMTimeMakeWithSeconds(seconds, 600);
-    [state.player seekToTime:time toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero];
-    if ([state.output hasNewPixelBufferForItemTime:time]) {
-        CVPixelBufferRef buffer = [state.output copyPixelBufferForItemTime:time itemTimeForDisplay:nil];
+    const auto time = CMTimeMakeWithSeconds(seconds, 600);
+    bool shouldSeek = !state.playing;
+    if (state.playing && frameRate > 0.0 && std::isfinite(lastFrameSeconds)) {
+        const auto maxDelta = 2.0 / frameRate;
+            if (std::abs(seconds - lastFrameSeconds) > maxDelta) {
+                const auto now = CACurrentMediaTime();
+                if (now - lastSeekHostTime > 0.2) {
+                    shouldSeek = true;
+                    lastSeekHostTime = now;
+                    juce::Logger::writeToLog("VideoBackend: seek to " + juce::String(seconds));
+                }
+            }
+        }
+    if (shouldSeek) {
+        [state.player seekToTime:time toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero];
+    }
+    CMTime queryTime = time;
+    if (state.playing && !shouldSeek) {
+        const CFTimeInterval hostTime = CACurrentMediaTime();
+        queryTime = [state.output itemTimeForHostTime:hostTime];
+        if (!CMTIME_IS_VALID(queryTime)) {
+            queryTime = time;
+        }
+    }
+    const BOOL hasNew = [state.output hasNewPixelBufferForItemTime:queryTime];
+    if (hasNew) {
+        CMTime actualTime = kCMTimeInvalid;
+        CVPixelBufferRef buffer = [state.output copyPixelBufferForItemTime:queryTime itemTimeForDisplay:&actualTime];
+        double actualSeconds = seconds;
+        if (CMTIME_IS_VALID(actualTime)) {
+            actualSeconds = CMTimeGetSeconds(actualTime);
+        }
+        if (frameRate > 0.0) {
+            const auto maxDelta = 1.0 / frameRate;
+            const double compareSeconds = state.playing && CMTIME_IS_VALID(queryTime)
+                ? CMTimeGetSeconds(queryTime)
+                : seconds;
+            if (std::abs(actualSeconds - compareSeconds) > maxDelta) {
+                return;
+            }
+        }
         currentFrame = imageFromPixelBuffer(buffer);
         if (buffer) {
             CVBufferRelease(buffer);
         }
         if (frameRate > 0.0) {
-            lastFrameIndex = static_cast<int64_t>(std::llround(seconds * frameRate));
+            lastFrameIndex = static_cast<int64_t>(std::llround(actualSeconds * frameRate));
         }
+        lastFrameSeconds = seconds;
     }
 }
 
