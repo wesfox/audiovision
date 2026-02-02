@@ -5,7 +5,9 @@
 #include "Components/ContextualSection/ContextualSection.h"
 #include "Command/CommandCenter.h"
 #include "Command/WheelCommandManager.h"
+#include "Gui/Utils/CursorController.h"
 #include "Gui/Utils/SelectionManager.h"
+#include "Gui/Utils/DebugWatchWindow.h"
 #include "Gui/Video/VideoView.h"
 
 #include "AudioEngine/AudioEngine.h"
@@ -39,6 +41,7 @@ private:
     bool isShutDown = false;
     std::unique_ptr<CommandCenter> commandCenter;
     std::unique_ptr<WheelCommandManager> wheelCommandManager;
+    std::unique_ptr<CursorController> cursorController;
     std::unique_ptr<SelectionManager> selectionManager;
 
     std::unique_ptr<TrackHeaderPanel> trackHeaderPanel;
@@ -47,6 +50,7 @@ private:
     std::unique_ptr<ContextualSection> contextualSection;
     std::unique_ptr<VideoView> videoView;
     std::unique_ptr<juce::DocumentWindow> videoWindow;
+    std::unique_ptr<DebugWatchWindow> debugWatchWindow;
 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)

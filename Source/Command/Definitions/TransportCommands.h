@@ -23,5 +23,5 @@ private:
     void toggleInsertionFollowsPlayback();
 
     Edit& edit;
-    std::optional<int64_t> playStartSample;
+    std::optional<int64_t> playSelectionStartSample;
 };

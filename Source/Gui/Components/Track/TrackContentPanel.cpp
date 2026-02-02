@@ -166,7 +166,8 @@ void TrackContentPanel::timerCallback() {
         cursorTimeline->repaint();
     }
 
-    const auto playheadSample = transport->getCursorPosition();
+
+    const auto playheadSample = transport->getPlayheadSample();
     if (playheadController != nullptr) {
         playheadController->onPlaybackTick(playheadSample);
     }
@@ -185,13 +186,13 @@ void TrackContentPanel::mouseDown(const juce::MouseEvent& event) {
     selectionManager.mouseDown(event, this);
     const auto transport = edit.getTransport();
     if (transport != nullptr) {
-        if (transport->isPlaying()) {
-            return;
-        }
         const auto mapper = getMapper(static_cast<float>(getWidth()));
         const auto relative = event.getEventRelativeTo(this);
         const auto cursorSample = mapper.xToSample(relative.position.x);
-        transport->setCursorPosition(cursorSample);
+        edit.getState().setCursorSample(cursorSample);
+        if (!transport->isPlaying()) {
+            transport->setPlayheadSample(cursorSample);
+        }
     }
 }
 

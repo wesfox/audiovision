@@ -2,6 +2,8 @@
 
 #include <JuceHeader.h>
 
+#include <optional>
+
 #include "Core/Edit/Edit.h"
 
 /// Displays the transport control icons in the header.
@@ -31,4 +33,5 @@ private:
     std::unique_ptr<SvgButton> record;
     std::unique_ptr<SvgButton> rewind;
     std::unique_ptr<SvgButton> stop;
+    std::optional<int64_t> playSelectionStartSample;
 };

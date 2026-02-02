@@ -1,6 +1,7 @@
 #pragma once
 
 #include <atomic>
+#include <optional>
 
 /// Thread-safe playback transport state.
 class Transport
@@ -11,12 +12,39 @@ public:
     void prepare(double sr)
     {
         sampleRate = sr;
-        currentSample.store(0);
+        playheadSample.store(0);
     }
 
     /// Start playback.
     void play()
     {
+        play(std::nullopt);
+    }
+
+    /// Start playback looping between startSample and endSample.
+    /// @param startSample sample the loop starts
+    /// @param endSample sample the loop ends
+    void play(int64_t endSample, bool isLooping)
+    {
+        playStartSample.store(playheadSample.load());
+        playEndSample.store(endSample);
+        looping.store(true);
+        playing.store(true);
+
+        // ensure reseting other values
+        endReached.store(false);
+        playEndEnabled.store(false);
+    }
+
+    /// Start playback with an optional end sample.
+    /// @param endSample optional sample where playback should stop after passing it
+    void play(std::optional<int64_t> endSample)
+    {
+        endReached.store(false);
+        if (endSample.has_value()) {
+            playEndSample.store(*endSample);
+            playSelection.store(true);
+        }
         playing.store(true);
     }
 
@@ -29,7 +57,7 @@ public:
     /// Reset transport position to zero.
     void rewind()
     {
-        currentSample.store(0);
+        playheadSample.store(0);
     }
 
     /// True when playback is active.
@@ -38,14 +66,25 @@ public:
         return playing.load();
     }
 
-    /// advance (or go back) from numSample
+    /// Advance (or go back) from numSample.
     /// @param numSamples number of sample to move (can be negative, move backward)
     void advance(int64 numSamples)
     {
-        if (currentSample.load() <= -numSamples){
-            currentSample.store(0LL);
+        if (playheadSample.load() <= -numSamples){
+            playheadSample.store(0LL);
         }else{
-            currentSample.fetch_add(numSamples);
+            playheadSample.fetch_add(numSamples);
+        }
+
+        if (playSelection.load() && playheadSample.load() > playEndSample.load()) {
+            if (looping.load()){
+                playheadSample.store(playStartSample.load());
+            }
+            else {
+                playheadSample.store(playEndSample.load()); // remove the overhead
+                endReached.store(true);
+                stop();
+            }
         }
     }
 
@@ -80,28 +119,44 @@ public:
             return 0;
         }
         return static_cast<int64_t>(std::llround(
-            static_cast<double>(currentSample.load()) * fr / sampleRate.load()));
+            static_cast<double>(playheadSample.load()) * fr / sampleRate.load()));
     }
 
     /// Current playhead position in samples.
-    int64_t getCursorPosition() const {
-        return currentSample.load();
+    int64_t getPlayheadSample() const {
+        return playheadSample.load();
     }
 
     /// Set playhead position in samples.
     /// @param sample new playhead sample position
-    void setCursorPosition(int64_t sample) {
-        currentSample.store(sample);
+    void setPlayheadSample(int64_t sample) {
+        playheadSample.store(sample);
+    }
+
+    /// End sample used for play range.
+    int64_t getPlayEndSample() const {
+        return playEndSample.load();
+    }
+
+    /// True once when playback ended at the range end.
+    bool consumeEndReached() {
+        return endReached.exchange(false);
     }
 
     /// Current playhead position in milliseconds.
     double getMs() const {
-        return static_cast<double>(currentSample.load()) / static_cast<double>(sampleRate.load()) * 1000.0;
+        return static_cast<double>(playheadSample.load()) / static_cast<double>(sampleRate.load()) * 1000.0;
     }
 
 private:
-    std::atomic<int64_t> currentSample{ 0 };
+    std::atomic<int64_t> playheadSample{ 0 };
+    std::atomic<int64_t> playEndSample{ 0 };
+    std::atomic<int64_t> playStartSample{ 0 };
     std::atomic<bool> playing{ false };
+    std::atomic<bool> playEndEnabled{ false };
+    std::atomic<bool> endReached{ false };
+    std::atomic<bool> looping{ false };
+    std::atomic<bool> playSelection{ false };
     std::atomic<int> sampleRate = 48000;
     std::atomic<int> blockSize = 512;
     std::atomic<double> frameRate = 0.0;

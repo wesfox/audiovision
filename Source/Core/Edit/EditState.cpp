@@ -10,6 +10,10 @@ const juce::Identifier kFrameRateId("frameRate");
 const juce::Identifier kTimelineHeightId("timelineHeight");
 const juce::Identifier kHeaderHeightId("headerHeight");
 const juce::Identifier kInsertionFollowsPlaybackId("insertionFollowsPlayback");
+const juce::Identifier kHasSelectionRangeId("hasSelectionRange");
+const juce::Identifier kSelectionStartSampleId("selectionStartSample");
+const juce::Identifier kSelectionEndSampleId("selectionEndSample");
+const juce::Identifier kCursorSampleId("cursorSample");
 }
 
 const juce::Identifier EditState::kWaveformScaleId("waveformScale");
@@ -50,6 +54,10 @@ EditState::EditState() {
     globals.setProperty(kHeaderHeightId, 90, nullptr);
     globals.setProperty(kWaveformScaleId, 1.0f, nullptr);
     globals.setProperty(kInsertionFollowsPlaybackId, true, nullptr);
+    globals.setProperty(kHasSelectionRangeId, false, nullptr);
+    globals.setProperty(kSelectionStartSampleId, static_cast<int64>(0), nullptr);
+    globals.setProperty(kSelectionEndSampleId, static_cast<int64>(0), nullptr);
+    globals.setProperty(kCursorSampleId, static_cast<int64>(0), nullptr);
 
     root.addChild(globals, -1, nullptr);
     root.addChild(viewState, -1, nullptr);
@@ -77,6 +85,22 @@ int EditState::getHeaderHeight() const {
 
 float EditState::getWaveformScale() const {
     return getFloatProperty(globals, kWaveformScaleId, 1.0f);
+}
+
+bool EditState::hasSelectionRange() const {
+    return getBoolProperty(globals, kHasSelectionRangeId, false);
+}
+
+int64 EditState::getSelectionStartSample() const {
+    return getInt64Property(globals, kSelectionStartSampleId, 0);
+}
+
+int64 EditState::getSelectionEndSample() const {
+    return getInt64Property(globals, kSelectionEndSampleId, 0);
+}
+
+int64 EditState::getCursorSample() const {
+    return getInt64Property(globals, kCursorSampleId, 0);
 }
 
 bool EditState::getInsertionFollowsPlayback() const {
@@ -123,6 +147,20 @@ void EditState::setHeaderHeight(int height, juce::UndoManager* undo) {
 
 void EditState::setWaveformScale(float scale, juce::UndoManager* undo) {
     globals.setProperty(kWaveformScaleId, scale, undo);
+}
+
+void EditState::setSelectionRange(int64 startSample, int64 endSample, juce::UndoManager* undo) {
+    globals.setProperty(kHasSelectionRangeId, true, undo);
+    globals.setProperty(kSelectionStartSampleId, startSample, undo);
+    globals.setProperty(kSelectionEndSampleId, endSample, undo);
+}
+
+void EditState::setCursorSample(int64 sample, juce::UndoManager* undo) {
+    globals.setProperty(kCursorSampleId, sample, undo);
+}
+
+void EditState::clearSelectionRange(juce::UndoManager* undo) {
+    globals.setProperty(kHasSelectionRangeId, false, undo);
 }
 
 void EditState::setInsertionFollowsPlayback(bool followsPlayback, juce::UndoManager* undo) {

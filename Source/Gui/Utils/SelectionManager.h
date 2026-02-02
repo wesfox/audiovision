@@ -8,6 +8,8 @@
 #include "Core/Edit/Edit.h"
 #include "Gui/Utils/ViewRangeMapper.h"
 
+class CursorController;
+
 /// Tracks selection state for timeline tracks.
 class SelectionManager {
 public:
@@ -22,6 +24,10 @@ public:
     /// Create a selection manager bound to the edit.
     /// @param edit edit containing track order and timeline height
     explicit SelectionManager(Edit& edit);
+
+    /// Bind the cursor controller.
+    /// @param controller cursor controller to notify
+    void setCursorController(CursorController* controller);
 
     /// Replace the selection with the provided track ids.
     /// @param ids selected track ids
@@ -46,6 +52,13 @@ public:
     /// Read the sample range defined by the selection anchor and hover.
     /// @return selection sample range when available
     std::optional<std::pair<int64_t, int64_t>> getSelectionRangeSamples() const;
+
+    /// True when a selection drag is active.
+    bool isSelectingRange() const;
+
+    /// Collapse the selection range to a single sample.
+    /// @param sample sample to keep as the selection point
+    void collapseSelectionToSample(int64 sample);
 
     /// Handle selection on mouse down.
     /// @param event mouse event to process
@@ -73,9 +86,11 @@ public:
 private:
     int getTrackIndexAtY(int y) const;
     void updateSelectionRange(int hoverIndex);
+    void updateSelectionSamples();
     void notifyListeners();
 
     Edit& edit;
+    CursorController* cursorController = nullptr;
     std::unordered_set<String> selectedIds;
     juce::ListenerList<Listener> listeners;
     int anchorTrackIndex = -1;

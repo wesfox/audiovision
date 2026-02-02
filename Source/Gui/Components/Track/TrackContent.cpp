@@ -94,17 +94,19 @@ void TrackContent::paintOverChildren(juce::Graphics& g) {
     const auto mapper = getMapper();
 
     const auto selectionRange = selectionManager.getSelectionRangeSamples();
+    bool hasSelection = false;
     if (selectionRange.has_value()) {
         const auto rangeStart = std::min(selectionRange->first, selectionRange->second);
         const auto rangeEnd = std::max(selectionRange->first, selectionRange->second);
         const auto [clampedStart, clampedEnd] = mapper.clampRangeToView(rangeStart, rangeEnd);
-        if (clampedEnd >= clampedStart) {
+        if (clampedEnd > clampedStart) {
+            hasSelection = true;
             const float startX = mapper.sampleToX(clampedStart);
             const float endX = mapper.sampleToX(clampedEnd);
             const auto x = std::min(startX, endX);
             const auto width = std::max(1.0f, std::abs(endX - startX));
             g.setColour(juce::Colour::fromString("#99000000"));
-            //g.fillRect(x, 0.0f, width, static_cast<float>(getHeight()));
+            g.fillRect(x, 0.0f, width, static_cast<float>(getHeight()));
         }
     }
 
@@ -112,11 +114,15 @@ void TrackContent::paintOverChildren(juce::Graphics& g) {
     if (!transport) {
         return;
     }
-    if (transport->isPlaying()) {
+    if (hasSelection) {
         return;
     }
-    const auto playheadSample = transport->getCursorPosition();
-    if (playheadSample < mapper.getViewStartSample() || playheadSample > mapper.getViewEndSample()) {
+    if (transport->isPlaying()
+        && edit.getState().getInsertionFollowsPlayback()) {
+        return;
+    }
+    const auto cursorSample = edit.getState().getCursorSample();
+    if (cursorSample < mapper.getViewStartSample() || cursorSample > mapper.getViewEndSample()) {
         return;
     }
 
@@ -127,7 +133,7 @@ void TrackContent::paintOverChildren(juce::Graphics& g) {
             return;
         }
 
-        const float x = mapper.sampleToX(playheadSample);
+        const float x = mapper.sampleToX(cursorSample);
         g.setColour(juce::Colour::fromString("#FF333333"));
         g.drawLine(x, 0.0f, x, static_cast<float>(getHeight()), 1.0f);
     }

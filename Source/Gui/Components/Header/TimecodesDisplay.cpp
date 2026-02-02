@@ -63,16 +63,26 @@ void TimecodesDisplay::updateTimecodes(bool force) {
     const bool isPlaying = transport && transport->isPlaying();
     const double sampleRate = transport ? transport->getSampleRate() : kFallbackSampleRate;
     const double frameRate = static_cast<double>(edit.getFrameRate());
-    const int64 cursorSample = transport ? transport->getCursorPosition() : 0;
-    const int64 newCurrentFrame = Timecode::samplesToFrames(cursorSample, sampleRate, frameRate);
+    const int64 currentSample = transport
+        ? (isPlaying ? transport->getPlayheadSample() : edit.getState().getCursorSample())
+        : 0;
+    const int64 newCurrentFrame = Timecode::samplesToFrames(currentSample, sampleRate, frameRate);
 
-    const int64 newInFrame = Timecode::samplesToFrames(edit.getViewStartSample(), sampleRate, frameRate);
-    const int64 newOutFrame = Timecode::samplesToFrames(edit.getViewEndSample(), sampleRate, frameRate);
+    int64 inSample = edit.getViewStartSample();
+    int64 outSample = edit.getViewEndSample();
+    if (edit.getState().hasSelectionRange()) {
+        const auto selectionStart = edit.getState().getSelectionStartSample();
+        const auto selectionEnd = edit.getState().getSelectionEndSample();
+        inSample = std::min(selectionStart, selectionEnd);
+        outSample = std::max(selectionStart, selectionEnd);
+    }
+    const int64 newInFrame = Timecode::samplesToFrames(inSample, sampleRate, frameRate);
+    const int64 newOutFrame = Timecode::samplesToFrames(outSample, sampleRate, frameRate);
 
     bool shouldUpdate = force;
-    if (isPlaying || newCurrentFrame != currentSampleFrame) {
-        currentSampleFrame = newCurrentFrame;
-        timecode = Timecode::formatTimecodeFrames(currentSampleFrame, frameRate);
+    if (isPlaying || newCurrentFrame != playheadFrame) {
+        playheadFrame = newCurrentFrame;
+        timecode = Timecode::formatTimecodeFrames(playheadFrame, frameRate);
         shouldUpdate = true;
     }
 

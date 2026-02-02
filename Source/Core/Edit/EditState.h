@@ -61,15 +61,42 @@ public:
     /// Waveform vertical scale factor.
     float getWaveformScale() const;
 
+    /// True when a selection range is active.
+    bool hasSelectionRange() const;
+
+    /// Selection range start sample.
+    int64 getSelectionStartSample() const;
+
+    /// Selection range end sample.
+    int64 getSelectionEndSample() const;
+
+    /// Current cursor sample.
+    int64 getCursorSample() const;
+
     /// Set the waveform vertical scale factor.
     /// @param scale new waveform scale factor
     /// @param undo optional undo manager for transactions
     void setWaveformScale(float scale, juce::UndoManager* undo = nullptr);
 
-    /// True when the playhead follows playback on stop.
+    /// Set the selection range samples.
+    /// @param startSample selection start sample
+    /// @param endSample selection end sample
+    /// @param undo optional undo manager for transactions
+    void setSelectionRange(int64 startSample, int64 endSample, juce::UndoManager* undo = nullptr);
+
+    /// Set the cursor sample.
+    /// @param sample new cursor sample
+    /// @param undo optional undo manager for transactions
+    void setCursorSample(int64 sample, juce::UndoManager* undo = nullptr);
+
+    /// Clear the active selection range.
+    /// @param undo optional undo manager for transactions
+    void clearSelectionRange(juce::UndoManager* undo = nullptr);
+
+    /// True when the cursor follows playback on stop.
     bool getInsertionFollowsPlayback() const;
 
-    /// Set whether the playhead follows playback on stop.
+    /// Set whether the cursor follows playback on stop.
     /// @param followsPlayback new mode value
     /// @param undo optional undo manager for transactions
     void setInsertionFollowsPlayback(bool followsPlayback, juce::UndoManager* undo = nullptr);

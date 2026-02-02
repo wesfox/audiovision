@@ -2,6 +2,8 @@
 
 #include "Command/Commands.h"
 
+#include <optional>
+
 TransportCommands::TransportCommands(Edit& edit)
     : edit(edit) {
 }
@@ -49,16 +51,25 @@ void TransportCommands::togglePlayPause() {
     }
     const auto followsPlayback = edit.getState().getInsertionFollowsPlayback();
     if (transport->isPlaying()) {
-        const auto currentSample = transport->getCursorPosition();
-        transport->stop();
-        if (followsPlayback) {
-            transport->setCursorPosition(currentSample);
-        } else if (playStartSample.has_value()) {
-            transport->setCursorPosition(*playStartSample);
-        }
+        const auto playheadSample = transport->getPlayheadSample();
     } else {
-        playStartSample = transport->getCursorPosition();
-        transport->play();
+        int64_t startSample = edit.getState().getCursorSample();
+        std::optional<int64_t> endSample;
+        if (edit.getState().hasSelectionRange()) {
+            const auto selectionStart = edit.getState().getSelectionStartSample();
+            const auto selectionEnd = edit.getState().getSelectionEndSample();
+            startSample = std::min(selectionStart, selectionEnd);
+            const auto orderedEnd = std::max(selectionStart, selectionEnd);
+            if (orderedEnd > startSample) {
+                endSample = std::max<int64_t>(0, orderedEnd - 1);
+            }
+            playSelectionStartSample = startSample;
+        } else {
+            playSelectionStartSample.reset();
+        }
+        edit.getState().setCursorSample(startSample);
+        transport->setPlayheadSample(startSample);
+        transport->play(endSample);
     }
 }
 

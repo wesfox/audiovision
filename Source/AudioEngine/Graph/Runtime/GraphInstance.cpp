@@ -52,7 +52,7 @@ void GraphInstance::startRecording()
         return;
     }
     const auto transportPtr = transport;
-    const auto startSample = transportPtr ? transportPtr->getCursorPosition() : 0;
+    const auto startSample = transportPtr ? transportPtr->getPlayheadSample() : 0;
     const auto sampleRate = transportPtr ? transportPtr->getSampleRate() : 48000.0;
     const auto blockSize = transportPtr ? transportPtr->getCurrentBlockSize() : 512;
     recordSession->begin(startSample, sampleRate, blockSize);
@@ -64,6 +64,6 @@ void GraphInstance::stopRecording()
         return;
     }
     const auto transportPtr = transport;
-    const auto endSample = transportPtr ? transportPtr->getCursorPosition() : 0;
+    const auto endSample = transportPtr ? transportPtr->getPlayheadSample() : 0;
     recordSession->end(endSample);
 }

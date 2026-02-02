@@ -29,7 +29,7 @@ private:
     void updateTimecodes(bool force);
 
     Edit& edit;
-    int64 currentSampleFrame = 0;
+    int64 playheadFrame = 0;
     int64 inFrame = 0;
     int64 outFrame = 0;
 

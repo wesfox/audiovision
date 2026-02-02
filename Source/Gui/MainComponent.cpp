@@ -3,6 +3,7 @@
 #include "AudioEngine/AudioEngine.h"
 #include "Core/CustomEdits/ImportEdit.h"
 #include "Utils/IO/EditSerializer.h"
+#include "Utils/DebugWatchRegistry.h"
 #include "Gui/Style/Font.h"
 #include "Command/Commands.h"
 
@@ -15,9 +16,18 @@ MainComponent::MainComponent()
     commandCenter = std::make_unique<CommandCenter>(*edit);
     wheelCommandManager = std::make_unique<WheelCommandManager>(commandCenter->getCommandManager());
     selectionManager = std::make_unique<SelectionManager>(*edit);
+    cursorController = std::make_unique<CursorController>(*edit, *selectionManager);
+    selectionManager->setCursorController(cursorController.get());
     addKeyListener(&commandCenter->getKeyMappings());
     setWantsKeyboardFocus(true);
     grabKeyboardFocus();
+
+    DebugWatchRegistry::get().setWatch("InsertionFollowsPlayback",
+                                       &edit->getState(),
+                                       [](const void* state) {
+                                           const auto* editState = static_cast<const EditState*>(state);
+                                           return juce::String(editState->getInsertionFollowsPlayback() ? "On" : "Off");
+                                       });
 
     edit->getTransport()->setFrameRate(24);
 
@@ -55,7 +65,13 @@ MainComponent::MainComponent()
     auto mainDisplay = std::ranges::find_if(displays.displays, [](const auto& d) {return d.isMain;});
 
     videoWindow->setBounds(videoViewDisplay.userArea);
-    videoWindow->setVisible(true);
+    //videoWindow->setVisible(true);
+
+    debugWatchWindow = std::make_unique<DebugWatchWindow>();
+    if (mainDisplay != displays.displays.end()) {
+        debugWatchWindow->setTopLeftPosition(mainDisplay->userArea.getX() + 20,
+                                             mainDisplay->userArea.getY() + 20);
+    }
 
     setSize(mainDisplay->userArea.getWidth(), mainDisplay->userArea.getHeight());
 }
@@ -75,6 +91,10 @@ void MainComponent::shutdown()
     if (videoWindow != nullptr) {
         videoWindow->setVisible(false);
         videoWindow.reset();
+    }
+    if (debugWatchWindow != nullptr) {
+        debugWatchWindow->setVisible(false);
+        debugWatchWindow.reset();
     }
     videoView.reset();
     if (audioEngine != nullptr) {

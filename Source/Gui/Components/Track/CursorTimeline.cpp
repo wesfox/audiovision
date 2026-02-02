@@ -18,13 +18,13 @@ void CursorTimeline::paint(juce::Graphics& g) {
         return;
     }
 
-    const auto cursorSample = transport->getCursorPosition();
-    if (cursorSample < mapper.getViewStartSample() || cursorSample > mapper.getViewEndSample()) {
+    const auto playheadSample = transport->getPlayheadSample();
+    if (playheadSample < mapper.getViewStartSample() || playheadSample > mapper.getViewEndSample()) {
         return;
     }
 
     const auto bounds = getLocalBounds();
-    const float x = mapper.sampleToX(cursorSample);
+    const float x = mapper.sampleToX(playheadSample);
     const float alignedX = std::floor(x) + 0.5f;
 
     const auto drawableBounds = cursorDrawable->getDrawableBounds();
@@ -55,7 +55,7 @@ void CursorTimeline::mouseDown(const juce::MouseEvent& event) {
     const auto mapper = getMapper();
     const auto newSample = mapper.xToSample(event.position.x);
     if (auto transport = edit.getTransport()) {
-        pointerDownSample = transport->getCursorPosition();
+        pointerDownSample = transport->getPlayheadSample();
     } else {
         pointerDownSample = newSample;
     }

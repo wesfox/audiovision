@@ -3,10 +3,15 @@
 #include <algorithm>
 #include <cmath>
 
+#include "Gui/Utils/CursorController.h"
 #include "Gui/Utils/ViewRangeMapper.h"
 
 SelectionManager::SelectionManager(Edit& edit)
     : edit(edit) {
+}
+
+void SelectionManager::setCursorController(CursorController* controller) {
+    cursorController = controller;
 }
 
 void SelectionManager::setSelection(const std::vector<String>& ids) {
@@ -50,14 +55,39 @@ void SelectionManager::removeListener(Listener* listener) {
 }
 
 std::optional<int64_t> SelectionManager::getSelectionAnchorSample() const {
-    return selectionAnchorSample;
+    if (edit.getState().hasSelectionRange()) {
+        return edit.getState().getSelectionStartSample();
+    }
+    return std::nullopt;
 }
 
 std::optional<std::pair<int64_t, int64_t>> SelectionManager::getSelectionRangeSamples() const {
-    if (!selectionAnchorSample.has_value() || !selectionHoverSample.has_value()) {
+    if (!edit.getState().hasSelectionRange()) {
         return std::nullopt;
     }
-    return std::make_pair(selectionAnchorSample.value(), selectionHoverSample.value());
+    return std::make_pair(edit.getState().getSelectionStartSample(),
+                          edit.getState().getSelectionEndSample());
+}
+
+bool SelectionManager::isSelectingRange() const {
+    return isSelecting;
+}
+
+void SelectionManager::collapseSelectionToSample(int64 sample) {
+    if (!selectionAnchorSample.has_value() || !selectionHoverSample.has_value()) {
+        selectionAnchorSample = sample;
+        selectionHoverSample = sample;
+        edit.getState().setSelectionRange(sample, sample);
+        notifyListeners();
+        return;
+    }
+    if (selectionAnchorSample.value() == sample && selectionHoverSample.value() == sample) {
+        return;
+    }
+    selectionAnchorSample = sample;
+    selectionHoverSample = sample;
+    edit.getState().setSelectionRange(sample, sample);
+    notifyListeners();
 }
 
 void SelectionManager::mouseDown(const juce::MouseEvent& event, juce::Component* relativeTo) {
@@ -70,16 +100,27 @@ void SelectionManager::mouseDown(const juce::MouseEvent& event, juce::Component*
         isSelecting = false;
         selectionAnchorSample.reset();
         selectionHoverSample.reset();
+        if (cursorController != nullptr) {
+            cursorController->onSelectionCleared();
+        }
+        notifyListeners();
         return;
     }
     selectionAnchorSample = getSampleAtPosition(event, relativeTo);
     selectionHoverSample = selectionAnchorSample;
+    if (!selectionAnchorSample.has_value()) {
+        isSelecting = false;
+        if (cursorController != nullptr) {
+            cursorController->onSelectionCleared();
+        }
+        notifyListeners();
+        return;
+    }
     isSelecting = true;
     hoverTrackIndex = -1;
     updateSelectionRange(anchorTrackIndex);
-    if (selectionAnchorSample.has_value()) {
-        notifyListeners();
-    }
+    updateSelectionSamples();
+    notifyListeners();
 }
 
 void SelectionManager::mouseDrag(const juce::MouseEvent& event, juce::Component* relativeTo) {
@@ -89,6 +130,7 @@ void SelectionManager::mouseDrag(const juce::MouseEvent& event, juce::Component*
     const auto sample = getSampleAtPosition(event, relativeTo);
     if (sample.has_value() && sample != selectionHoverSample) {
         selectionHoverSample = sample;
+        updateSelectionSamples();
         notifyListeners();
     }
     auto relative = event.getEventRelativeTo(relativeTo);
@@ -105,6 +147,7 @@ void SelectionManager::mouseMove(const juce::MouseEvent& event, juce::Component*
     const auto sample = getSampleAtPosition(event, relativeTo);
     if (sample.has_value() && sample != selectionHoverSample) {
         selectionHoverSample = sample;
+        updateSelectionSamples();
         notifyListeners();
     }
     auto relative = event.getEventRelativeTo(relativeTo);
@@ -121,6 +164,7 @@ void SelectionManager::mouseEnter(const juce::MouseEvent& event, juce::Component
     const auto sample = getSampleAtPosition(event, relativeTo);
     if (sample.has_value() && sample != selectionHoverSample) {
         selectionHoverSample = sample;
+        updateSelectionSamples();
         notifyListeners();
     }
     auto relative = event.getEventRelativeTo(relativeTo);
@@ -133,10 +177,19 @@ void SelectionManager::mouseEnter(const juce::MouseEvent& event, juce::Component
 void SelectionManager::mouseUp() {
     if (selectionAnchorSample.has_value() && selectionHoverSample.has_value()) {
         const auto rangeStart = std::min(selectionAnchorSample.value(), selectionHoverSample.value());
-        if (auto transport = edit.getTransport()) {
-            if (!transport->isPlaying()) {
-                transport->setCursorPosition(rangeStart);
+        if (cursorController != nullptr) {
+            cursorController->setCursorSample(rangeStart);
+        } else {
+            edit.getState().setCursorSample(rangeStart);
+            if (auto transport = edit.getTransport()) {
+                if (!transport->isPlaying()) {
+                    transport->setPlayheadSample(rangeStart);
+                }
             }
+        }
+    } else {
+        if (cursorController != nullptr) {
+            cursorController->onSelectionCleared();
         }
     }
     isSelecting = false;
@@ -186,6 +239,18 @@ void SelectionManager::updateSelectionRange(int hoverIndex) {
         ++index;
     }
     setSelection(selectedIds);
+}
+
+void SelectionManager::updateSelectionSamples() {
+    if (!selectionAnchorSample.has_value() || !selectionHoverSample.has_value()) {
+        if (cursorController != nullptr) {
+            cursorController->onSelectionCleared();
+        }
+        return;
+    }
+    if (cursorController != nullptr) {
+        cursorController->onSelectionRangeChanged(selectionAnchorSample.value(), selectionHoverSample.value());
+    }
 }
 
 void SelectionManager::notifyListeners() {

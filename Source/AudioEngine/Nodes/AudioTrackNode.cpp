@@ -39,18 +39,18 @@ void AudioTrackNode::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBu
 
     for (const auto& audioClip : trackPtr->getAudioClips()) {
         // define all local variable needed to do easy to read computation
-        auto currentCursorPosition = transportPtr->getCursorPosition();
+        auto currentPlayheadSample = transportPtr->getPlayheadSample();
         auto audioClipStartSample = audioClip->getSessionStartSample();
         auto audioClipEndSample = audioClip->getSessionEndSample();
         int64 numSamples = buffer.getNumSamples();
 
 
         // position of start and end to write in the buffer
-        auto writeStartSample = std::max(0LL, audioClipStartSample - currentCursorPosition);
-        auto writeEndSample = std::min(numSamples, audioClipEndSample - currentCursorPosition);
+        auto writeStartSample = std::max(0LL, audioClipStartSample - currentPlayheadSample);
+        auto writeEndSample = std::min(numSamples, audioClipEndSample - currentPlayheadSample);
 
-        if (audioClipStartSample <= currentCursorPosition + numSamples && currentCursorPosition < audioClipEndSample) {
-            juce::AudioBuffer<float> audioClipBuffer = audioClip->read( currentCursorPosition - audioClipStartSample, buffer.getNumSamples());
+        if (audioClipStartSample <= currentPlayheadSample + numSamples && currentPlayheadSample < audioClipEndSample) {
+            juce::AudioBuffer<float> audioClipBuffer = audioClip->read( currentPlayheadSample - audioClipStartSample, buffer.getNumSamples());
             for (int c=0; c!= buffer.getNumChannels(); c++) {
                 auto audioClipChannel = std::min(c, audioClipBuffer.getNumChannels() - 1);
                 for (int i=writeStartSample; i < writeEndSample; i++) {
