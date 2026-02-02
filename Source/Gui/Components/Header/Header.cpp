@@ -2,9 +2,9 @@
 
 #include "Gui/Style/Font.h"
 
-Header::Header(Edit& edit)
+Header::Header(Edit& edit, juce::ApplicationCommandManager& commandManager)
     : edit(edit),
-      controlsPanel(edit),
+      controlsPanel(edit, commandManager),
       timecodesDisplay(edit) {
     addAndMakeVisible(controlsPanel);
     addAndMakeVisible(timecodesDisplay);

@@ -5,7 +5,6 @@
 #include "Core/Edit/Edit.h"
 #include "Core/Edit/EditState.h"
 #include "CursorTimeline.h"
-#include "PlayheadFollowController.h"
 #include "TimelineRuler.h"
 #include "Gui/Utils/SelectionManager.h"
 #include "Gui/Utils/ViewRangeMapper.h"
@@ -36,7 +35,6 @@ private:
 
     std::unique_ptr<CursorTimeline> cursorTimeline;
     std::unique_ptr<TimelineRuler> timelineRuler;
-    std::unique_ptr<PlayheadFollowController> playheadController;
 
     Edit& edit;
     SelectionManager& selectionManager;

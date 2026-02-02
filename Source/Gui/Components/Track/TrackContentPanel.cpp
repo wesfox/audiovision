@@ -4,6 +4,7 @@
 #include <cmath>
 
 #include "TrackContent.h"
+#include "Gui/Utils/CursorController.h"
 #include "Gui/Utils/ViewRangeMapper.h"
 
 // ------------------------ MainComponent Implementation ------------------------
@@ -14,7 +15,6 @@ TrackContentPanel::TrackContentPanel(Edit& edit, SelectionManager& selectionMana
     const auto rulerHeight = edit.getState().getTimelineHeight();
     timelineRuler = std::make_unique<TimelineRuler>(edit, rulerHeight);
     addAndMakeVisible(timelineRuler.get());
-    playheadController = std::make_unique<PlayheadFollowController>(edit);
     for (const auto& track : edit.getTracks()) {
         if (!track) {
             continue;
@@ -25,10 +25,12 @@ TrackContentPanel::TrackContentPanel(Edit& edit, SelectionManager& selectionMana
     }
     cursorTimeline = std::make_unique<CursorTimeline>(edit, rulerHeight);
     cursorTimeline->setCallbacks({
-        [this](int64 previousSample, int64 newSample) { playheadController->onPointerDown(previousSample, newSample); },
-        [this](int64 sample) { playheadController->onPointerDrag(sample); },
+        [this](int64 previousSample, int64 newSample) {
+            this->selectionManager.getCursorController().onPointerDown(previousSample, newSample);
+        },
+        [this](int64 sample) { this->selectionManager.getCursorController().onPointerDrag(sample); },
         [this](int64 previousSample, int64 newSample, bool wasDrag) {
-            playheadController->onPointerUp(previousSample, newSample, wasDrag);
+            this->selectionManager.getCursorController().onPointerUp(previousSample, newSample, wasDrag);
         }
     });
     addAndMakeVisible(cursorTimeline.get());
@@ -168,9 +170,7 @@ void TrackContentPanel::timerCallback() {
 
 
     const auto playheadSample = transport->getPlayheadSample();
-    if (playheadController != nullptr) {
-        playheadController->onPlaybackTick(playheadSample);
-    }
+    selectionManager.getCursorController().onPlaybackTick(playheadSample);
 
     for (const auto& [trackId, trackContent] : trackContentComponents) {
         if (!trackContent) {
@@ -184,16 +184,10 @@ void TrackContentPanel::timerCallback() {
 
 void TrackContentPanel::mouseDown(const juce::MouseEvent& event) {
     selectionManager.mouseDown(event, this);
-    const auto transport = edit.getTransport();
-    if (transport != nullptr) {
-        const auto mapper = getMapper(static_cast<float>(getWidth()));
-        const auto relative = event.getEventRelativeTo(this);
-        const auto cursorSample = mapper.xToSample(relative.position.x);
-        edit.getState().setCursorSample(cursorSample);
-        if (!transport->isPlaying()) {
-            transport->setPlayheadSample(cursorSample);
-        }
-    }
+    const auto mapper = getMapper(static_cast<float>(getWidth()));
+    const auto relative = event.getEventRelativeTo(this);
+    const auto cursorSample = mapper.xToSample(relative.position.x);
+    selectionManager.getCursorController().setCursorSample(cursorSample);
 }
 
 ViewRangeMapper TrackContentPanel::getMapper(float width) const {

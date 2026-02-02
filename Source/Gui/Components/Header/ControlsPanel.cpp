@@ -4,13 +4,15 @@
 #include <optional>
 
 #include "../Common/ui/SvgButton.h"
+#include "Command/Commands.h"
 
 class ControlsPanel::SvgButton : public ::SvgButton {
 public:
     using ::SvgButton::SvgButton;
 };
 
-ControlsPanel::ControlsPanel(Edit& edit) {
+ControlsPanel::ControlsPanel(Edit& edit, juce::ApplicationCommandManager& commandManager)
+    : commandManager(commandManager) {
     const auto iconColour = juce::Colour::fromString("#4C2C7E");
 
     rewind = std::make_unique<SvgButton>(SVG_Assets::RewindSvg, iconColour);
@@ -27,75 +29,28 @@ ControlsPanel::ControlsPanel(Edit& edit) {
     moveLeft->setName("move-left");
     moveRight->setName("move-right");
 
-    rewind->onClick = [&edit] { edit.getTransport()->rewind(); };
+    rewind->onClick = [&edit] {  };
 
-    play->onClick = [this, &edit] {
-        if (const auto transport = edit.getTransport()) {
-            int64_t startSample = edit.getState().getCursorSample();
-            std::optional<int64_t> endSample;
-            if (edit.getState().hasSelectionRange()) {
-                const auto selectionStart = edit.getState().getSelectionStartSample();
-                const auto selectionEnd = edit.getState().getSelectionEndSample();
-                startSample = std::min(selectionStart, selectionEnd);
-                const auto orderedEnd = std::max(selectionStart, selectionEnd);
-                if (orderedEnd > startSample) {
-                    endSample = std::max<int64_t>(0, orderedEnd - 1);
-                }
-                playSelectionStartSample = startSample;
-            } else {
-                playSelectionStartSample.reset();
-            }
-            edit.getState().setCursorSample(startSample);
-            transport->setPlayheadSample(startSample);
-            transport->play(endSample);
-        }
+    play->onClick = [this, &commandManager] {
+        commandManager.invokeDirectly(CommandIds::Transport::playPause, true);
     };
 
     stop->onClick = [this, &edit] {
-        if (const auto transport = edit.getTransport()) {
-            const auto playheadSample = transport->getPlayheadSample();
-            const auto cursorSample = edit.getState().getCursorSample();
-            const bool followsPlayback = edit.getState().getInsertionFollowsPlayback();
-            transport->stop();
-            if (playSelectionStartSample.has_value()
-                && edit.getState().hasSelectionRange()
-                && cursorSample == playSelectionStartSample.value()) {
-                if (followsPlayback) {
-                    edit.getState().setCursorSample(playheadSample);
-                } else {
-                    transport->setPlayheadSample(cursorSample);
-                }
-            }
-            playSelectionStartSample.reset();
-        }
+        
     };
 
     record->onClick = [&edit] {
-        if (const auto transport = edit.getTransport()) {
-            transport->stop();
-        }
+
     };
 
     int64 jumpSize = (edit.getViewEndSample() - edit.getViewStartSample())/4;
 
     moveLeft->onClick = [&edit, jumpSize] {
-        if (const auto transport = edit.getTransport()) {
-            const auto nextSample = std::max<int64_t>(0, edit.getState().getCursorSample() - jumpSize);
-            edit.getState().setCursorSample(nextSample);
-            if (!transport->isPlaying()) {
-                transport->setPlayheadSample(nextSample);
-            }
-        }
+
     };
 
     moveRight->onClick = [&edit, jumpSize] {
-        if (const auto transport = edit.getTransport()) {
-            const auto nextSample = std::max<int64_t>(0, edit.getState().getCursorSample() + jumpSize);
-            edit.getState().setCursorSample(nextSample);
-            if (!transport->isPlaying()) {
-                transport->setPlayheadSample(nextSample);
-            }
-        }
+
     };
 
     for (auto* icon : { rewind.get(), play.get(), stop.get(), record.get(), moveLeft.get(), moveRight.get() }) {

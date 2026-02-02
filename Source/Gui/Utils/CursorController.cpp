@@ -68,10 +68,12 @@ void CursorController::timerCallback() {
     if (!transport->consumeHasStopped()) {
         return;
     }
-    if (!edit.getState().hasSelectionRange()) {
-        return;
-    }
-    if (hasMovedDuringPlayback) {
+
+    // if (!edit.getState().hasSelectionRange()) {
+    //     return;
+    // }
+
+    if (hasMovedDuringPlayback && edit.getState().getInsertionFollowsPlayback()) {
         transport->setPlayheadSample(edit.getState().getCursorSample());
     }
     else {
@@ -85,4 +87,113 @@ void CursorController::timerCallback() {
     }
 
 
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+/// PlayHead direct setting logic, it is here because it actually               ///
+/// moves the cursor                                                            ///
+///////////////////////////////////////////////////////////////////////////////////
+
+/// First, the events that triggers other functions defined belows
+
+void CursorController::onPlaybackTick(int64 playheadSample) {
+    followRightEdge(playheadSample);
+}
+
+void CursorController::onPointerDown(int64 previousSample, int64 playheadSample) {
+    setTransportPosition(playheadSample);
+    followBothEdges(playheadSample);
+}
+
+void CursorController::onPointerDrag(int64 playheadSample) {
+    setTransportPosition(playheadSample);
+    followBothEdges(playheadSample);
+}
+
+void CursorController::onPointerUp(int64 previousSample, int64 playheadSample, bool wasDrag) {
+    if (const auto transport = edit.getTransport()) {
+        if (transport->isPlaying()) {
+            return;
+        }
+    }
+    if (!wasDrag && previousSample == playheadSample) {
+        return;
+    }
+    if (const auto transport = edit.getTransport()) {
+        transport->setPlayheadSample(playheadSample);
+    }
+    setCursorSample(playheadSample);
+    followBothEdges(playheadSample);
+}
+
+/// Definition of the functions used upper
+
+void CursorController::followRightEdge(int64 playheadSample) {
+    const auto viewStart = edit.getViewStartSample();
+    const auto viewEnd = edit.getViewEndSample();
+    const auto viewLength = viewEnd - viewStart;
+    if (viewLength <= 0) {
+        return;
+    }
+
+    if (playheadSample < viewStart || playheadSample > viewEnd) {
+        const auto leftInset = static_cast<int64>(viewLength * 0.1);
+        auto newStart = playheadSample - leftInset;
+        if (newStart < 0) {
+            newStart = 0;
+        }
+        edit.getState().setViewRange(newStart, newStart + viewLength, nullptr);
+        return;
+    }
+
+    if (playheadSample > viewEnd) {
+        const auto step = std::max<int64>(1, viewLength / 5);
+        shiftViewBy(step);
+    }
+}
+
+void CursorController::followBothEdges(int64 playheadSample) {
+    const auto viewStart = edit.getViewStartSample();
+    const auto viewEnd = edit.getViewEndSample();
+    const auto viewLength = viewEnd - viewStart;
+    if (viewLength <= 0) {
+        return;
+    }
+
+    constexpr int64 edgeMargin = 2;
+    const auto step = std::max<int64>(1, viewLength / 100);
+    if (playheadSample > (viewEnd - edgeMargin)) {
+        shiftViewBy(step);
+    } else if (playheadSample < (viewStart + edgeMargin)) {
+        shiftViewBy(-step);
+    }
+}
+
+void CursorController::shiftViewBy(int64 delta) {
+    const auto viewStart = edit.getViewStartSample();
+    const auto viewEnd = edit.getViewEndSample();
+    const auto viewLength = viewEnd - viewStart;
+    if (viewLength <= 0) {
+        return;
+    }
+
+    auto newStart = viewStart + delta;
+    auto newEnd = viewEnd + delta;
+    if (newStart < 0) {
+        newStart = 0;
+        newEnd = viewLength;
+    }
+
+    edit.getState().setViewRange(newStart, newEnd, nullptr);
+}
+
+void CursorController::setTransportPosition(int64 playheadSample) {
+    if (const auto transport = edit.getTransport()) {
+        if (transport->isPlaying()) {
+            setCursorSample(playheadSample);
+        } else {
+            transport->setPlayheadSample(playheadSample);
+            setCursorSample(playheadSample);
+        }
+    }
 }

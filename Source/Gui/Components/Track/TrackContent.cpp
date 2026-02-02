@@ -131,16 +131,14 @@ void TrackContent::paintOverChildren(juce::Graphics& g) {
     }
 
     // draw tick
-    {
-        const auto tick = juce::Time::getMillisecondCounter() / 350;
-        if ((tick % 2) == 0) {
-            return;
-        }
-
-        const float x = mapper.sampleToX(cursorSample);
-        g.setColour(juce::Colour::fromString("#FF998893"));
-        g.drawLine(x, 0.0f, x, static_cast<float>(getHeight()), 1.0f);
+    const auto tick = juce::Time::getMillisecondCounter() / 350;
+    if ((tick % 2) == 0) {
+        return;
     }
+
+    const float x = mapper.sampleToX(cursorSample);
+    g.setColour(juce::Colour::fromString("#FF998893"));
+    g.drawLine(x, 0.0f, x, static_cast<float>(getHeight()), 1.0f);
 }
 
 void TrackContent::valueTreePropertyChanged(juce::ValueTree&, const juce::Identifier& property) {

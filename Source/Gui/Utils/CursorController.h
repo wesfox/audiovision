@@ -38,8 +38,31 @@ public:
     /// Apply selection clear updates.
     void onSelectionCleared();
 
+    /// Follow the playhead during playback.
+    /// @param playheadSample playhead sample to follow
+    void onPlaybackTick(int64 playheadSample);
+
+    /// Begin cursor interaction at a playhead sample.
+    /// @param previousSample sample before interaction
+    /// @param playheadSample target playhead sample
+    void onPointerDown(int64 previousSample, int64 playheadSample);
+
+    /// Continue cursor interaction at a playhead sample.
+    /// @param playheadSample target playhead sample
+    void onPointerDrag(int64 playheadSample);
+
+    /// End cursor interaction at a playhead sample.
+    /// @param previousSample sample before interaction
+    /// @param playheadSample target playhead sample
+    /// @param wasDrag true when drag occurred
+    void onPointerUp(int64 previousSample, int64 playheadSample, bool wasDrag);
+
 private:
     void timerCallback() override;
+    void followRightEdge(int64 playheadSample);
+    void followBothEdges(int64 playheadSample);
+    void shiftViewBy(int64 delta);
+    void setTransportPosition(int64 playheadSample);
 
     Edit& edit;
     SelectionManager& selectionManager;

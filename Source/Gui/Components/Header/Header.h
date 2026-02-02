@@ -12,7 +12,7 @@
 /// Top-level header component.
 class Header : public juce::Component {
 public:
-    explicit Header(Edit& edit);
+    Header(Edit& edit, juce::ApplicationCommandManager& commandManager);
 
     void paint(juce::Graphics& g) override;
     void resized() override;

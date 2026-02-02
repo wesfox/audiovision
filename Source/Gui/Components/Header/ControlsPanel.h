@@ -9,7 +9,7 @@
 /// Displays the transport control icons in the header.
 class ControlsPanel : public juce::Component {
 public:
-    ControlsPanel(Edit& edit);
+    ControlsPanel(Edit& edit, juce::ApplicationCommandManager& commandManager);
     ~ControlsPanel() override;
 
     void paint(juce::Graphics& g) override;
@@ -27,6 +27,7 @@ public:
 private:
     class SvgButton;
 
+    juce::ApplicationCommandManager& commandManager;
     std::unique_ptr<SvgButton> moveLeft;
     std::unique_ptr<SvgButton> moveRight;
     std::unique_ptr<SvgButton> play;

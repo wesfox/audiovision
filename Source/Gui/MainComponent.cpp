@@ -75,7 +75,7 @@ MainComponent::MainComponent()
     juce::LookAndFeel::getDefaultLookAndFeel().setDefaultSansSerifTypeface(baseFont.getTypefacePtr());
     audioEngine = std::make_unique<AudioEngine>(edit);
 
-    header = std::make_unique<Header>(*edit);
+    header = std::make_unique<Header>(*edit, commandCenter->getCommandManager());
     addAndMakeVisible(header.get());
 
     contextualSection = std::make_unique<ContextualSection>();
