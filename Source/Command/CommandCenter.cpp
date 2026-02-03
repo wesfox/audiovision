@@ -55,3 +55,7 @@ bool CommandCenter::perform(const InvocationInfo& info) {
 juce::ApplicationCommandTarget* CommandCenter::getNextCommandTarget() {
     return nullptr;
 }
+
+bool CommandCenter::handleWheelCommand(juce::CommandID commandId, float delta) {
+    return editCommands.handleWheelCommand(commandId, delta);
+}

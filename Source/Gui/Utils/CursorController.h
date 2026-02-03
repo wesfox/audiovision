@@ -56,6 +56,7 @@ public:
 
 private:
     void timerCallback() override;
+    bool shouldFollowPlayhead() const;
     void setCursorPositionFromUserAction(int64 playheadSample);
 
     Edit& edit;

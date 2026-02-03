@@ -2,8 +2,10 @@
 
 #include "Command/Shortcuts/ShortcutMappings.h"
 
-WheelCommandManager::WheelCommandManager(juce::ApplicationCommandManager& commandManager)
-    : commandManager(commandManager) {
+WheelCommandManager::WheelCommandManager(juce::ApplicationCommandManager& commandManager,
+                                         Target* target)
+    : commandManager(commandManager),
+      target(target) {
 }
 
 bool WheelCommandManager::handleWheel(const juce::MouseEvent& event, const juce::MouseWheelDetails& details) {
@@ -39,10 +41,13 @@ bool WheelCommandManager::handleWheel(const juce::MouseEvent& event, const juce:
         return false;
     }
 
-    invoke(match->command);
+    invoke(match->command, delta);
     return true;
 }
 
-void WheelCommandManager::invoke(juce::CommandID commandId) {
+void WheelCommandManager::invoke(juce::CommandID commandId, float delta) {
+    if (target != nullptr && target->handleWheelCommand(commandId, delta)) {
+        return;
+    }
     commandManager.invokeDirectly(commandId, true);
 }

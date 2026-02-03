@@ -15,9 +15,11 @@ public:
     void getCommandInfo(juce::CommandID commandID, juce::ApplicationCommandInfo& result);
     bool perform(const juce::ApplicationCommandTarget::InvocationInfo& info);
     bool handlesCommand(juce::CommandID commandID) const;
+    bool handleWheelCommand(juce::CommandID commandID, float delta);
 
 private:
     void zoom(float ratio);
+    void scrollView(float delta);
 
     Edit& edit;
 };

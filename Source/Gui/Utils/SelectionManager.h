@@ -86,9 +86,22 @@ public:
     /// End selection interaction.
     void mouseUp();
 
+    /// Add a track to the current selection.
+    /// @param trackId track to add
+    void addTrackToSelection(const String& trackId);
+
+    /// Toggle a track in the current selection.
+    /// @param trackId track to toggle
+    void toggleTrackSelection(const String& trackId);
+
+    /// Extend the current selection range to the track.
+    /// @param trackId track to extend selection to
+    void extendSelectionToTrack(const String& trackId);
+
 private:
     int getTrackIndexAtY(int y) const;
     void updateSelectionRange(int hoverIndex);
+    void applySelectionRange(int startIndex, int endIndex);
     void updateSelectionSamples();
     void notifyListeners();
 
@@ -101,6 +114,10 @@ private:
     bool isSelecting = false;
     std::optional<int64_t> selectionAnchorSample;
     std::optional<int64_t> selectionHoverSample;
+    int selectionComponentWidth = 0;
+    bool forceSelectionCommit = false;
+    int lastAnchorTrackIndex = -1;
+    std::optional<int64_t> lastAnchorSample;
 
     std::optional<int64_t> getSampleAtPosition(const juce::MouseEvent& event,
                                                juce::Component* relativeTo) const;

@@ -12,6 +12,7 @@ TransportCommands::TransportCommands(Edit& edit, CursorController& cursorControl
 
 void TransportCommands::getAllCommands(juce::Array<juce::CommandID>& commands) {
     commands.add(CommandIds::Transport::playPause);
+    commands.add(CommandIds::Transport::playPauseLooping);
     commands.add(CommandIds::Transport::toggleInsertionFollowsPlayback);
 }
 
@@ -19,6 +20,14 @@ void TransportCommands::getCommandInfo(juce::CommandID commandID, juce::Applicat
     if (commandID == CommandIds::Transport::playPause) {
         result.setInfo("Play/Pause", "Toggle transport playback", "Transport", 0);
         result.addDefaultKeypress(juce::KeyPress::spaceKey, 0);
+        return;
+    }
+    if (commandID == CommandIds::Transport::playPauseLooping) {
+        result.setInfo("Play/Pause (Looping)",
+                       "Toggle transport playback with looping enabled",
+                       "Transport",
+                       0);
+        result.addDefaultKeypress(juce::KeyPress::spaceKey, juce::ModifierKeys::ctrlModifier);
         return;
     }
     if (commandID == CommandIds::Transport::toggleInsertionFollowsPlayback) {
@@ -34,6 +43,10 @@ bool TransportCommands::perform(const juce::ApplicationCommandTarget::Invocation
         togglePlayPause();
         return true;
     }
+    if (info.commandID == CommandIds::Transport::playPauseLooping) {
+        togglePlayPauseLooping();
+        return true;
+    }
     if (info.commandID == CommandIds::Transport::toggleInsertionFollowsPlayback) {
         toggleInsertionFollowsPlayback();
         return true;
@@ -43,15 +56,20 @@ bool TransportCommands::perform(const juce::ApplicationCommandTarget::Invocation
 
 bool TransportCommands::handlesCommand(juce::CommandID commandID) const {
     return commandID == CommandIds::Transport::playPause
+        || commandID == CommandIds::Transport::playPauseLooping
         || commandID == CommandIds::Transport::toggleInsertionFollowsPlayback;
 }
 
-void TransportCommands::togglePlayPause() {
+void TransportCommands::togglePlayPause(bool looping) const {
     const auto transport = edit.getTransport();
     if (!transport) {
         // we should have a transport here
         jassert(false);
         return;
+    }
+
+    if (edit.getState().getIsLooping()) {
+        looping = true;
     }
 
     if (transport->isPlaying()) {
@@ -71,8 +89,6 @@ void TransportCommands::togglePlayPause() {
                  jassert(false);
              }
 
-             // is looping
-             auto looping = edit.getState().getIsLooping();
              transport->play(endSample.value(), looping);
          } else {
              // or directly from the playhead if there is no selection
@@ -80,6 +96,10 @@ void TransportCommands::togglePlayPause() {
         }
 
     }
+}
+
+void TransportCommands::togglePlayPauseLooping() {
+    togglePlayPause(true);
 }
 
 void TransportCommands::toggleInsertionFollowsPlayback() {

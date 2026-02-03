@@ -8,11 +8,14 @@
 #include "Gui/Utils/CursorController.h"
 #include "Gui/Utils/SelectionManager.h"
 #include "Gui/Utils/DebugWatchWindow.h"
+#include "Gui/Utils/WheelForwardingViewport.h"
 #include "Gui/Video/VideoView.h"
 
 #include "AudioEngine/AudioEngine.h"
 #include "Components/Track/TrackContentPanel.h"
 #include "Components/Track/TrackHeaderPanel.h"
+#include "Components/Track/TrackHorizontalScrollBar.h"
+#include "Gui/Style/LookAndFeel/ScrollBarLook.h"
 
 class EditTest;
 
@@ -46,6 +49,11 @@ private:
 
     std::unique_ptr<TrackHeaderPanel> trackHeaderPanel;
     std::unique_ptr<TrackContentPanel> trackContentPanel;
+    std::unique_ptr<TrackHorizontalScrollBar> trackHorizontalScrollBar;
+    std::unique_ptr<WheelForwardingViewport::Handler> wheelHandler;
+    WheelForwardingViewport trackViewport;
+    juce::Component trackAreaContainer;
+    ScrollBarLook trackScrollbarLookAndFeel;
     std::unique_ptr<Header> header;
     std::unique_ptr<ContextualSection> contextualSection;
     std::unique_ptr<VideoView> videoView;

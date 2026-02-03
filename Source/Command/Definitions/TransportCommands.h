@@ -21,7 +21,8 @@ public:
     bool handlesCommand(juce::CommandID commandID) const;
 
 private:
-    void togglePlayPause();
+    void togglePlayPause(bool looping = false) const;
+    void togglePlayPauseLooping();
     void toggleInsertionFollowsPlayback();
 
     Edit& edit;

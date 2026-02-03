@@ -121,10 +121,6 @@ void TrackContent::paintOverChildren(juce::Graphics& g) {
     if (hasSelectionRange && hasSelection) {
         return;
     }
-    if (transport->isPlaying()
-        && edit.getState().getInsertionFollowsPlayback()) {
-        return;
-    }
     const auto cursorSample = edit.getState().getCursorSample();
     if (cursorSample < mapper.getViewStartSample() || cursorSample > mapper.getViewEndSample()) {
         return;

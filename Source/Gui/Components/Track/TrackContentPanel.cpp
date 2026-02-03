@@ -184,6 +184,9 @@ void TrackContentPanel::timerCallback() {
 
 void TrackContentPanel::mouseDown(const juce::MouseEvent& event) {
     selectionManager.mouseDown(event, this);
+    if (event.mods.isShiftDown()) {
+        return;
+    }
     const auto mapper = getMapper(static_cast<float>(getWidth()));
     const auto relative = event.getEventRelativeTo(this);
     const auto cursorSample = mapper.xToSample(relative.position.x);

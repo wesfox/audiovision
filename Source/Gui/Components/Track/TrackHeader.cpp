@@ -31,21 +31,11 @@ TrackHeader::TrackHeader(Track& track, SelectionManager& selectionManager)
     selector->getComboBox().setSelectedId(1, juce::dontSendNotification);
     addAndMakeVisible(selector.get());
 
-    auto toggleBackgroundColour = juce::Colour(0xFFE7E1FB);
-    auto toggleTextColor = juce::Colour(0xFF000000);
     // toggle buttons
-    armedToggle = std::make_unique<ToggleTextButton>("R", toggleBackgroundColour, toggleTextColor);
-    armedToggle->setToggledColor(juce::Colour(0xFFFF8787), toggleTextColor);
-
-    inputMonitoringToggle  = std::make_unique<ToggleTextButton>("I", toggleBackgroundColour, toggleTextColor);
-    inputMonitoringToggle->setToggledColor(juce::Colour(0xFF68C39A), toggleTextColor);
-
-    soloToggle = std::make_unique<ToggleTextButton>("S", toggleBackgroundColour, toggleTextColor);
-    soloToggle->setToggledColor(juce::Colour(0xFFFFDFAC), toggleTextColor);
-
-    activeToggle  = std::make_unique<ToggleTextButton>("ON", juce::Colour(0xFFD9E9DB), toggleTextColor);
-    activeToggle->setToggledColor(juce::Colour(0xFF7DE38F), toggleTextColor);
-    activeToggle->setToggled(true);
+    armedToggle = std::make_unique<ArmedToggle>();
+    inputMonitoringToggle  = std::make_unique<InputMonitoringToggle>();
+    soloToggle = std::make_unique<SoloToggle>();
+    activeToggle  = std::make_unique<MuteToggle>();
 
     addAndMakeVisible(armedToggle.get());
     addAndMakeVisible(inputMonitoringToggle.get());
@@ -118,6 +108,21 @@ void TrackHeader::paint(juce::Graphics &g) {
         const auto outputTrackNameBounds = getLocalBounds().removeFromRight(100).removeFromBottom(100);
         g.drawFittedText(String::fromUTF8("→ ") + outputTrackName, outputTrackNameBounds, Justification::centred, 2);
     }
+}
+
+void TrackHeader::mouseDown(const juce::MouseEvent& event) {
+    if (!event.mods.isLeftButtonDown()) {
+        return;
+    }
+    if (event.mods.isCommandDown()) {
+        selectionManager.toggleTrackSelection(trackId);
+        return;
+    }
+    if (event.mods.isShiftDown()) {
+        selectionManager.extendSelectionToTrack(trackId);
+        return;
+    }
+    selectionManager.setSelection({ trackId });
 }
 
 void TrackHeader::setTrackName(const String &name) const {

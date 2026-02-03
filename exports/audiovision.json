@@ -90,6 +90,66 @@
       "clips": [],
       "plugins": [],
       "sends": []
+    },
+    {
+      "index": 5,
+      "name": "DTrack5",
+      "type": "Audio",
+      "armed": true,
+      "outputIndex": -1,
+      "clips": [],
+      "plugins": [],
+      "sends": []
+    },
+    {
+      "index": 6,
+      "name": "DTrack6",
+      "type": "Audio",
+      "armed": true,
+      "outputIndex": -1,
+      "clips": [],
+      "plugins": [],
+      "sends": []
+    },
+    {
+      "index": 7,
+      "name": "DTrack7",
+      "type": "Audio",
+      "armed": true,
+      "outputIndex": -1,
+      "clips": [],
+      "plugins": [],
+      "sends": []
+    },
+    {
+      "index": 8,
+      "name": "DTrack8",
+      "type": "Audio",
+      "armed": true,
+      "outputIndex": -1,
+      "clips": [],
+      "plugins": [],
+      "sends": []
+    },
+    {
+      "index": 9,
+      "name": "DTrack9",
+      "type": "Audio",
+      "armed": true,
+      "outputIndex": -1,
+      "clips": [],
+      "plugins": [],
+      "sends": []
+    },
+    {
+      "index": 10,
+      "name": "DTrack10",
+      "type": "Audio",
+      "armed": true,
+      "outputIndex": -1,
+      "clips": [],
+      "plugins": [],
+      "sends": []
     }
   ],
   "scenes": [

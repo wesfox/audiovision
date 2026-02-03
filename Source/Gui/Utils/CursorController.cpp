@@ -66,7 +66,7 @@ void CursorController::timerCallback() {
     //     return;
     // }
 
-    if (hasMovedDuringPlayback && !edit.getState().getInsertionFollowsPlayback()) {
+    if (hasMovedDuringPlayback) {
         transport->setPlayheadSample(edit.getState().getCursorSample());
     }
     else {
@@ -90,6 +90,9 @@ void CursorController::timerCallback() {
 /// First, the events that triggers other functions defined belows
 
 void CursorController::onPlaybackTick(int64 playheadSample) {
+    if (!shouldFollowPlayhead()) {
+        return;
+    }
     viewFollow.followRightEdge(playheadSample);
 }
 
@@ -128,4 +131,11 @@ void CursorController::setCursorPositionFromUserAction(int64 playheadSample) {
             setCursorSample(playheadSample);
         }
     }
+}
+
+bool CursorController::shouldFollowPlayhead() const {
+    if (const auto transport = edit.getTransport()) {
+        return transport->isPlaying();
+    }
+    return false;
 }

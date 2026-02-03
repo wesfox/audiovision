@@ -7,6 +7,23 @@
 #include "Gui/Style/Font.h"
 #include "Command/Commands.h"
 
+namespace {
+class WheelCommandForwarder final : public WheelForwardingViewport::Handler {
+public:
+    explicit WheelCommandForwarder(WheelCommandManager& wheelCommandManager)
+        : wheelCommandManager(wheelCommandManager) {
+    }
+
+    bool handleWheel(const juce::MouseEvent& event,
+                     const juce::MouseWheelDetails& details) override {
+        return wheelCommandManager.handleWheel(event, details);
+    }
+
+private:
+    WheelCommandManager& wheelCommandManager;
+};
+}
+
 //==============================================================================
 MainComponent::MainComponent()
 {
@@ -17,7 +34,10 @@ MainComponent::MainComponent()
     cursorController = std::make_unique<CursorController>(*edit, *selectionManager);
     selectionManager->setCursorController(cursorController.get());
     commandCenter = std::make_unique<CommandCenter>(*edit, *cursorController);
-    wheelCommandManager = std::make_unique<WheelCommandManager>(commandCenter->getCommandManager());
+    wheelCommandManager = std::make_unique<WheelCommandManager>(commandCenter->getCommandManager(),
+                                                                commandCenter.get());
+    wheelHandler = std::make_unique<WheelCommandForwarder>(*wheelCommandManager);
+    trackViewport.setWheelHandler(wheelHandler.get());
     addKeyListener(&commandCenter->getKeyMappings());
     setWantsKeyboardFocus(true);
     grabKeyboardFocus();
@@ -82,10 +102,18 @@ MainComponent::MainComponent()
     addAndMakeVisible(contextualSection.get());
 
     trackHeaderPanel = std::make_unique<TrackHeaderPanel>(*edit, *selectionManager);
-    addAndMakeVisible(trackHeaderPanel.get());
+    trackAreaContainer.addAndMakeVisible(trackHeaderPanel.get());
 
     trackContentPanel = std::make_unique<TrackContentPanel>(*edit, *selectionManager);
-    addAndMakeVisible(trackContentPanel.get());
+    trackAreaContainer.addAndMakeVisible(trackContentPanel.get());
+
+    trackHorizontalScrollBar = std::make_unique<TrackHorizontalScrollBar>(*edit);
+    addAndMakeVisible(trackHorizontalScrollBar.get());
+
+    trackViewport.setViewedComponent(&trackAreaContainer, false);
+    trackViewport.setScrollBarsShown(true, false);
+    trackViewport.setLookAndFeel(&trackScrollbarLookAndFeel);
+    addAndMakeVisible(trackViewport);
 
     videoView = std::make_unique<VideoView>(*edit);
     videoWindow = std::make_unique<juce::DocumentWindow>(
@@ -128,6 +156,7 @@ void MainComponent::shutdown()
         return;
     }
     isShutDown = true;
+    trackViewport.setLookAndFeel(nullptr);
     if (videoWindow != nullptr) {
         videoWindow->setVisible(false);
         videoWindow.reset();
@@ -167,11 +196,39 @@ void MainComponent::resized()
     if (header != nullptr) {
         header->setBounds(headerArea);
     }
-    if (trackHeaderPanel != nullptr) {
-        trackHeaderPanel->setBounds(bounds.removeFromLeft(200));
-    }
-    if (trackContentPanel !=nullptr) {
-        trackContentPanel->setBounds(bounds);
+    if (trackViewport.isShowing()) {
+        const int headerWidth = 200;
+        const int scrollBarHeight = trackHorizontalScrollBar != nullptr
+            ? trackHorizontalScrollBar->getPreferredHeight()
+            : 0;
+        auto trackAreaBounds = bounds;
+        trackViewport.setBounds(trackAreaBounds);
+        const int contentWidth = std::max(0, trackViewport.getWidth() - headerWidth);
+        int totalHeight = edit != nullptr ? edit->getState().getTimelineHeight() : 0;
+        if (edit != nullptr) {
+            for (const auto& track : edit->getTracks()) {
+                if (!track) {
+                    continue;
+                }
+                totalHeight += std::max(1, static_cast<int>(track->getHeight()));
+            }
+        }
+        totalHeight += scrollBarHeight;
+        trackAreaContainer.setSize(trackViewport.getWidth(), totalHeight);
+        if (trackHeaderPanel != nullptr) {
+            trackHeaderPanel->setBounds(0, 0, headerWidth, totalHeight);
+        }
+        if (trackContentPanel != nullptr) {
+            trackContentPanel->setBounds(headerWidth, 0, contentWidth, totalHeight);
+        }
+        if (trackHorizontalScrollBar != nullptr) {
+            auto scrollBarArea = trackAreaBounds.removeFromBottom(scrollBarHeight);
+            scrollBarArea.removeFromLeft(headerWidth);
+            const int scrollBarMaxWidth = std::max(0, contentWidth - 8);
+            scrollBarArea.setWidth(std::min(scrollBarArea.getWidth(), scrollBarMaxWidth));
+            trackHorizontalScrollBar->setBounds(scrollBarArea);
+            trackHorizontalScrollBar->toFront(false);
+        }
     }
 }
 

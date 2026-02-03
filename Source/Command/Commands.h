@@ -6,6 +6,7 @@
 namespace CommandIds::Transport {
 static constexpr juce::CommandID playPause = 0x2000;
 static constexpr juce::CommandID toggleInsertionFollowsPlayback = 0x2001;
+static constexpr juce::CommandID playPauseLooping = 0x2002;
 }
 
 /// Command identifiers for waveform editing.
@@ -18,4 +19,5 @@ static constexpr juce::CommandID decreaseScale = 0x2101;
 namespace CommandIds::EditView {
 static constexpr juce::CommandID zoomIn = 0x2200;
 static constexpr juce::CommandID zoomOut = 0x2201;
+static constexpr juce::CommandID scrollView = 0x2202;
 }
