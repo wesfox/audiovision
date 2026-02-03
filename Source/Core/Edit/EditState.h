@@ -2,6 +2,8 @@
 
 #include <JuceHeader.h>
 
+#include "Core/Track/TrackState.h"
+
 /// Edit view and global state backed by a ValueTree.
 class EditState {
 public:
@@ -114,8 +116,55 @@ public:
     /// @param viewWidth width of the view in pixels
     int64 mapPixelToSample(float pixelX, float viewWidth) const;
 
+    /// Ensure a track state node exists.
+    /// @param trackId identifier of the track
+    void ensureTrackState(const String& trackId);
+
+    /// Track arm state.
+    TrackArmState getTrackArmState(const String& trackId) const;
+
+    /// Track input monitoring state.
+    TrackInputState getTrackInputState(const String& trackId) const;
+
+    /// Track solo state.
+    TrackSoloState getTrackSoloState(const String& trackId) const;
+
+    /// Track mute state.
+    TrackMuteState getTrackMuteState(const String& trackId) const;
+
+    /// Set the arm state for a track.
+    /// @param trackId identifier of the track
+    /// @param state new arm state
+    /// @param undo optional undo manager for transactions
+    void setTrackArmState(const String& trackId, TrackArmState state, juce::UndoManager* undo = nullptr);
+
+    /// Set the input monitoring state for a track.
+    /// @param trackId identifier of the track
+    /// @param state new input monitoring state
+    /// @param undo optional undo manager for transactions
+    void setTrackInputState(const String& trackId, TrackInputState state, juce::UndoManager* undo = nullptr);
+
+    /// Set the solo state for a track.
+    /// @param trackId identifier of the track
+    /// @param state new solo state
+    /// @param undo optional undo manager for transactions
+    void setTrackSoloState(const String& trackId, TrackSoloState state, juce::UndoManager* undo = nullptr);
+
+    /// Set the mute state for a track.
+    /// @param trackId identifier of the track
+    /// @param state new mute state
+    /// @param undo optional undo manager for transactions
+    void setTrackMuteState(const String& trackId, TrackMuteState state, juce::UndoManager* undo = nullptr);
+
+    /// Access the state node for a track.
+    /// @param trackId identifier of the track
+    juce::ValueTree getTrackState(const String& trackId) const;
+
 private:
+    juce::ValueTree getOrCreateTrackState(const String& trackId);
+
     juce::ValueTree root;
     juce::ValueTree globals;
     juce::ValueTree viewState;
+    juce::ValueTree trackState;
 };

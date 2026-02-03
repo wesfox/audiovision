@@ -6,6 +6,7 @@
 #include "Utils/DebugWatchRegistry.h"
 #include "Gui/Style/Font.h"
 #include "Command/Commands.h"
+#include "Core/Track/TrackState.h"
 
 namespace {
 class WheelCommandForwarder final : public WheelForwardingViewport::Handler {
@@ -22,6 +23,54 @@ public:
 private:
     WheelCommandManager& wheelCommandManager;
 };
+
+juce::String toString(TrackArmState state) {
+    switch (state) {
+        case TrackArmState::Inactive:
+            return "Inactive";
+        case TrackArmState::Active:
+            return "Active";
+        default:
+            return "Unknown";
+    }
+}
+
+juce::String toString(TrackInputState state) {
+    switch (state) {
+        case TrackInputState::Inactive:
+            return "Inactive";
+        case TrackInputState::Active:
+            return "Active";
+        default:
+            return "Unknown";
+    }
+}
+
+juce::String toString(TrackSoloState state) {
+    switch (state) {
+        case TrackSoloState::Inactive:
+            return "Inactive";
+        case TrackSoloState::Solo:
+            return "Solo";
+        case TrackSoloState::SoloSafe:
+            return "SoloSafe";
+        default:
+            return "Unknown";
+    }
+}
+
+juce::String toString(TrackMuteState state) {
+    switch (state) {
+        case TrackMuteState::Active:
+            return "Active";
+        case TrackMuteState::SoloMute:
+            return "SoloMute";
+        case TrackMuteState::Mute:
+            return "Mute";
+        default:
+            return "Unknown";
+    }
+}
 }
 
 //==============================================================================
@@ -36,6 +85,7 @@ MainComponent::MainComponent()
     commandCenter = std::make_unique<CommandCenter>(*edit, *cursorController);
     wheelCommandManager = std::make_unique<WheelCommandManager>(commandCenter->getCommandManager(),
                                                                 commandCenter.get());
+    trackCommandManager = std::make_unique<TrackCommandManager>(*edit);
     wheelHandler = std::make_unique<WheelCommandForwarder>(*wheelCommandManager);
     trackViewport.setWheelHandler(wheelHandler.get());
     addKeyListener(&commandCenter->getKeyMappings());
@@ -88,6 +138,42 @@ MainComponent::MainComponent()
                                            }
                                            return juce::String(transport->getPlayheadSample());
                                        });
+    if (edit != nullptr) {
+        for (const auto& track : edit->getTracks()) {
+            if (!track) {
+                continue;
+            }
+            const auto trackId = track->getId();
+            auto trackLabel = track->getName();
+            if (trackLabel.isEmpty()) {
+                trackLabel = trackId;
+            }
+            DebugWatchRegistry::get().setWatch(trackLabel + " Arm",
+                                               &edit->getState(),
+                                               [trackId](const void* statePtr) {
+                                                   const auto* state = static_cast<const EditState*>(statePtr);
+                                                   return toString(state->getTrackArmState(trackId));
+                                               });
+            DebugWatchRegistry::get().setWatch(trackLabel + " Input",
+                                               &edit->getState(),
+                                               [trackId](const void* statePtr) {
+                                                   const auto* state = static_cast<const EditState*>(statePtr);
+                                                   return toString(state->getTrackInputState(trackId));
+                                               });
+            DebugWatchRegistry::get().setWatch(trackLabel + " Solo",
+                                               &edit->getState(),
+                                               [trackId](const void* statePtr) {
+                                                   const auto* state = static_cast<const EditState*>(statePtr);
+                                                   return toString(state->getTrackSoloState(trackId));
+                                               });
+            DebugWatchRegistry::get().setWatch(trackLabel + " Mute",
+                                               &edit->getState(),
+                                               [trackId](const void* statePtr) {
+                                                   const auto* state = static_cast<const EditState*>(statePtr);
+                                                   return toString(state->getTrackMuteState(trackId));
+                                               });
+        }
+    }
 
     edit->getTransport()->setFrameRate(24);
 
@@ -101,7 +187,7 @@ MainComponent::MainComponent()
     contextualSection = std::make_unique<ContextualSection>();
     addAndMakeVisible(contextualSection.get());
 
-    trackHeaderPanel = std::make_unique<TrackHeaderPanel>(*edit, *selectionManager);
+    trackHeaderPanel = std::make_unique<TrackHeaderPanel>(*edit, *selectionManager, *trackCommandManager);
     trackAreaContainer.addAndMakeVisible(trackHeaderPanel.get());
 
     trackContentPanel = std::make_unique<TrackContentPanel>(*edit, *selectionManager);
@@ -133,7 +219,7 @@ MainComponent::MainComponent()
     auto mainDisplay = std::ranges::find_if(displays.displays, [](const auto& d) {return d.isMain;});
 
     videoWindow->setBounds(videoViewDisplay.userArea);
-    //videoWindow->setVisible(true);
+    videoWindow->setVisible(true);
 
     debugWatchWindow = std::make_unique<DebugWatchWindow>();
     if (mainDisplay != displays.displays.end()) {

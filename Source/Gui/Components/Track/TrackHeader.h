@@ -2,6 +2,8 @@
 
 #include <JuceHeader.h>
 
+#include "Command/TrackCommandManager.h"
+#include "Core/Edit/Edit.h"
 #include "Core/Track/Track.h"
 #include "Gui/Utils/SelectionManager.h"
 #include "../Common/ui/EditableText.h"
@@ -12,9 +14,10 @@
 #include "HeaderTrackButtons/SoloToggle.h"
 
 class TrackHeader : public juce::Component,
-                    private SelectionManager::Listener {
+                    private SelectionManager::Listener,
+                    private juce::ValueTree::Listener {
 public:
-    TrackHeader(Track& track, SelectionManager& selectionManager);
+    TrackHeader(Track& track, Edit& edit, SelectionManager& selectionManager, TrackCommandManager& trackCommandManager);
     ~TrackHeader() override;
 
     void resized() override;
@@ -25,15 +28,12 @@ public:
     void setTrackName(const String &name) const;
 private:
     void selectionChanged() override;
+    void valueTreePropertyChanged(juce::ValueTree& tree, const juce::Identifier& property) override;
+    void updateToggleStates();
 
     /// constructor values
     String trackId;
 
-    /// state values
-    bool isArmed = false;
-    bool isInputMonitoring = false;
-    bool isSolo = false;
-    bool isActive = true;
     String outputName = "";
     juce::Colour trackColour;
     int height = 80;
@@ -43,8 +43,11 @@ private:
 
     // track ref
     Track& track;
+    Edit& edit;
     SelectionManager& selectionManager;
+    TrackCommandManager& trackCommandManager;
     bool isSelected = false;
+    juce::ValueTree trackStateNode;
 
     // subComponents
     std::unique_ptr<EditableText> trackName;

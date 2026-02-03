@@ -37,6 +37,10 @@ public:
     /// @param callback function called after state changes
     void onNewState(std::function<void(StateId)> callback);
 
+    /// Register a callback to request a state change on click.
+    /// @param callback function called with the next requested state
+    void onStateRequested(std::function<void(StateId)> callback);
+
     void resized() override;
     void paint(juce::Graphics& g) override;
     void mouseDown(const juce::MouseEvent& e) override;
@@ -55,4 +59,5 @@ private:
     std::map<StateId, StateColours> coloursByState;
     std::vector<StateId> stateCycle { 0, 1 };
     std::function<void(StateId)> onNewStateCallback;
+    std::function<void(StateId)> onStateRequestedCallback;
 };

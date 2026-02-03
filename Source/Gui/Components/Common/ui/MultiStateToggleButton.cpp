@@ -32,6 +32,10 @@ void MultiStateToggleButton::onNewState(std::function<void(StateId)> callback) {
     onNewStateCallback = std::move(callback);
 }
 
+void MultiStateToggleButton::onStateRequested(std::function<void(StateId)> callback) {
+    onStateRequestedCallback = std::move(callback);
+}
+
 void MultiStateToggleButton::resized() {
 }
 
@@ -56,7 +60,12 @@ void MultiStateToggleButton::paint(juce::Graphics& g) {
 
 void MultiStateToggleButton::mouseDown(const juce::MouseEvent& e) {
     juce::ignoreUnused(e);
-    applyState(getNextState(), true);
+    if (onStateRequestedCallback) {
+        onStateRequestedCallback(getNextState());
+    } else {
+        // State requests should be handled by an external manager.
+        jassertfalse;
+    }
 }
 
 MultiStateToggleButton::StateId MultiStateToggleButton::getNextState() const {

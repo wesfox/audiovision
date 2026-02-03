@@ -6,9 +6,14 @@
 
 // ------------------------ MainComponent Implementation ------------------------
 
-TrackHeader::TrackHeader(Track& track, SelectionManager& selectionManager)
+TrackHeader::TrackHeader(Track& track,
+                         Edit& edit,
+                         SelectionManager& selectionManager,
+                         TrackCommandManager& trackCommandManager)
     : track(track),
-      selectionManager(selectionManager) {
+      edit(edit),
+      selectionManager(selectionManager),
+      trackCommandManager(trackCommandManager) {
     trackId = track.getId();
     isSelected = selectionManager.isSelected(trackId);
     selectionManager.addListener(this);
@@ -42,12 +47,38 @@ TrackHeader::TrackHeader(Track& track, SelectionManager& selectionManager)
     addAndMakeVisible(soloToggle.get());
     addAndMakeVisible(activeToggle.get());
 
+    armedToggle->onStateRequested([this](MultiStateToggleButton::StateId) {
+        this->trackCommandManager.toggleArmState(trackId);
+    });
+    inputMonitoringToggle->onStateRequested([this](MultiStateToggleButton::StateId) {
+        this->trackCommandManager.toggleInputState(trackId);
+    });
+    soloToggle->onStateRequested([this](MultiStateToggleButton::StateId) {
+        this->trackCommandManager.toggleSoloState(trackId);
+    });
+    activeToggle->onStateRequested([this](MultiStateToggleButton::StateId) {
+        this->trackCommandManager.toggleMuteState(trackId);
+    });
+
+    trackStateNode = edit.getState().getTrackState(trackId);
+    if (!trackStateNode.isValid()) {
+        edit.getState().ensureTrackState(trackId);
+        trackStateNode = edit.getState().getTrackState(trackId);
+    }
+    if (trackStateNode.isValid()) {
+        trackStateNode.addListener(this);
+    }
+    updateToggleStates();
+
     // left vertical line defined in paint()
     // trackOutputName defined in paint()
 }
 
 TrackHeader::~TrackHeader() {
     selectionManager.removeListener(this);
+    if (trackStateNode.isValid()) {
+        trackStateNode.removeListener(this);
+    }
 }
 
 void TrackHeader::resized() {
@@ -129,6 +160,13 @@ void TrackHeader::setTrackName(const String &name) const {
     trackName->setName(name);
 }
 
+void TrackHeader::valueTreePropertyChanged(juce::ValueTree& tree, const juce::Identifier& property) {
+    juce::ignoreUnused(property);
+    if (trackStateNode.isValid() && tree == trackStateNode) {
+        updateToggleStates();
+    }
+}
+
 void TrackHeader::selectionChanged() {
     const bool nextSelected = selectionManager.isSelected(trackId);
     if (nextSelected == isSelected) {
@@ -136,4 +174,13 @@ void TrackHeader::selectionChanged() {
     }
     isSelected = nextSelected;
     repaint();
+}
+
+void TrackHeader::updateToggleStates() {
+    const auto& state = edit.getState();
+    armedToggle->setState(static_cast<MultiStateToggleButton::StateId>(state.getTrackArmState(trackId)), false);
+    inputMonitoringToggle->setState(static_cast<MultiStateToggleButton::StateId>(state.getTrackInputState(trackId)),
+                                    false);
+    soloToggle->setState(static_cast<MultiStateToggleButton::StateId>(state.getTrackSoloState(trackId)), false);
+    activeToggle->setState(static_cast<MultiStateToggleButton::StateId>(state.getTrackMuteState(trackId)), false);
 }

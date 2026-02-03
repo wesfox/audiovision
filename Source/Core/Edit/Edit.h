@@ -17,7 +17,11 @@ public:
     /// Add a track to the edit.
     /// @param track track to add
     void addTrack(std::shared_ptr<Track> track) {
+        const auto trackId = track ? track->getId() : String();
         tracks.push_back(std::move(track));
+        if (trackId.isNotEmpty()) {
+            editState.ensureTrackState(trackId);
+        }
     }
 
     /// Mutable track list (edit scope).

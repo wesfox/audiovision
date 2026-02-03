@@ -1,14 +1,12 @@
 #pragma once
 
+#include "Core/Track/TrackState.h"
 #include "Gui/Components/Common/ui/MultiStateToggleButton.h"
 
 /// Track header toggle for input monitoring.
 class InputMonitoringToggle final : public MultiStateToggleButton {
 public:
-    enum class State {
-        Inactive = 0,
-        Active = 1
-    };
+    using State = TrackInputState;
 
     InputMonitoringToggle();
 };

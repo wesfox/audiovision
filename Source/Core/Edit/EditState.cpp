@@ -4,6 +4,13 @@ namespace {
 const juce::Identifier kEditStateType("EDIT_STATE");
 const juce::Identifier kGlobalsType("GLOBALS");
 const juce::Identifier kViewType("VIEW");
+const juce::Identifier kTracksType("TRACKS");
+const juce::Identifier kTrackType("TRACK");
+const juce::Identifier kTrackIdPropertyId("trackId");
+const juce::Identifier kTrackArmStateId("trackArmState");
+const juce::Identifier kTrackInputStateId("trackInputState");
+const juce::Identifier kTrackSoloStateId("trackSoloState");
+const juce::Identifier kTrackMuteStateId("trackMuteState");
 const juce::Identifier kViewStartSampleId("viewStartSample");
 const juce::Identifier kViewEndSampleId("viewEndSample");
 const juce::Identifier kFrameRateId("frameRate");
@@ -47,6 +54,7 @@ EditState::EditState() {
     root = juce::ValueTree(kEditStateType);
     globals = juce::ValueTree(kGlobalsType);
     viewState = juce::ValueTree(kViewType);
+    trackState = juce::ValueTree(kTracksType);
 
     viewState.setProperty(kViewStartSampleId, static_cast<int64>(0), nullptr);
     viewState.setProperty(kViewEndSampleId, static_cast<int64>(48000 * 30), nullptr);
@@ -63,6 +71,7 @@ EditState::EditState() {
 
     root.addChild(globals, -1, nullptr);
     root.addChild(viewState, -1, nullptr);
+    root.addChild(trackState, -1, nullptr);
 }
 
 int64 EditState::getViewStartSample() const {
@@ -175,4 +184,88 @@ void EditState::setInsertionFollowsPlayback(bool followsPlayback, juce::UndoMana
 
 void EditState::setIsLooping(bool isLooping, juce::UndoManager* undo) {
     globals.setProperty(kIsLoopingId, isLooping, undo);
+}
+
+void EditState::ensureTrackState(const String& trackId) {
+    getOrCreateTrackState(trackId);
+}
+
+TrackArmState EditState::getTrackArmState(const String& trackId) const {
+    const auto trackNode = getTrackState(trackId);
+    if (!trackNode.isValid()) {
+        return TrackArmState::Inactive;
+    }
+    const auto raw = static_cast<int>(trackNode.getProperty(kTrackArmStateId,
+                                                            static_cast<int>(TrackArmState::Inactive)));
+    return static_cast<TrackArmState>(raw);
+}
+
+TrackInputState EditState::getTrackInputState(const String& trackId) const {
+    const auto trackNode = getTrackState(trackId);
+    if (!trackNode.isValid()) {
+        return TrackInputState::Inactive;
+    }
+    const auto raw = static_cast<int>(trackNode.getProperty(kTrackInputStateId,
+                                                            static_cast<int>(TrackInputState::Inactive)));
+    return static_cast<TrackInputState>(raw);
+}
+
+TrackSoloState EditState::getTrackSoloState(const String& trackId) const {
+    const auto trackNode = getTrackState(trackId);
+    if (!trackNode.isValid()) {
+        return TrackSoloState::Inactive;
+    }
+    const auto raw = static_cast<int>(trackNode.getProperty(kTrackSoloStateId,
+                                                            static_cast<int>(TrackSoloState::Inactive)));
+    return static_cast<TrackSoloState>(raw);
+}
+
+TrackMuteState EditState::getTrackMuteState(const String& trackId) const {
+    const auto trackNode = getTrackState(trackId);
+    if (!trackNode.isValid()) {
+        return TrackMuteState::Active;
+    }
+    const auto raw = static_cast<int>(trackNode.getProperty(kTrackMuteStateId,
+                                                            static_cast<int>(TrackMuteState::Active)));
+    return static_cast<TrackMuteState>(raw);
+}
+
+void EditState::setTrackArmState(const String& trackId, TrackArmState state, juce::UndoManager* undo) {
+    auto trackNode = getOrCreateTrackState(trackId);
+    trackNode.setProperty(kTrackArmStateId, static_cast<int>(state), undo);
+}
+
+void EditState::setTrackInputState(const String& trackId, TrackInputState state, juce::UndoManager* undo) {
+    auto trackNode = getOrCreateTrackState(trackId);
+    trackNode.setProperty(kTrackInputStateId, static_cast<int>(state), undo);
+}
+
+void EditState::setTrackSoloState(const String& trackId, TrackSoloState state, juce::UndoManager* undo) {
+    auto trackNode = getOrCreateTrackState(trackId);
+    trackNode.setProperty(kTrackSoloStateId, static_cast<int>(state), undo);
+}
+
+void EditState::setTrackMuteState(const String& trackId, TrackMuteState state, juce::UndoManager* undo) {
+    auto trackNode = getOrCreateTrackState(trackId);
+    trackNode.setProperty(kTrackMuteStateId, static_cast<int>(state), undo);
+}
+
+juce::ValueTree EditState::getTrackState(const String& trackId) const {
+    return trackState.getChildWithProperty(kTrackIdPropertyId, trackId);
+}
+
+juce::ValueTree EditState::getOrCreateTrackState(const String& trackId) {
+    auto trackNode = getTrackState(trackId);
+    if (trackNode.isValid()) {
+        return trackNode;
+    }
+
+    trackNode = juce::ValueTree(kTrackType);
+    trackNode.setProperty(kTrackIdPropertyId, trackId, nullptr);
+    trackNode.setProperty(kTrackArmStateId, static_cast<int>(TrackArmState::Inactive), nullptr);
+    trackNode.setProperty(kTrackInputStateId, static_cast<int>(TrackInputState::Inactive), nullptr);
+    trackNode.setProperty(kTrackSoloStateId, static_cast<int>(TrackSoloState::Inactive), nullptr);
+    trackNode.setProperty(kTrackMuteStateId, static_cast<int>(TrackMuteState::Active), nullptr);
+    trackState.addChild(trackNode, -1, nullptr);
+    return trackNode;
 }

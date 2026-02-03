@@ -5,6 +5,7 @@
 #include "Components/ContextualSection/ContextualSection.h"
 #include "Command/CommandCenter.h"
 #include "Command/WheelCommandManager.h"
+#include "Command/TrackCommandManager.h"
 #include "Gui/Utils/CursorController.h"
 #include "Gui/Utils/SelectionManager.h"
 #include "Gui/Utils/DebugWatchWindow.h"
@@ -44,6 +45,7 @@ private:
     bool isShutDown = false;
     std::unique_ptr<CommandCenter> commandCenter;
     std::unique_ptr<WheelCommandManager> wheelCommandManager;
+    std::unique_ptr<TrackCommandManager> trackCommandManager;
     std::unique_ptr<CursorController> cursorController;
     std::unique_ptr<SelectionManager> selectionManager;
 
