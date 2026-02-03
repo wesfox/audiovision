@@ -5,6 +5,7 @@
 #include <optional>
 
 #include "Core/Edit/Edit.h"
+#include "Gui/Utils/PlayheadViewFollow.h"
 
 class SelectionManager;
 
@@ -25,10 +26,6 @@ public:
 
     /// Decide the play start sample.
     int64 onPlayRequested();
-
-    /// Apply cursor policy when playback stops.
-    /// @param playheadSample playhead sample at stop
-    void onStop(int64 playheadSample);
 
     /// Apply selection range changes.
     /// @param startSample selection start sample
@@ -59,13 +56,11 @@ public:
 
 private:
     void timerCallback() override;
-    void followRightEdge(int64 playheadSample);
-    void followBothEdges(int64 playheadSample);
-    void shiftViewBy(int64 delta);
-    void setTransportPosition(int64 playheadSample);
+    void setCursorPositionFromUserAction(int64 playheadSample);
 
     Edit& edit;
     SelectionManager& selectionManager;
+    PlayheadViewFollow viewFollow;
     std::optional<int64_t> playStartSample;
     bool hasMovedDuringPlayback = false;
 };

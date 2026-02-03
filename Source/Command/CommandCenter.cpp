@@ -2,8 +2,8 @@
 
 #include "Command/Shortcuts/ShortcutMappings.h"
 
-CommandCenter::CommandCenter(Edit& edit)
-    : transportCommands(edit),
+CommandCenter::CommandCenter(Edit& edit, CursorController& cursorController)
+    : transportCommands(edit, cursorController),
       editCommands(edit),
       waveformCommands(edit) {
     commandManager.registerAllCommandsForTarget(this);

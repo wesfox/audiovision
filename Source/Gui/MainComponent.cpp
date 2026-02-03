@@ -13,11 +13,11 @@ MainComponent::MainComponent()
     setSize (600, 400);
 
     edit = ImportEdit::importEdit();
-    commandCenter = std::make_unique<CommandCenter>(*edit);
-    wheelCommandManager = std::make_unique<WheelCommandManager>(commandCenter->getCommandManager());
     selectionManager = std::make_unique<SelectionManager>(*edit);
     cursorController = std::make_unique<CursorController>(*edit, *selectionManager);
     selectionManager->setCursorController(cursorController.get());
+    commandCenter = std::make_unique<CommandCenter>(*edit, *cursorController);
+    wheelCommandManager = std::make_unique<WheelCommandManager>(commandCenter->getCommandManager());
     addKeyListener(&commandCenter->getKeyMappings());
     setWantsKeyboardFocus(true);
     grabKeyboardFocus();

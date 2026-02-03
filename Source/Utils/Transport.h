@@ -28,26 +28,26 @@ public:
     /// @param isLooping do we need to loop
     void play(int64_t endSample, bool isLooping)
     {
+        resetBeforePlay();
         playStartSample.store(playheadSample.load());
         playEndSample.store(endSample);
         looping.store(isLooping);
         playing.store(true);
         playSelection.store(true);
-
-        // ensure reseting other values
-        hasStopped.store(false);
     }
 
     /// Start playback with an optional end sample.
     /// @param endSample optional sample where playback should stop after passing it
     void play(std::optional<int64_t> endSample)
     {
-        hasStopped.store(false);
+        resetBeforePlay();
         if (endSample.has_value()) {
             playSelection.store(true);
             playEndSample.store(endSample.value());
         } else {
-            playEndEnabled.store(false);
+            playSelection.store(false);
+            playEndSample.store(0);
+            looping.store(false);
         }
         playing.store(true);
     }
@@ -55,6 +55,7 @@ public:
     /// Stop playback.
     void stop()
     {
+        stopSample.store(playheadSample.load());
         hasStopped.store(true);
         playSelection.store(false);
         playing.store(false);
@@ -143,9 +144,12 @@ public:
         return playEndSample.load();
     }
 
-    /// True once when playback ended at the range end.
-    bool consumeHasStopped() {
-        return hasStopped.exchange(false);
+    /// Stop sample when playback ended or was stopped.
+    std::optional<int64_t> consumeStopSample() {
+        if (!hasStopped.exchange(false)) {
+            return std::nullopt;
+        }
+        return stopSample.load();
     }
 
     /// Current playhead position in milliseconds.
@@ -154,11 +158,19 @@ public:
     }
 
 private:
+    void resetBeforePlay()
+    {
+        hasStopped.store(false);
+        playSelection.store(false);
+        looping.store(false);
+        playEndSample.store(0);
+    }
+
     std::atomic<int64_t> playheadSample{ 0 };
     std::atomic<int64_t> playEndSample{ 0 };
     std::atomic<int64_t> playStartSample{ 0 };
+    std::atomic<int64_t> stopSample{ 0 };
     std::atomic<bool> playing{ false };
-    std::atomic<bool> playEndEnabled{ false };
     std::atomic<bool> hasStopped{ false };
     std::atomic<bool> looping{ false };
     std::atomic<bool> playSelection{ false };

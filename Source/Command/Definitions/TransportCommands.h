@@ -6,12 +6,14 @@
 
 #include "Core/Edit/Edit.h"
 
+class CursorController;
+
 /// Handles transport command execution.
 class TransportCommands {
 public:
     /// Create a transport command target.
     /// @param edit edit owning the transport
-    explicit TransportCommands(Edit& edit);
+    TransportCommands(Edit& edit, CursorController& cursorController);
 
     void getAllCommands(juce::Array<juce::CommandID>& commands);
     void getCommandInfo(juce::CommandID commandID, juce::ApplicationCommandInfo& result);
@@ -23,5 +25,6 @@ private:
     void toggleInsertionFollowsPlayback();
 
     Edit& edit;
+    CursorController& cursorController;
     std::optional<int64_t> playSelectionStartSample;
 };

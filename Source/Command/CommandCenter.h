@@ -6,12 +6,14 @@
 #include "Command/Definitions/EditCommands.h"
 #include "Command/Definitions/WaveformCommands.h"
 
+class CursorController;
+
 /// Owns the app-wide command manager and command targets.
 class CommandCenter : public juce::ApplicationCommandTarget {
 public:
     /// Create the command center for a given edit.
     /// @param edit edit owning transport actions
-    explicit CommandCenter(Edit& edit);
+    CommandCenter(Edit& edit, CursorController& cursorController);
 
     /// Access the command manager.
     juce::ApplicationCommandManager& getCommandManager();

@@ -1,11 +1,13 @@
 #include "TransportCommands.h"
 
 #include "Command/Commands.h"
+#include "Gui/Utils/CursorController.h"
 
 #include <optional>
 
-TransportCommands::TransportCommands(Edit& edit)
-    : edit(edit) {
+TransportCommands::TransportCommands(Edit& edit, CursorController& cursorController)
+    : edit(edit),
+      cursorController(cursorController) {
 }
 
 void TransportCommands::getAllCommands(juce::Array<juce::CommandID>& commands) {
@@ -56,7 +58,7 @@ void TransportCommands::togglePlayPause() {
         transport->stop();
     } else {
         // get start sample
-        int64_t startSample = edit.getState().getCursorSample();
+        int64_t startSample = cursorController.onPlayRequested();
         transport->setPlayheadSample(startSample);
 
         // play either with endSample (if we get a value)
