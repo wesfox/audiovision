@@ -124,13 +124,16 @@ public:
     TrackArmState getTrackArmState(const String& trackId) const;
 
     /// Track input monitoring state.
-    TrackInputState getTrackInputState(const String& trackId) const;
+    TrackInputMonitoringState getTrackInputMonitoringState(const String& trackId) const;
 
     /// Track solo state.
     TrackSoloState getTrackSoloState(const String& trackId) const;
 
     /// Track mute state.
     TrackMuteState getTrackMuteState(const String& trackId) const;
+
+    /// Track user mute state.
+    TrackMuteState getTrackUserMuteState(const String& trackId) const;
 
     /// Set the arm state for a track.
     /// @param trackId identifier of the track
@@ -142,7 +145,7 @@ public:
     /// @param trackId identifier of the track
     /// @param state new input monitoring state
     /// @param undo optional undo manager for transactions
-    void setTrackInputState(const String& trackId, TrackInputState state, juce::UndoManager* undo = nullptr);
+    void setTrackInputMonitoringState(const String& trackId, TrackInputMonitoringState state, juce::UndoManager* undo = nullptr);
 
     /// Set the solo state for a track.
     /// @param trackId identifier of the track
@@ -155,6 +158,12 @@ public:
     /// @param state new mute state
     /// @param undo optional undo manager for transactions
     void setTrackMuteState(const String& trackId, TrackMuteState state, juce::UndoManager* undo = nullptr);
+
+    /// Set the user mute state for a track.
+    /// @param trackId identifier of the track
+    /// @param state new user mute state
+    /// @param undo optional undo manager for transactions
+    void setTrackUserMuteState(const String& trackId, TrackMuteState state, juce::UndoManager* undo = nullptr);
 
     /// Access the state node for a track.
     /// @param trackId identifier of the track

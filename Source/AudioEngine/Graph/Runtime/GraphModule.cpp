@@ -37,14 +37,14 @@ GraphModule::GraphModule(
             recordSession->registerTrackNode(graphNode->getTrackId(), audioTrackNodePtr);
         }
 
+        auto trackPtr = getTrackById(graphNode->getTrackId());
         auto parameters = valueTreeManager
             ? valueTreeManager->buildParamMap(graphNode->getTrackId(), VolumeNode::requiredParameters())
             : std::map<ParameterKey, std::atomic<float>*>{};
-        auto volumeNode = std::make_unique<VolumeNode>(transport, graphNode, parameters);
+        auto volumeNode = std::make_unique<VolumeNode>(transport, graphNode, trackPtr, parameters);
         auto graphVolumeNode = graphRef->addNode(std::move(volumeNode));
         outputNode = graphVolumeNode;
 
-        auto trackPtr = getTrackById(graphNode->getTrackId());
         if (trackPtr != nullptr) {
             auto transportPtr = transport.lock();
             auto sampleRate = transportPtr ? transportPtr->getSampleRate() : 48000.0;
@@ -70,14 +70,14 @@ GraphModule::GraphModule(
         }
     }
     else if (graphNode->getType() == GraphNodeType::AuxTrackGraphNode) {
+        auto trackPtr = getTrackById(graphNode->getTrackId());
         auto parameters = valueTreeManager
             ? valueTreeManager->buildParamMap(graphNode->getTrackId(), VolumeNode::requiredParameters())
             : std::map<ParameterKey, std::atomic<float>*>{};
-        auto volumeNode = std::make_unique<VolumeNode>(transport, graphNode, parameters);
+        auto volumeNode = std::make_unique<VolumeNode>(transport, graphNode, trackPtr, parameters);
         auto graphVolumeNode = graphRef->addNode(std::move(volumeNode));
         outputNode = graphVolumeNode;
 
-        auto trackPtr = getTrackById(graphNode->getTrackId());
         if (trackPtr != nullptr) {
             auto transportPtr = transport.lock();
             auto sampleRate = transportPtr ? transportPtr->getSampleRate() : 48000.0;

@@ -9,8 +9,8 @@ TrackArmState getNextState(TrackArmState state) {
     return state == TrackArmState::Active ? TrackArmState::Inactive : TrackArmState::Active;
 }
 
-TrackInputState getNextState(TrackInputState state) {
-    return state == TrackInputState::Active ? TrackInputState::Inactive : TrackInputState::Active;
+TrackInputMonitoringState getNextInputMonitoringState(TrackInputMonitoringState state) {
+    return state == TrackInputMonitoringState::Active ? TrackInputMonitoringState::Inactive : TrackInputMonitoringState::Active;
 }
 
 TrackSoloState getNextState(TrackSoloState state) {
@@ -27,16 +27,7 @@ TrackSoloState getNextState(TrackSoloState state) {
 }
 
 TrackMuteState getNextState(TrackMuteState state) {
-    switch (state) {
-        case TrackMuteState::Active:
-            return TrackMuteState::SoloMute;
-        case TrackMuteState::SoloMute:
-            return TrackMuteState::Mute;
-        case TrackMuteState::Mute:
-            return TrackMuteState::Active;
-        default:
-            return TrackMuteState::Active;
-    }
+    return state == TrackMuteState::Mute ? TrackMuteState::Active : TrackMuteState::Mute;
 }
 }
 
@@ -49,17 +40,18 @@ void TrackCommandManager::toggleArmState(const String& trackId) {
     setArmState(trackId, getNextState(current));
 }
 
-void TrackCommandManager::setInputState(const String& trackId, TrackInputState state) {
-    edit.getState().setTrackInputState(trackId, state, &edit.getUndoManager());
+void TrackCommandManager::setInputMonitoringState(const String& trackId, TrackInputMonitoringState state) {
+    edit.getState().setTrackInputMonitoringState(trackId, state, &edit.getUndoManager());
 }
 
-void TrackCommandManager::toggleInputState(const String& trackId) {
-    const auto current = edit.getState().getTrackInputState(trackId);
-    setInputState(trackId, getNextState(current));
+void TrackCommandManager::toggleInputMonitoringState(const String& trackId) {
+    const auto current = edit.getState().getTrackInputMonitoringState(trackId);
+    setInputMonitoringState(trackId, getNextInputMonitoringState(current));
 }
 
 void TrackCommandManager::setSoloState(const String& trackId, TrackSoloState state) {
     edit.getState().setTrackSoloState(trackId, state, &edit.getUndoManager());
+    updateMuteStates();
 }
 
 void TrackCommandManager::toggleSoloState(const String& trackId) {
@@ -71,7 +63,46 @@ void TrackCommandManager::setMuteState(const String& trackId, TrackMuteState sta
     edit.getState().setTrackMuteState(trackId, state, &edit.getUndoManager());
 }
 
+void TrackCommandManager::setUserMuteState(const String& trackId, TrackMuteState state) {
+    edit.getState().setTrackUserMuteState(trackId, state, &edit.getUndoManager());
+    updateMuteStates();
+}
+
 void TrackCommandManager::toggleMuteState(const String& trackId) {
-    const auto current = edit.getState().getTrackMuteState(trackId);
-    setMuteState(trackId, getNextState(current));
+    const auto current = edit.getState().getTrackUserMuteState(trackId);
+    setUserMuteState(trackId, getNextState(current));
+}
+
+void TrackCommandManager::updateMuteStates() {
+    const auto& tracks = edit.getTracks();
+    bool anySolo = false;
+    for (const auto& track : tracks) {
+        if (!track) {
+            continue;
+        }
+        const auto soloState = edit.getState().getTrackSoloState(track->getId());
+        if (soloState == TrackSoloState::Solo) {
+            anySolo = true;
+            break;
+        }
+    }
+
+    for (const auto& track : tracks) {
+        if (!track) {
+            continue;
+        }
+        const auto trackId = track->getId();
+        const auto soloState = edit.getState().getTrackSoloState(trackId);
+        const auto userMuteState = edit.getState().getTrackUserMuteState(trackId);
+        const bool isSolo = soloState == TrackSoloState::Solo;
+        const bool isSoloSafe = soloState == TrackSoloState::SoloSafe;
+        const bool impliedMute = anySolo && !isSolo && !isSoloSafe;
+        TrackMuteState effectiveState = TrackMuteState::Active;
+        if (userMuteState == TrackMuteState::Mute) {
+            effectiveState = TrackMuteState::Mute;
+        } else if (impliedMute) {
+            effectiveState = TrackMuteState::SoloMute;
+        }
+        setMuteState(trackId, effectiveState);
+    }
 }

@@ -51,7 +51,7 @@ TrackHeader::TrackHeader(Track& track,
         this->trackCommandManager.toggleArmState(trackId);
     });
     inputMonitoringToggle->onStateRequested([this](MultiStateToggleButton::StateId) {
-        this->trackCommandManager.toggleInputState(trackId);
+        this->trackCommandManager.toggleInputMonitoringState(trackId);
     });
     soloToggle->onStateRequested([this](MultiStateToggleButton::StateId) {
         this->trackCommandManager.toggleSoloState(trackId);
@@ -179,7 +179,7 @@ void TrackHeader::selectionChanged() {
 void TrackHeader::updateToggleStates() {
     const auto& state = edit.getState();
     armedToggle->setState(static_cast<MultiStateToggleButton::StateId>(state.getTrackArmState(trackId)), false);
-    inputMonitoringToggle->setState(static_cast<MultiStateToggleButton::StateId>(state.getTrackInputState(trackId)),
+    inputMonitoringToggle->setState(static_cast<MultiStateToggleButton::StateId>(state.getTrackInputMonitoringState(trackId)),
                                     false);
     soloToggle->setState(static_cast<MultiStateToggleButton::StateId>(state.getTrackSoloState(trackId)), false);
     activeToggle->setState(static_cast<MultiStateToggleButton::StateId>(state.getTrackMuteState(trackId)), false);

@@ -2,6 +2,7 @@
 
 #include "AudioNode.h"
 #include "Utils/Transport.h"
+#include "Core/Track/Track.h"
 
 #include <vector>
 
@@ -14,9 +15,11 @@ public:
     /// Create a node bound to transport and parameters.
     /// @param transport timeline transport
     /// @param graphNode owning graph node
+    /// @param track track providing runtime state
     /// @param parameters bound parameter map for this node
     VolumeNode(const std::weak_ptr<Transport>& transport,
                const GraphNode* graphNode,
+               const std::weak_ptr<Track>& track,
                const std::map<ParameterKey, std::atomic<float>*>& parameters);
 
     /// Parameters required by this node (used by graph wiring).
@@ -31,4 +34,5 @@ public:
 private:
     std::weak_ptr<Transport> transport;
     const GraphNode* graphNode;
+    std::weak_ptr<Track> track;
 };

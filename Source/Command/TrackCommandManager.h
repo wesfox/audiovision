@@ -24,11 +24,11 @@ public:
     /// Set the input monitoring state for a track.
     /// @param trackId identifier of the track
     /// @param state input monitoring state to apply
-    void setInputState(const String& trackId, TrackInputState state);
+    void setInputMonitoringState(const String& trackId, TrackInputMonitoringState state);
 
     /// Toggle the input monitoring state for a track.
     /// @param trackId identifier of the track
-    void toggleInputState(const String& trackId);
+    void toggleInputMonitoringState(const String& trackId);
 
     /// Set the solo state for a track.
     /// @param trackId identifier of the track
@@ -43,11 +43,14 @@ public:
     /// @param trackId identifier of the track
     /// @param state mute state to apply
     void setMuteState(const String& trackId, TrackMuteState state);
+    void setUserMuteState(const String& trackId, TrackMuteState state);
 
     /// Toggle the mute state for a track.
     /// @param trackId identifier of the track
     void toggleMuteState(const String& trackId);
 
 private:
+    void updateMuteStates();
+
     Edit& edit;
 };

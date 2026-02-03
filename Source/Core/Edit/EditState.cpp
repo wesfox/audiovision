@@ -8,9 +8,10 @@ const juce::Identifier kTracksType("TRACKS");
 const juce::Identifier kTrackType("TRACK");
 const juce::Identifier kTrackIdPropertyId("trackId");
 const juce::Identifier kTrackArmStateId("trackArmState");
-const juce::Identifier kTrackInputStateId("trackInputState");
+const juce::Identifier kTrackInputMonitoringStateId("trackInputMonitoringState");
 const juce::Identifier kTrackSoloStateId("trackSoloState");
 const juce::Identifier kTrackMuteStateId("trackMuteState");
+const juce::Identifier kTrackUserMuteStateId("trackUserMuteState");
 const juce::Identifier kViewStartSampleId("viewStartSample");
 const juce::Identifier kViewEndSampleId("viewEndSample");
 const juce::Identifier kFrameRateId("frameRate");
@@ -200,14 +201,14 @@ TrackArmState EditState::getTrackArmState(const String& trackId) const {
     return static_cast<TrackArmState>(raw);
 }
 
-TrackInputState EditState::getTrackInputState(const String& trackId) const {
+TrackInputMonitoringState EditState::getTrackInputMonitoringState(const String& trackId) const {
     const auto trackNode = getTrackState(trackId);
     if (!trackNode.isValid()) {
-        return TrackInputState::Inactive;
+        return TrackInputMonitoringState::Inactive;
     }
-    const auto raw = static_cast<int>(trackNode.getProperty(kTrackInputStateId,
-                                                            static_cast<int>(TrackInputState::Inactive)));
-    return static_cast<TrackInputState>(raw);
+    const auto raw = static_cast<int>(trackNode.getProperty(kTrackInputMonitoringStateId,
+                                                            static_cast<int>(TrackInputMonitoringState::Inactive)));
+    return static_cast<TrackInputMonitoringState>(raw);
 }
 
 TrackSoloState EditState::getTrackSoloState(const String& trackId) const {
@@ -230,14 +231,24 @@ TrackMuteState EditState::getTrackMuteState(const String& trackId) const {
     return static_cast<TrackMuteState>(raw);
 }
 
+TrackMuteState EditState::getTrackUserMuteState(const String& trackId) const {
+    const auto trackNode = getTrackState(trackId);
+    if (!trackNode.isValid()) {
+        return TrackMuteState::Active;
+    }
+    const auto raw = static_cast<int>(trackNode.getProperty(kTrackUserMuteStateId,
+                                                            static_cast<int>(TrackMuteState::Active)));
+    return static_cast<TrackMuteState>(raw);
+}
+
 void EditState::setTrackArmState(const String& trackId, TrackArmState state, juce::UndoManager* undo) {
     auto trackNode = getOrCreateTrackState(trackId);
     trackNode.setProperty(kTrackArmStateId, static_cast<int>(state), undo);
 }
 
-void EditState::setTrackInputState(const String& trackId, TrackInputState state, juce::UndoManager* undo) {
+void EditState::setTrackInputMonitoringState(const String& trackId, TrackInputMonitoringState state, juce::UndoManager* undo) {
     auto trackNode = getOrCreateTrackState(trackId);
-    trackNode.setProperty(kTrackInputStateId, static_cast<int>(state), undo);
+    trackNode.setProperty(kTrackInputMonitoringStateId, static_cast<int>(state), undo);
 }
 
 void EditState::setTrackSoloState(const String& trackId, TrackSoloState state, juce::UndoManager* undo) {
@@ -248,6 +259,11 @@ void EditState::setTrackSoloState(const String& trackId, TrackSoloState state, j
 void EditState::setTrackMuteState(const String& trackId, TrackMuteState state, juce::UndoManager* undo) {
     auto trackNode = getOrCreateTrackState(trackId);
     trackNode.setProperty(kTrackMuteStateId, static_cast<int>(state), undo);
+}
+
+void EditState::setTrackUserMuteState(const String& trackId, TrackMuteState state, juce::UndoManager* undo) {
+    auto trackNode = getOrCreateTrackState(trackId);
+    trackNode.setProperty(kTrackUserMuteStateId, static_cast<int>(state), undo);
 }
 
 juce::ValueTree EditState::getTrackState(const String& trackId) const {
@@ -263,9 +279,10 @@ juce::ValueTree EditState::getOrCreateTrackState(const String& trackId) {
     trackNode = juce::ValueTree(kTrackType);
     trackNode.setProperty(kTrackIdPropertyId, trackId, nullptr);
     trackNode.setProperty(kTrackArmStateId, static_cast<int>(TrackArmState::Inactive), nullptr);
-    trackNode.setProperty(kTrackInputStateId, static_cast<int>(TrackInputState::Inactive), nullptr);
+    trackNode.setProperty(kTrackInputMonitoringStateId, static_cast<int>(TrackInputMonitoringState::Inactive), nullptr);
     trackNode.setProperty(kTrackSoloStateId, static_cast<int>(TrackSoloState::Inactive), nullptr);
     trackNode.setProperty(kTrackMuteStateId, static_cast<int>(TrackMuteState::Active), nullptr);
+    trackNode.setProperty(kTrackUserMuteStateId, static_cast<int>(TrackMuteState::Active), nullptr);
     trackState.addChild(trackNode, -1, nullptr);
     return trackNode;
 }

@@ -35,11 +35,11 @@ juce::String toString(TrackArmState state) {
     }
 }
 
-juce::String toString(TrackInputState state) {
+juce::String toString(TrackInputMonitoringState state) {
     switch (state) {
-        case TrackInputState::Inactive:
+        case TrackInputMonitoringState::Inactive:
             return "Inactive";
-        case TrackInputState::Active:
+        case TrackInputMonitoringState::Active:
             return "Active";
         default:
             return "Unknown";
@@ -158,7 +158,7 @@ MainComponent::MainComponent()
                                                &edit->getState(),
                                                [trackId](const void* statePtr) {
                                                    const auto* state = static_cast<const EditState*>(statePtr);
-                                                   return toString(state->getTrackInputState(trackId));
+                                                   return toString(state->getTrackInputMonitoringState(trackId));
                                                });
             DebugWatchRegistry::get().setWatch(trackLabel + " Solo",
                                                &edit->getState(),

@@ -7,7 +7,7 @@ enum class TrackArmState {
 };
 
 /// Input monitoring state.
-enum class TrackInputState {
+enum class TrackInputMonitoringState {
     Inactive = 0,
     Active = 1
 };

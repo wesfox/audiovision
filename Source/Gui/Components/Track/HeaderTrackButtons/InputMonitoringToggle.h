@@ -6,7 +6,7 @@
 /// Track header toggle for input monitoring.
 class InputMonitoringToggle final : public MultiStateToggleButton {
 public:
-    using State = TrackInputState;
+    using State = TrackInputMonitoringState;
 
     InputMonitoringToggle();
 };

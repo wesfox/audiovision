@@ -1,12 +1,15 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include <atomic>
 #include <Utils/Format.h>
 #include <Core/Automation/Automation.h>
 
+#include "Core/Track/TrackState.h"
 #include "Core/Plugin/Plugin.h"
 
 class Send;
+class EditState;
 
 /// Track category used for routing and UI.
 enum class TrackType {
@@ -17,7 +20,7 @@ enum class TrackType {
 };
 
 /// Base track model with routing, plugins, and automation.
-class Track {
+class Track : private juce::ValueTree::Listener {
 public:
     /// Create a track with an optional name.
     /// @param name display name
@@ -30,6 +33,22 @@ public:
 
     /// Access sends attached to this track.
     const std::vector<std::unique_ptr<Send>>& getSends();
+
+    /// Bind track runtime state to the edit state.
+    /// @param editState edit state that owns this track's ValueTree
+    void bindState(EditState& editState);
+
+    /// Runtime arm state from the edit state.
+    TrackArmState getArmState() const;
+
+    /// Runtime input monitoring state from the edit state.
+    TrackInputMonitoringState getInputMonitoringState() const;
+
+    /// Runtime solo state from the edit state.
+    TrackSoloState getSoloState() const;
+
+    /// Runtime mute state from the edit state.
+    TrackMuteState getMuteState() const;
 
     /// Add a plugin to this track.
     /// @param plugin plugin to add
@@ -85,6 +104,23 @@ public:
     }
 
 protected:
+    /// Update the cached arm state.
+    /// @param state new arm state
+    void setArmState(TrackArmState state);
+
+    /// Update the cached input monitoring state.
+    /// @param state new input monitoring state
+    void setInputMonitoringState(TrackInputMonitoringState state);
+
+    /// Update the cached solo state.
+    /// @param state new solo state
+    void setSoloState(TrackSoloState state);
+
+    /// Update the cached mute state.
+    /// @param state new mute state
+    void setMuteState(TrackMuteState state);
+
+protected:
     String id;
     std::vector<std::shared_ptr<Plugin>> plugins;
     std::vector<std::unique_ptr<Send>> sends;
@@ -106,4 +142,20 @@ protected:
     float height;
     String name;
     juce::Colour colour;
+
+private:
+    struct RuntimeState {
+        std::atomic<int> arm { static_cast<int>(TrackArmState::Inactive) };
+        std::atomic<int> inputMonitoring { static_cast<int>(TrackInputMonitoringState::Inactive) };
+        std::atomic<int> solo { static_cast<int>(TrackSoloState::Inactive) };
+        std::atomic<int> mute { static_cast<int>(TrackMuteState::Active) };
+    };
+
+    void detachState();
+    void syncFromEditState();
+    void valueTreePropertyChanged(juce::ValueTree&, const juce::Identifier&) override;
+
+    RuntimeState runtimeState;
+    EditState* boundState = nullptr;
+    juce::ValueTree trackStateNode;
 };

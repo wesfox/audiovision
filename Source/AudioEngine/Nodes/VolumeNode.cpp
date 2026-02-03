@@ -1,12 +1,15 @@
 #include "VolumeNode.h"
 
 #include "AudioEngine/Graph/Model/GraphNode.h"
+#include "Core/Track/TrackState.h"
 
 VolumeNode::VolumeNode(const std::weak_ptr<Transport>& transport,
                        const GraphNode* graphNode,
+                       const std::weak_ptr<Track>& track,
                        const std::map<ParameterKey, std::atomic<float>*>& parameters)
     : transport(transport),
-      graphNode(graphNode)
+      graphNode(graphNode),
+      track(track)
 {
     bindParameters(parameters);
     setPlayConfigDetails(2, 2, 48000.0, 512);
@@ -30,6 +33,15 @@ const juce::String VolumeNode::getName() const
 }
 
 void VolumeNode::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer&) {
+    if (graphNode != nullptr) {
+        if (const auto trackPtr = track.lock()) {
+            const auto muteState = trackPtr->getMuteState();
+            if (muteState == TrackMuteState::Mute || muteState == TrackMuteState::SoloMute) {
+                buffer.clear();
+                return;
+            }
+        }
+    }
     bool nonFiniteValueAlert=false;
     for (int c=0;c!= buffer.getNumChannels();c++) {
         for (int i=0;i!=buffer.getNumSamples();i++) {

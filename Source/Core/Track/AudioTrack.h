@@ -20,7 +20,7 @@ public:
 
     /// True when the track monitors input instead of clips.
     bool isInputMonitoring() const {
-        return inputMonitoring;
+        return getInputMonitoringState() == TrackInputMonitoringState::Active;
     }
 
     /// Adds an audioClip to the track. If the added clip overlaps an already existing clip on this track,
@@ -34,13 +34,13 @@ public:
     /// @see addAudioClip()
     /// @see RecordManager()
     bool isArmed() const {
-        return armed;
+        return getArmState() == TrackArmState::Active;
     }
 
     /// Arm or disarm this track for recording.
     /// @param shouldArm new armed state
     void setArmed(bool shouldArm) {
-        armed = shouldArm;
+        setArmState(shouldArm ? TrackArmState::Active : TrackArmState::Inactive);
     }
 
     /// Access clips owned by this track.
@@ -51,8 +51,5 @@ public:
 private:
 
     std::vector<std::unique_ptr<AudioClip>> audioClips;
-
-    bool inputMonitoring;
-    bool armed;
     // Recorder recorder;
 };

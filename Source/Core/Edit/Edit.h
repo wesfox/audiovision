@@ -17,10 +17,12 @@ public:
     /// Add a track to the edit.
     /// @param track track to add
     void addTrack(std::shared_ptr<Track> track) {
-        const auto trackId = track ? track->getId() : String();
+        auto* trackPtr = track.get();
+        const auto trackId = trackPtr ? trackPtr->getId() : String();
         tracks.push_back(std::move(track));
-        if (trackId.isNotEmpty()) {
+        if (trackId.isNotEmpty() && trackPtr != nullptr) {
             editState.ensureTrackState(trackId);
+            trackPtr->bindState(editState);
         }
     }
 
