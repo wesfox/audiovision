@@ -22,6 +22,19 @@ public:
         tracks.push_back(std::move(track));
         if (trackId.isNotEmpty() && trackPtr != nullptr) {
             editState.ensureTrackState(trackId);
+            if (trackPtr->getTrackType() == TrackType::Record) {
+                editState.setTrackSoloSafeState(trackId, true);
+                editState.setTrackSoloState(trackId, TrackSoloState::SoloSafe);
+                editState.setTrackInputMonitoringState(trackId, TrackInputMonitoringState::Active);
+            }
+            if (trackPtr->getTrackType() == TrackType::Aux) {
+                editState.setTrackSoloSafeState(trackId, true);
+                editState.setTrackSoloState(trackId, TrackSoloState::SoloSafe);
+            }
+            if (trackPtr->getTrackType() == TrackType::Folder) {
+                editState.setTrackSoloSafeState(trackId, true);
+                editState.setTrackSoloState(trackId, TrackSoloState::SoloSafe);
+            }
             trackPtr->bindState(editState);
         }
     }

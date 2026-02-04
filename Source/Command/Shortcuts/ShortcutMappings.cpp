@@ -11,6 +11,18 @@ void ShortcutMappings::applyDefaultMappings(juce::ApplicationCommandManager& man
                               juce::KeyPress('n', juce::ModifierKeys(), 0));
         mappings->addKeyPress(CommandIds::EditView::zoomIn, juce::KeyPress('t', juce::ModifierKeys(), 0));
         mappings->addKeyPress(CommandIds::EditView::zoomOut, juce::KeyPress('r', juce::ModifierKeys(), 0));
+        mappings->addKeyPress(CommandIds::Track::toggleSoloSelection,
+                              juce::KeyPress('S', juce::ModifierKeys::shiftModifier, 0));
+        mappings->addKeyPress(CommandIds::Track::clearAllSolo,
+                              juce::KeyPress('S',
+                                             juce::ModifierKeys::altModifier | juce::ModifierKeys::shiftModifier,
+                                             0));
+        mappings->addKeyPress(CommandIds::Track::toggleMuteSelection,
+                              juce::KeyPress('M', juce::ModifierKeys::shiftModifier, 0));
+        mappings->addKeyPress(CommandIds::EditView::toggleDebugWatchWindow,
+                              juce::KeyPress('D',
+                                             juce::ModifierKeys::commandModifier | juce::ModifierKeys::shiftModifier,
+                                             0));
     }
 }
 

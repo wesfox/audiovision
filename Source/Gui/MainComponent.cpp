@@ -71,6 +71,17 @@ juce::String toString(TrackMuteState state) {
             return "Unknown";
     }
 }
+
+juce::String toString(EditState::SoloMode mode) {
+    switch (mode) {
+        case EditState::SoloMode::Latch:
+            return "Latch";
+        case EditState::SoloMode::Xor:
+            return "Xor";
+        default:
+            return "Unknown";
+    }
+}
 }
 
 //==============================================================================
@@ -82,10 +93,24 @@ MainComponent::MainComponent()
     selectionManager = std::make_unique<SelectionManager>(*edit);
     cursorController = std::make_unique<CursorController>(*edit, *selectionManager);
     selectionManager->setCursorController(cursorController.get());
-    commandCenter = std::make_unique<CommandCenter>(*edit, *cursorController);
+    trackCommandManager = std::make_unique<TrackCommandManager>(*edit);
+    auto toggleDebugWatchWindow = [this]() {
+        if (debugWatchWindow == nullptr) {
+            return;
+        }
+        const bool shouldShow = !debugWatchWindow->isVisible();
+        debugWatchWindow->setVisible(shouldShow);
+        if (shouldShow) {
+            debugWatchWindow->toFront(true);
+        }
+    };
+    commandCenter = std::make_unique<CommandCenter>(*edit,
+                                                    *cursorController,
+                                                    *selectionManager,
+                                                    *trackCommandManager,
+                                                    std::move(toggleDebugWatchWindow));
     wheelCommandManager = std::make_unique<WheelCommandManager>(commandCenter->getCommandManager(),
                                                                 commandCenter.get());
-    trackCommandManager = std::make_unique<TrackCommandManager>(*edit);
     wheelHandler = std::make_unique<WheelCommandForwarder>(*wheelCommandManager);
     trackViewport.setWheelHandler(wheelHandler.get());
     addKeyListener(&commandCenter->getKeyMappings());
@@ -121,6 +146,12 @@ MainComponent::MainComponent()
                                        [](const void* state) {
                                            const auto* editState = static_cast<const EditState*>(state);
                                            return juce::String(editState->getCursorSample());
+                                       });
+    DebugWatchRegistry::get().setWatch("SoloMode",
+                                       &edit->getState(),
+                                       [](const void* state) {
+                                           const auto* editState = static_cast<const EditState*>(state);
+                                           return toString(editState->getSoloMode());
                                        });
     DebugWatchRegistry::get().setWatch("kIsLoopingId",
                                        &edit->getState(),

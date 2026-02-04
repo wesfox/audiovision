@@ -9,6 +9,12 @@ class EditState {
 public:
     static const juce::Identifier kWaveformScaleId;
 
+    /// Solo interaction mode for track commands.
+    enum class SoloMode {
+        Latch = 0,
+        Xor = 1
+    };
+
     /// Create a state tree with default values.
     EditState();
 
@@ -75,6 +81,9 @@ public:
     /// Current cursor sample.
     int64 getCursorSample() const;
 
+    /// Current solo interaction mode.
+    SoloMode getSoloMode() const;
+
     /// Set the waveform vertical scale factor.
     /// @param scale new waveform scale factor
     /// @param undo optional undo manager for transactions
@@ -111,6 +120,11 @@ public:
     /// @param undo optional undo manager for transactions
     void setIsLooping(bool isLooping, juce::UndoManager* undo = nullptr);
 
+    /// Set the solo interaction mode.
+    /// @param mode new solo mode
+    /// @param undo optional undo manager for transactions
+    void setSoloMode(SoloMode mode, juce::UndoManager* undo = nullptr);
+
     /// Convert a pixel position to a sample position in the current view.
     /// @param pixelX x position in pixels
     /// @param viewWidth width of the view in pixels
@@ -128,6 +142,9 @@ public:
 
     /// Track solo state.
     TrackSoloState getTrackSoloState(const String& trackId) const;
+
+    /// Track solo-safe flag.
+    bool getTrackSoloSafeState(const String& trackId) const;
 
     /// Track mute state.
     TrackMuteState getTrackMuteState(const String& trackId) const;
@@ -152,6 +169,12 @@ public:
     /// @param state new solo state
     /// @param undo optional undo manager for transactions
     void setTrackSoloState(const String& trackId, TrackSoloState state, juce::UndoManager* undo = nullptr);
+
+    /// Set the solo-safe flag for a track.
+    /// @param trackId identifier of the track
+    /// @param soloSafe new solo-safe flag
+    /// @param undo optional undo manager for transactions
+    void setTrackSoloSafeState(const String& trackId, bool soloSafe, juce::UndoManager* undo = nullptr);
 
     /// Set the mute state for a track.
     /// @param trackId identifier of the track

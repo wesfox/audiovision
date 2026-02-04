@@ -115,7 +115,7 @@ std::weak_ptr<AudioTrack> GraphModule::getAudioTrackById(const String& trackId) 
 
     for (const auto& t : editPtr->getTracks())
     {
-        if (t->getId() == trackId && t->getTrackType() == TrackType::Audio)
+        if (t->getId() == trackId && t->isAudioTrack())
             return std::dynamic_pointer_cast<AudioTrack>(t);
     }
 

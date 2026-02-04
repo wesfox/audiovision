@@ -2,9 +2,14 @@
 
 #include "Command/Shortcuts/ShortcutMappings.h"
 
-CommandCenter::CommandCenter(Edit& edit, CursorController& cursorController)
+CommandCenter::CommandCenter(Edit& edit,
+                             CursorController& cursorController,
+                             SelectionManager& selectionManager,
+                             TrackCommandManager& trackCommandManager,
+                             std::function<void()> toggleDebugWatchWindow)
     : transportCommands(edit, cursorController),
-      editCommands(edit),
+      editCommands(edit, std::move(toggleDebugWatchWindow)),
+      trackCommands(selectionManager, trackCommandManager),
       waveformCommands(edit) {
     commandManager.registerAllCommandsForTarget(this);
     commandManager.setFirstCommandTarget(this);
@@ -22,6 +27,7 @@ juce::KeyPressMappingSet& CommandCenter::getKeyMappings() {
 void CommandCenter::getAllCommands(juce::Array<juce::CommandID>& commands) {
     transportCommands.getAllCommands(commands);
     editCommands.getAllCommands(commands);
+    trackCommands.getAllCommands(commands);
     waveformCommands.getAllCommands(commands);
 }
 
@@ -32,6 +38,10 @@ void CommandCenter::getCommandInfo(juce::CommandID commandID, juce::ApplicationC
     }
     if (editCommands.handlesCommand(commandID)) {
         editCommands.getCommandInfo(commandID, result);
+        return;
+    }
+    if (trackCommands.handlesCommand(commandID)) {
+        trackCommands.getCommandInfo(commandID, result);
         return;
     }
     if (waveformCommands.handlesCommand(commandID)) {
@@ -45,6 +55,9 @@ bool CommandCenter::perform(const InvocationInfo& info) {
     }
     if (editCommands.handlesCommand(info.commandID)) {
         return editCommands.perform(info);
+    }
+    if (trackCommands.handlesCommand(info.commandID)) {
+        return trackCommands.perform(info);
     }
     if (waveformCommands.handlesCommand(info.commandID)) {
         return waveformCommands.perform(info);

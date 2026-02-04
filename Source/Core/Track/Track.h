@@ -10,10 +10,12 @@
 
 class Send;
 class EditState;
+class FolderTrack;
 
 /// Track category used for routing and UI.
 enum class TrackType {
     Audio,
+    Record,
     Aux,
     Folder,
     Unknown
@@ -47,6 +49,9 @@ public:
     /// Runtime solo state from the edit state.
     TrackSoloState getSoloState() const;
 
+    /// Runtime solo-safe flag from the edit state.
+    bool isSoloSafeEnabled() const;
+
     /// Runtime mute state from the edit state.
     TrackMuteState getMuteState() const;
 
@@ -78,6 +83,17 @@ public:
     /// Output track (may be empty).
     std::weak_ptr<Track> getOutput() {
         return outputTrack;
+    }
+
+    /// Parent folder for this track (nullable).
+    FolderTrack* getParentFolder() const {
+        return parentFolder;
+    }
+
+    /// Assign the parent folder for this track.
+    /// @param newParentFolder parent folder (nullable)
+    void setParentFolder(FolderTrack* newParentFolder) {
+        parentFolder = newParentFolder;
     }
 
     /// True if this is an audio track.
@@ -116,6 +132,10 @@ protected:
     /// @param state new solo state
     void setSoloState(TrackSoloState state);
 
+    /// Update the cached solo-safe flag.
+    /// @param soloSafe new solo-safe flag
+    void setSoloSafeEnabled(bool soloSafe);
+
     /// Update the cached mute state.
     /// @param state new mute state
     void setMuteState(TrackMuteState state);
@@ -135,6 +155,7 @@ protected:
     bool solo;
     bool soloSafe;
     bool mute;
+    FolderTrack* parentFolder = nullptr;
     ChannelsFormat format;
     ChannelsFormat outputFormat;
     bool isAudioTrack_ = false;
@@ -148,6 +169,7 @@ private:
         std::atomic<int> arm { static_cast<int>(TrackArmState::Inactive) };
         std::atomic<int> inputMonitoring { static_cast<int>(TrackInputMonitoringState::Inactive) };
         std::atomic<int> solo { static_cast<int>(TrackSoloState::Inactive) };
+        std::atomic<bool> soloSafe { false };
         std::atomic<int> mute { static_cast<int>(TrackMuteState::Active) };
     };
 

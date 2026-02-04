@@ -4,6 +4,7 @@
 
 #include <optional>
 #include <unordered_set>
+#include <vector>
 
 #include "Core/Edit/Edit.h"
 #include "Gui/Utils/ViewRangeMapper.h"
@@ -39,6 +40,9 @@ public:
     /// Check whether a track id is selected.
     /// @param trackId track identifier to query
     bool isSelected(const String& trackId) const;
+
+    /// Read selected track ids in edit order.
+    std::vector<String> getSelectedTrackIds() const;
 
     /// Register a selection listener.
     /// @param listener listener to add

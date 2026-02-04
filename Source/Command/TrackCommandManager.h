@@ -2,8 +2,12 @@
 
 #include <JuceHeader.h>
 
+#include <vector>
+
 #include "Core/Edit/Edit.h"
 #include "Core/Track/TrackState.h"
+
+class FolderTrack;
 
 /// Dispatches track state changes into the edit state.
 class TrackCommandManager {
@@ -35,9 +39,33 @@ public:
     /// @param state solo state to apply
     void setSoloState(const String& trackId, TrackSoloState state);
 
+    /// Apply a requested solo state with folder-aware rules.
+    /// @param trackId identifier of the track
+    /// @param requestedState desired solo state
+    void requestSoloState(const String& trackId, TrackSoloState requestedState);
+
     /// Toggle the solo state for a track.
     /// @param trackId identifier of the track
     void toggleSoloState(const String& trackId);
+
+    /// Toggle the solo-safe state for a track.
+    /// @param trackId identifier of the track
+    void toggleSoloSafeState(const String& trackId);
+
+    /// Toggle solo for a selection of tracks.
+    /// @param trackIds selected track identifiers
+    void toggleSoloSelection(const std::vector<String>& trackIds);
+
+    /// Toggle mute for a selection of tracks.
+    /// @param trackIds selected track identifiers
+    void toggleMuteSelection(const std::vector<String>& trackIds);
+
+    /// Clear all solo states.
+    void clearAllSolo();
+
+    /// Clear all solo states and solo the requested track.
+    /// @param trackId identifier of the track
+    void clearAndSolo(const String& trackId);
 
     /// Set the mute state for a track.
     /// @param trackId identifier of the track
@@ -50,6 +78,15 @@ public:
     void toggleMuteState(const String& trackId);
 
 private:
+    void applySoloOnAudio(const std::shared_ptr<Track>& track, bool enable);
+    void applySoloOnFolder(const std::shared_ptr<FolderTrack>& folder, bool enable);
+    bool hasActiveSoloInFolder(const FolderTrack& folder) const;
+    void setFolderAndDescendantsSolo(FolderTrack& folder, TrackSoloState state);
+    void setFolderAndDescendantsSoloDisabled(FolderTrack& folder);
+    TrackSoloState getDisabledSoloState(const String& trackId) const;
+    void setSoloStateInternal(const String& trackId, TrackSoloState state);
+    std::shared_ptr<Track> getTrackById(const String& trackId) const;
+    void clearAllSoloStates();
     void updateMuteStates();
 
     Edit& edit;

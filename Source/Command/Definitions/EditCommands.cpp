@@ -7,14 +7,16 @@ constexpr float kZoomStep = 0.1f;
 constexpr float kScrollWheelStep = 1.0f;
 }
 
-EditCommands::EditCommands(Edit& edit)
-    : edit(edit) {
+EditCommands::EditCommands(Edit& edit, std::function<void()> toggleDebugWatchWindow)
+    : edit(edit),
+      toggleDebugWatchWindowCallback(std::move(toggleDebugWatchWindow)) {
 }
 
 void EditCommands::getAllCommands(juce::Array<juce::CommandID>& commands) {
     commands.add(CommandIds::EditView::zoomIn);
     commands.add(CommandIds::EditView::zoomOut);
     commands.add(CommandIds::EditView::scrollView);
+    commands.add(CommandIds::EditView::toggleDebugWatchWindow);
 }
 
 void EditCommands::getCommandInfo(juce::CommandID commandID, juce::ApplicationCommandInfo& result) {
@@ -28,6 +30,10 @@ void EditCommands::getCommandInfo(juce::CommandID commandID, juce::ApplicationCo
     }
     if (commandID == CommandIds::EditView::scrollView) {
         result.setInfo("Scroll View", "Scroll the timeline view", "Edit", 0);
+        return;
+    }
+    if (commandID == CommandIds::EditView::toggleDebugWatchWindow) {
+        result.setInfo("Toggle Debug Watch", "Show or hide the debug watch window", "Edit", 0);
     }
 }
 
@@ -43,13 +49,18 @@ bool EditCommands::perform(const juce::ApplicationCommandTarget::InvocationInfo&
     if (info.commandID == CommandIds::EditView::scrollView) {
         return false;
     }
+    if (info.commandID == CommandIds::EditView::toggleDebugWatchWindow) {
+        toggleDebugWatchWindow();
+        return true;
+    }
     return false;
 }
 
 bool EditCommands::handlesCommand(juce::CommandID commandID) const {
     return commandID == CommandIds::EditView::zoomIn
         || commandID == CommandIds::EditView::zoomOut
-        || commandID == CommandIds::EditView::scrollView;
+        || commandID == CommandIds::EditView::scrollView
+        || commandID == CommandIds::EditView::toggleDebugWatchWindow;
 }
 
 void EditCommands::zoom(float ratio) {
@@ -84,4 +95,13 @@ void EditCommands::scrollView(float delta) {
         newEnd = viewLength;
     }
     edit.getState().setViewRange(newStart, newEnd, nullptr);
+}
+
+void EditCommands::toggleDebugWatchWindow() {
+    if (!toggleDebugWatchWindowCallback) {
+        // Debug watch toggle callback must be configured before use.
+        jassert(false);
+        return;
+    }
+    toggleDebugWatchWindowCallback();
 }

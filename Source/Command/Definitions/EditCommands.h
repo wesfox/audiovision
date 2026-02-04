@@ -2,6 +2,8 @@
 
 #include <JuceHeader.h>
 
+#include <functional>
+
 #include "Core/Edit/Edit.h"
 
 /// Handles edit view command execution.
@@ -9,7 +11,8 @@ class EditCommands {
 public:
     /// Create an edit command handler.
     /// @param edit edit owning the view state
-    explicit EditCommands(Edit& edit);
+    /// @param toggleDebugWatchWindow callback to show or hide the debug watch window
+    explicit EditCommands(Edit& edit, std::function<void()> toggleDebugWatchWindow = {});
 
     void getAllCommands(juce::Array<juce::CommandID>& commands);
     void getCommandInfo(juce::CommandID commandID, juce::ApplicationCommandInfo& result);
@@ -20,6 +23,10 @@ public:
 private:
     void zoom(float ratio);
     void scrollView(float delta);
+    void toggleDebugWatchWindow();
 
     Edit& edit;
+
+    /// TODO: remove debug watch window toggle once commands are split.
+    std::function<void()> toggleDebugWatchWindowCallback;
 };

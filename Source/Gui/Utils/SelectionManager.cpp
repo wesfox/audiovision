@@ -55,6 +55,21 @@ bool SelectionManager::isSelected(const String& trackId) const {
     return selectedIds.find(trackId) != selectedIds.end();
 }
 
+std::vector<String> SelectionManager::getSelectedTrackIds() const {
+    std::vector<String> ids;
+    ids.reserve(selectedIds.size());
+    for (const auto& track : edit.getTracks()) {
+        if (!track) {
+            continue;
+        }
+        const auto trackId = track->getId();
+        if (selectedIds.find(trackId) != selectedIds.end()) {
+            ids.push_back(trackId);
+        }
+    }
+    return ids;
+}
+
 void SelectionManager::addListener(Listener* listener) {
     listeners.add(listener);
 }

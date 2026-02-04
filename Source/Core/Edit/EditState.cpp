@@ -10,6 +10,7 @@ const juce::Identifier kTrackIdPropertyId("trackId");
 const juce::Identifier kTrackArmStateId("trackArmState");
 const juce::Identifier kTrackInputMonitoringStateId("trackInputMonitoringState");
 const juce::Identifier kTrackSoloStateId("trackSoloState");
+const juce::Identifier kTrackSoloSafeStateId("trackSoloSafeState");
 const juce::Identifier kTrackMuteStateId("trackMuteState");
 const juce::Identifier kTrackUserMuteStateId("trackUserMuteState");
 const juce::Identifier kViewStartSampleId("viewStartSample");
@@ -19,6 +20,7 @@ const juce::Identifier kTimelineHeightId("timelineHeight");
 const juce::Identifier kHeaderHeightId("headerHeight");
 const juce::Identifier kInsertionFollowsPlaybackId("insertionFollowsPlayback");
 const juce::Identifier kIsLoopingId("isLooping");
+const juce::Identifier kSoloModeId("soloMode");
 const juce::Identifier kHasSelectionRangeId("hasSelectionRange");
 const juce::Identifier kSelectionStartSampleId("selectionStartSample");
 const juce::Identifier kSelectionEndSampleId("selectionEndSample");
@@ -65,6 +67,7 @@ EditState::EditState() {
     globals.setProperty(kWaveformScaleId, 1.0f, nullptr);
     globals.setProperty(kInsertionFollowsPlaybackId, true, nullptr);
     globals.setProperty(kIsLoopingId, false, nullptr);
+    globals.setProperty(kSoloModeId, static_cast<int>(EditState::SoloMode::Latch), nullptr);
     globals.setProperty(kHasSelectionRangeId, false, nullptr);
     globals.setProperty(kSelectionStartSampleId, static_cast<int64>(0), nullptr);
     globals.setProperty(kSelectionEndSampleId, static_cast<int64>(0), nullptr);
@@ -113,6 +116,13 @@ int64 EditState::getSelectionEndSample() const {
 
 int64 EditState::getCursorSample() const {
     return getInt64Property(globals, kCursorSampleId, 0);
+}
+
+EditState::SoloMode EditState::getSoloMode() const {
+    const auto raw = static_cast<int>(getInt64Property(globals,
+                                                       kSoloModeId,
+                                                       static_cast<int>(SoloMode::Latch)));
+    return static_cast<SoloMode>(raw);
 }
 
 bool EditState::getInsertionFollowsPlayback() const {
@@ -187,6 +197,10 @@ void EditState::setIsLooping(bool isLooping, juce::UndoManager* undo) {
     globals.setProperty(kIsLoopingId, isLooping, undo);
 }
 
+void EditState::setSoloMode(SoloMode mode, juce::UndoManager* undo) {
+    globals.setProperty(kSoloModeId, static_cast<int>(mode), undo);
+}
+
 void EditState::ensureTrackState(const String& trackId) {
     getOrCreateTrackState(trackId);
 }
@@ -219,6 +233,14 @@ TrackSoloState EditState::getTrackSoloState(const String& trackId) const {
     const auto raw = static_cast<int>(trackNode.getProperty(kTrackSoloStateId,
                                                             static_cast<int>(TrackSoloState::Inactive)));
     return static_cast<TrackSoloState>(raw);
+}
+
+bool EditState::getTrackSoloSafeState(const String& trackId) const {
+    const auto trackNode = getTrackState(trackId);
+    if (!trackNode.isValid()) {
+        return false;
+    }
+    return static_cast<bool>(trackNode.getProperty(kTrackSoloSafeStateId, false));
 }
 
 TrackMuteState EditState::getTrackMuteState(const String& trackId) const {
@@ -256,6 +278,11 @@ void EditState::setTrackSoloState(const String& trackId, TrackSoloState state, j
     trackNode.setProperty(kTrackSoloStateId, static_cast<int>(state), undo);
 }
 
+void EditState::setTrackSoloSafeState(const String& trackId, bool soloSafe, juce::UndoManager* undo) {
+    auto trackNode = getOrCreateTrackState(trackId);
+    trackNode.setProperty(kTrackSoloSafeStateId, soloSafe, undo);
+}
+
 void EditState::setTrackMuteState(const String& trackId, TrackMuteState state, juce::UndoManager* undo) {
     auto trackNode = getOrCreateTrackState(trackId);
     trackNode.setProperty(kTrackMuteStateId, static_cast<int>(state), undo);
@@ -281,6 +308,7 @@ juce::ValueTree EditState::getOrCreateTrackState(const String& trackId) {
     trackNode.setProperty(kTrackArmStateId, static_cast<int>(TrackArmState::Inactive), nullptr);
     trackNode.setProperty(kTrackInputMonitoringStateId, static_cast<int>(TrackInputMonitoringState::Inactive), nullptr);
     trackNode.setProperty(kTrackSoloStateId, static_cast<int>(TrackSoloState::Inactive), nullptr);
+    trackNode.setProperty(kTrackSoloSafeStateId, false, nullptr);
     trackNode.setProperty(kTrackMuteStateId, static_cast<int>(TrackMuteState::Active), nullptr);
     trackNode.setProperty(kTrackUserMuteStateId, static_cast<int>(TrackMuteState::Active), nullptr);
     trackState.addChild(trackNode, -1, nullptr);

@@ -22,24 +22,29 @@ public:
     /// Add a track to this folder.
     /// @param track track to add
     void addTrack(std::weak_ptr<Track> track) {
+        if (auto trackPtr = track.lock()) {
+            trackPtr->setParentFolder(this);
+        }
         tracks.push_back(std::move(track));
+    }
+
+    /// Access child tracks in this folder.
+    const std::vector<std::weak_ptr<Track>>& getChildTracks() const {
+        return tracks;
     }
 
     /// Attach a child folder to this folder.
     /// @param childFolderToAttach child folder to attach
     void attachChildFolder(std::shared_ptr<FolderTrack> childFolderToAttach) {
-        childFolderToAttach.get()->setParentFolder(this);
+        childFolderToAttach->setParentFolder(this);
         childrenFolder.push_back(std::move(childFolderToAttach));
     }
 
-private:
-    /// Assign the parent folder (internal use).
-    /// @param newParentFolder new parent folder
-    void setParentFolder(FolderTrack* newParentFolder) {
-        parentFolder = newParentFolder;
+    /// Access child folders in this folder.
+    const std::vector<std::shared_ptr<FolderTrack>>& getChildFolders() const {
+        return childrenFolder;
     }
 
     std::vector<std::weak_ptr<Track>> tracks;
-    FolderTrack* parentFolder;
     std::vector<std::shared_ptr<FolderTrack>> childrenFolder;
 };

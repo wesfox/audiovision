@@ -56,6 +56,12 @@ TrackHeader::TrackHeader(Track& track,
     soloToggle->onStateRequested([this](MultiStateToggleButton::StateId) {
         this->trackCommandManager.toggleSoloState(trackId);
     });
+    soloToggle->onSoloRequested([this]() {
+        this->trackCommandManager.clearAndSolo(trackId);
+    });
+    soloToggle->onSoloSafeRequested([this]() {
+        this->trackCommandManager.toggleSoloSafeState(trackId);
+    });
     activeToggle->onStateRequested([this](MultiStateToggleButton::StateId) {
         this->trackCommandManager.toggleMuteState(trackId);
     });

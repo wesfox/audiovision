@@ -66,6 +66,11 @@ TrackSoloState Track::getSoloState() const
     return static_cast<TrackSoloState>(runtimeState.solo.load(std::memory_order_relaxed));
 }
 
+bool Track::isSoloSafeEnabled() const
+{
+    return runtimeState.soloSafe.load(std::memory_order_relaxed);
+}
+
 TrackMuteState Track::getMuteState() const
 {
     return static_cast<TrackMuteState>(runtimeState.mute.load(std::memory_order_relaxed));
@@ -84,6 +89,11 @@ void Track::setInputMonitoringState(TrackInputMonitoringState state)
 void Track::setSoloState(TrackSoloState state)
 {
     runtimeState.solo.store(static_cast<int>(state), std::memory_order_relaxed);
+}
+
+void Track::setSoloSafeEnabled(bool soloSafe)
+{
+    runtimeState.soloSafe.store(soloSafe, std::memory_order_relaxed);
 }
 
 void Track::setMuteState(TrackMuteState state)
@@ -123,6 +133,7 @@ void Track::syncFromEditState()
     setArmState(boundState->getTrackArmState(id));
     setInputMonitoringState(boundState->getTrackInputMonitoringState(id));
     setSoloState(boundState->getTrackSoloState(id));
+    setSoloSafeEnabled(boundState->getTrackSoloSafeState(id));
     setMuteState(boundState->getTrackMuteState(id));
 }
 

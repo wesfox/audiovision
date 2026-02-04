@@ -5,6 +5,7 @@
 #include "Core/Track/AudioTrack.h"
 #include "Core/Track/AuxTrack.h"
 #include "Core/Track/FolderTrack.h"
+#include "Core/Track/RecordTrack.h"
 #include "Core/Track/Track.h"
 #include "Core/Track/Send.h"
 #include "Core/Plugin/Plugin.h"
@@ -17,6 +18,7 @@ juce::String trackTypeToString(TrackType type)
 {
     switch (type) {
         case TrackType::Audio: return "Audio";
+        case TrackType::Record: return "Record";
         case TrackType::Aux: return "Aux";
         case TrackType::Folder: return "Folder";
         case TrackType::Unknown: return "Unknown";
@@ -27,6 +29,7 @@ juce::String trackTypeToString(TrackType type)
 TrackType trackTypeFromString(const juce::String& type)
 {
     if (type == "Audio") return TrackType::Audio;
+    if (type == "Record") return TrackType::Record;
     if (type == "Aux") return TrackType::Aux;
     if (type == "Folder") return TrackType::Folder;
     return TrackType::Unknown;
@@ -62,6 +65,20 @@ bool EditSerializer::exportToFile(const Edit& edit, const juce::File& directory)
         trackObj->setProperty("armed", track->isAudioTrack()
             ? std::dynamic_pointer_cast<AudioTrack>(track)->isArmed()
             : false);
+        auto parentFolder = track->getParentFolder();
+        if (parentFolder != nullptr) {
+            const auto& allTracks = tracks;
+            int parentIndex = -1;
+            for (int j = 0; j < static_cast<int>(allTracks.size()); ++j) {
+                if (allTracks[j].get() == parentFolder) {
+                    parentIndex = j;
+                    break;
+                }
+            }
+            trackObj->setProperty("parentFolderIndex", parentIndex);
+        } else {
+            trackObj->setProperty("parentFolderIndex", -1);
+        }
 
         auto output = track->getOutput().lock();
         if (output) {
@@ -79,7 +96,7 @@ bool EditSerializer::exportToFile(const Edit& edit, const juce::File& directory)
         }
 
         juce::Array<juce::var> clipsArray;
-        if (track->getTrackType() == TrackType::Audio) {
+        if (track->isAudioTrack()) {
             auto audioTrack = std::dynamic_pointer_cast<AudioTrack>(track);
             if (audioTrack) {
                 for (const auto& clip : audioTrack->getAudioClips()) {
@@ -210,6 +227,9 @@ std::shared_ptr<Edit> EditSerializer::importFromFile(const juce::File& file)
                 case TrackType::Audio:
                     track = AudioTrack::create(name);
                     break;
+                case TrackType::Record:
+                    track = RecordTrack::create(name);
+                    break;
                 case TrackType::Aux:
                     track = AuxTrack::create(name);
                     break;
@@ -233,12 +253,25 @@ std::shared_ptr<Edit> EditSerializer::importFromFile(const juce::File& file)
             auto* trackObj = tracksArray->getUnchecked(i).getDynamicObject();
             auto track = createdTracks[static_cast<size_t>(i)];
 
+            const auto parentIndexVar = trackObj->getProperty("parentFolderIndex");
+            const int parentFolderIndex = parentIndexVar.isVoid() ? -1 : static_cast<int>(parentIndexVar);
+            if (parentFolderIndex >= 0 && parentFolderIndex < (int)createdTracks.size()) {
+                auto parentFolder = std::dynamic_pointer_cast<FolderTrack>(createdTracks[static_cast<size_t>(parentFolderIndex)]);
+                if (parentFolder) {
+                    if (auto childFolder = std::dynamic_pointer_cast<FolderTrack>(track)) {
+                        parentFolder->attachChildFolder(std::move(childFolder));
+                    } else {
+                        parentFolder->addTrack(track);
+                    }
+                }
+            }
+
             const int outputIndex = (int)trackObj->getProperty("outputIndex");
             if (outputIndex >= 0 && outputIndex < (int)createdTracks.size()) {
                 track->setOutput(createdTracks[static_cast<size_t>(outputIndex)]);
             }
 
-            if (track->getTrackType() == TrackType::Audio) {
+            if (track->isAudioTrack()) {
                 auto audioTrack = std::dynamic_pointer_cast<AudioTrack>(track);
                 if (audioTrack) {
                     auto clipsVar = trackObj->getProperty("clips");
