@@ -4,5 +4,5 @@ FadeOut::FadeOut()
 {}
 
 void FadeOut::remove() {
-    isActive = false;
+    active = false;
 }

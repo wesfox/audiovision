@@ -23,6 +23,14 @@ void ShortcutMappings::applyDefaultMappings(juce::ApplicationCommandManager& man
                               juce::KeyPress('D',
                                              juce::ModifierKeys::commandModifier | juce::ModifierKeys::shiftModifier,
                                              0));
+        mappings->addKeyPress(CommandIds::EditView::splitClipsAtCursorOrSelection,
+                              juce::KeyPress('b', juce::ModifierKeys(), 0));
+        mappings->addKeyPress(CommandIds::EditView::healClip,
+                              juce::KeyPress('h', juce::ModifierKeys(), 0));
+        mappings->addKeyPress(CommandIds::EditView::deleteClipsInSelection,
+                              juce::KeyPress(juce::KeyPress::backspaceKey, juce::ModifierKeys(), 0));
+        mappings->addKeyPress(CommandIds::Project::save,
+                              juce::KeyPress('s', juce::ModifierKeys::commandModifier, 0));
     }
 }
 

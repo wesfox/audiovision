@@ -21,6 +21,9 @@ static constexpr juce::CommandID zoomIn = 0x2200;
 static constexpr juce::CommandID zoomOut = 0x2201;
 static constexpr juce::CommandID scrollView = 0x2202;
 static constexpr juce::CommandID toggleDebugWatchWindow = 0x2203;
+static constexpr juce::CommandID splitClipsAtCursorOrSelection = 0x2204;
+static constexpr juce::CommandID healClip = 0x2205;
+static constexpr juce::CommandID deleteClipsInSelection = 0x2206;
 }
 
 /// Command identifiers for track actions.
@@ -28,4 +31,9 @@ namespace CommandIds::Track {
 static constexpr juce::CommandID toggleSoloSelection = 0x2300;
 static constexpr juce::CommandID clearAllSolo = 0x2301;
 static constexpr juce::CommandID toggleMuteSelection = 0x2302;
+}
+
+/// Command identifiers for project actions.
+namespace CommandIds::Project {
+static constexpr juce::CommandID save = 0x2400;
 }

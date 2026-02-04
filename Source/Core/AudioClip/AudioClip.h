@@ -135,6 +135,12 @@ public:
     /// @param isMuted new mute state
     void mute(const bool isMuted){ muted = isMuted; }
 
+    /// True when a fade-in is active.
+    bool hasFadeIn() const { return fadeIn.isActive(); }
+
+    /// True when a fade-out is active.
+    bool hasFadeOut() const { return fadeOut.isActive(); }
+
 private:
     String id;
 

@@ -7,6 +7,15 @@
 /// Track that owns and renders audio clips.
 class AudioTrack : public Track {
 public:
+    /// Notifies listeners about clip changes.
+    class Listener {
+    public:
+        virtual ~Listener() = default;
+
+        /// Called when clips change on this track.
+        virtual void clipsChanged(AudioTrack& track) = 0;
+    };
+
     /// Create an audio track with an optional name.
     /// @param name display name
     AudioTrack(const String &name="");
@@ -28,7 +37,22 @@ public:
     /// @see AudioClip::split()
     void addAudioClip(std::unique_ptr<AudioClip> audioClip) {
         audioClips.push_back(std::move(audioClip));
+        notifyClipsChanged();
     }
+
+    /// Split clips that contain the sample.
+    /// @param splitSample absolute session sample to split at
+    void splitClipsAtSample(int64 splitSample);
+
+    /// Merge compatible clips whose boundaries fall within a range.
+    /// @param rangeStart range start in session samples
+    /// @param rangeEnd range end in session samples
+    void healClipsInRange(int64 rangeStart, int64 rangeEnd);
+
+    /// Delete or split clips that intersect a range.
+    /// @param rangeStart range start in session samples
+    /// @param rangeEnd range end in session samples
+    void deleteClipsInRange(int64 rangeStart, int64 rangeEnd);
 
     /// True when recording will create a new clip.
     /// @see addAudioClip()
@@ -48,8 +72,24 @@ public:
         return audioClips;
     }
 
+    /// Register a clip listener.
+    /// @param listener listener to add
+    void addListener(Listener* listener) {
+        listeners.add(listener);
+    }
+
+    /// Remove a clip listener.
+    /// @param listener listener to remove
+    void removeListener(Listener* listener) {
+        listeners.remove(listener);
+    }
+
 private:
+    void notifyClipsChanged() {
+        listeners.call([this](Listener& listener) { listener.clipsChanged(*this); });
+    }
 
     std::vector<std::unique_ptr<AudioClip>> audioClips;
+    juce::ListenerList<Listener> listeners;
     // Recorder recorder;
 };

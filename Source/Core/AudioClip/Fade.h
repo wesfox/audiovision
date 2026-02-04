@@ -12,7 +12,12 @@ public:
     /// Disable this fade.
     virtual void remove() = 0;
 
+    /// True when the fade is active.
+    bool isActive() const {
+        return active;
+    }
+
 protected:
     /// True when the fade is active.
-    bool isActive = false;
+    bool active = false;
 };

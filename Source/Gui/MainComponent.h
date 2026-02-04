@@ -61,6 +61,7 @@ private:
     std::unique_ptr<VideoView> videoView;
     std::unique_ptr<juce::DocumentWindow> videoWindow;
     std::unique_ptr<DebugWatchWindow> debugWatchWindow;
+    juce::File lastExportDirectory;
 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)

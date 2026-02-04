@@ -6,9 +6,13 @@ CommandCenter::CommandCenter(Edit& edit,
                              CursorController& cursorController,
                              SelectionManager& selectionManager,
                              TrackCommandManager& trackCommandManager,
-                             std::function<void()> toggleDebugWatchWindow)
+                             std::function<void()> toggleDebugWatchWindow,
+                             std::function<void()> saveEdit)
     : transportCommands(edit, cursorController),
-      editCommands(edit, std::move(toggleDebugWatchWindow)),
+      editCommands(edit,
+                   selectionManager,
+                   std::move(toggleDebugWatchWindow),
+                   std::move(saveEdit)),
       trackCommands(selectionManager, trackCommandManager),
       waveformCommands(edit) {
     commandManager.registerAllCommandsForTarget(this);

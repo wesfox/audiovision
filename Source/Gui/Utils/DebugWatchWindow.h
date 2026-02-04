@@ -14,4 +14,5 @@ public:
 
 private:
     class DebugWatchView;
+    class DebugWatchContent;
 };

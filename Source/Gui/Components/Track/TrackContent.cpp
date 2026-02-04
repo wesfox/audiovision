@@ -3,7 +3,6 @@
 #include <cmath>
 #include <algorithm>
 
-#include "AudioClipComponent.h"
 #include "Core/Track/AudioTrack.h"
 #include "Gui/Utils/ViewRangeMapper.h"
 
@@ -13,15 +12,10 @@ TrackContent::TrackContent(Edit& edit, SelectionManager& selectionManager, std::
     : edit(edit),
       selectionManager(selectionManager),
       track(std::move(track)) {
-    if (auto audioTrack = std::dynamic_pointer_cast<AudioTrack>(this->track)) {
-        for (const auto& clip : audioTrack->getAudioClips()) {
-            if (!clip) {
-                continue;
-            }
-            auto clipComponent = std::make_unique<AudioClipComponent>(*clip, this->track->getColour());
-            addAndMakeVisible(clipComponent.get());
-            clipComponents.push_back(std::move(clipComponent));
-        }
+    audioTrack = std::dynamic_pointer_cast<AudioTrack>(this->track);
+    if (audioTrack) {
+        audioTrack->addListener(this);
+        rebuildClipComponents();
     }
     edit.getState().getRoot().addListener(this);
     selectionManager.addListener(this);
@@ -34,6 +28,9 @@ TrackContent::TrackContent(Edit& edit, SelectionManager& selectionManager, std::
 TrackContent::~TrackContent() {
     edit.getState().getRoot().removeListener(this);
     selectionManager.removeListener(this);
+    if (audioTrack) {
+        audioTrack->removeListener(this);
+    }
 }
 
 void TrackContent::resized() {
@@ -137,9 +134,34 @@ void TrackContent::paintOverChildren(juce::Graphics& g) {
     g.drawLine(x, 0.0f, x, static_cast<float>(getHeight()), 1.0f);
 }
 
+void TrackContent::clipsChanged(AudioTrack&) {
+    rebuildClipComponents();
+    updateLayout();
+    repaint();
+}
+
 void TrackContent::valueTreePropertyChanged(juce::ValueTree&, const juce::Identifier& property) {
     if (property != EditState::kWaveformScaleId) {
         return;
+    }
+    applyWaveformScale();
+}
+
+void TrackContent::rebuildClipComponents() {
+    removeAllChildren();
+    clipComponents.clear();
+
+    if (!audioTrack || !track) {
+        return;
+    }
+
+    for (const auto& clip : audioTrack->getAudioClips()) {
+        if (!clip) {
+            continue;
+        }
+        auto clipComponent = std::make_unique<AudioClipComponent>(*clip, track->getColour());
+        addAndMakeVisible(clipComponent.get());
+        clipComponents.push_back(std::move(clipComponent));
     }
     applyWaveformScale();
 }

@@ -23,11 +23,13 @@ public:
     /// @param selectionManager selection manager for track commands
     /// @param trackCommandManager track command manager to execute
     /// @param toggleDebugWatchWindow callback to show or hide the debug watch window
+    /// @param saveEdit callback to save the current project
     CommandCenter(Edit& edit,
                   CursorController& cursorController,
                   SelectionManager& selectionManager,
                   TrackCommandManager& trackCommandManager,
-                  std::function<void()> toggleDebugWatchWindow);
+                  std::function<void()> toggleDebugWatchWindow,
+                  std::function<void()> saveEdit);
 
     /// Access the command manager.
     juce::ApplicationCommandManager& getCommandManager();

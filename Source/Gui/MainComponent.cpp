@@ -94,6 +94,7 @@ MainComponent::MainComponent()
     cursorController = std::make_unique<CursorController>(*edit, *selectionManager);
     selectionManager->setCursorController(cursorController.get());
     trackCommandManager = std::make_unique<TrackCommandManager>(*edit);
+    lastExportDirectory = juce::File("/Users/nico/code/Audiovision/exports");
     auto toggleDebugWatchWindow = [this]() {
         if (debugWatchWindow == nullptr) {
             return;
@@ -104,11 +105,18 @@ MainComponent::MainComponent()
             debugWatchWindow->toFront(true);
         }
     };
+    auto saveEdit = [this]() {
+        if (!edit) {
+            return;
+        }
+        EditSerializer::exportToFile(*edit, lastExportDirectory);
+    };
     commandCenter = std::make_unique<CommandCenter>(*edit,
                                                     *cursorController,
                                                     *selectionManager,
                                                     *trackCommandManager,
-                                                    std::move(toggleDebugWatchWindow));
+                                                    std::move(toggleDebugWatchWindow),
+                                                    std::move(saveEdit));
     wheelCommandManager = std::make_unique<WheelCommandManager>(commandCenter->getCommandManager(),
                                                                 commandCenter.get());
     wheelHandler = std::make_unique<WheelCommandForwarder>(*wheelCommandManager);
@@ -268,7 +276,6 @@ MainComponent::~MainComponent()
 
 void MainComponent::shutdown()
 {
-    EditSerializer::exportToFile(*edit, juce::File("/Users/nico/code/Audiovision/exports"));
     if (isShutDown) {
         return;
     }
