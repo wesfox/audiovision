@@ -24,6 +24,7 @@ static constexpr juce::CommandID toggleDebugWatchWindow = 0x2203;
 static constexpr juce::CommandID splitClipsAtCursorOrSelection = 0x2204;
 static constexpr juce::CommandID healClip = 0x2205;
 static constexpr juce::CommandID deleteClipsInSelection = 0x2206;
+static constexpr juce::CommandID undo = 0x2207;
 }
 
 /// Command identifiers for track actions.

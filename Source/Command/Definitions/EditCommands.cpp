@@ -31,6 +31,7 @@ void EditCommands::getAllCommands(juce::Array<juce::CommandID>& commands) {
     commands.add(CommandIds::EditView::splitClipsAtCursorOrSelection);
     commands.add(CommandIds::EditView::healClip);
     commands.add(CommandIds::EditView::deleteClipsInSelection);
+    commands.add(CommandIds::EditView::undo);
     commands.add(CommandIds::Project::save);
 }
 
@@ -61,6 +62,10 @@ void EditCommands::getCommandInfo(juce::CommandID commandID, juce::ApplicationCo
     }
     if (commandID == CommandIds::EditView::deleteClipsInSelection) {
         result.setInfo("Delete Clips", "Delete clips in the selection range", "Edit", 0);
+        return;
+    }
+    if (commandID == CommandIds::EditView::undo) {
+        result.setInfo("Undo", "Undo the last action", "Edit", 0);
         return;
     }
     if (commandID == CommandIds::Project::save) {
@@ -96,6 +101,10 @@ bool EditCommands::perform(const juce::ApplicationCommandTarget::InvocationInfo&
         deleteClipsInSelection();
         return true;
     }
+    if (info.commandID == CommandIds::EditView::undo) {
+        undo();
+        return true;
+    }
     if (info.commandID == CommandIds::Project::save) {
         saveEdit();
         return true;
@@ -111,6 +120,7 @@ bool EditCommands::handlesCommand(juce::CommandID commandID) const {
         || commandID == CommandIds::EditView::splitClipsAtCursorOrSelection
         || commandID == CommandIds::EditView::healClip
         || commandID == CommandIds::EditView::deleteClipsInSelection
+        || commandID == CommandIds::EditView::undo
         || commandID == CommandIds::Project::save;
 }
 
@@ -286,6 +296,10 @@ void EditCommands::toggleDebugWatchWindow() {
         return;
     }
     toggleDebugWatchWindowCallback();
+}
+
+void EditCommands::undo() {
+    edit.getUndoManager().undo();
 }
 
 void EditCommands::saveEdit() {

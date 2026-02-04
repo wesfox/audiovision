@@ -34,6 +34,7 @@ private:
     void healClipsAtCursorOrSelection();
     void deleteClipsInSelection();
     void toggleDebugWatchWindow();
+    void undo();
     void saveEdit();
 
     Edit& edit;
