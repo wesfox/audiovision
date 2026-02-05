@@ -1,6 +1,7 @@
 #include "AudioFile.h"
 #include <Utils/Uuid.h>
-#include "Utils/Waveform/ThumbnailCache.h"
+
+#include "Utils/Waveform/PeakCacheManager.h"
 
 AudioFile::AudioFile(String filePath)
     : id(uuid::generate_uuid_v4()),
@@ -80,20 +81,22 @@ void AudioFile::readWholeFileInCache() {
     reader->mapEntireFile();
 
     const auto file = juce::File(filePath);
-    if (thumbnail == nullptr) {
-        auto& thumbnailCache = ThumbnailCache::get();
-        thumbnail = std::make_unique<juce::AudioThumbnail>(thumbnailCache.getSamplesPerThumbSample(),
-                                                           thumbnailCache.getFormatManager(),
-                                                           thumbnailCache.getCache());
-        thumbnail->setSource(new juce::FileInputSource(file));
-    }
+    peakFile = PeakCacheManager::get().getOrBuildPeakFile(file, *reader);
 }
 
-juce::AudioThumbnail* AudioFile::getThumbnail() const {
-    if (thumbnail == nullptr) {
-        // Thumbnail must be created during file load to avoid painting without a source.
+std::shared_ptr<PeakFile> AudioFile::getPeakFile() const {
+    if (peakFile == nullptr) {
+        // Peak cache must be created during file load to avoid painting without data.
         jassert(false);
-        return nullptr;
     }
-    return thumbnail.get();
+    return peakFile;
+}
+
+int64 AudioFile::getLengthInSamples() const {
+    if (!reader) {
+        // Audio reader must be initialized before reading length.
+        jassert(false);
+        return 0;
+    }
+    return reader->lengthInSamples;
 }

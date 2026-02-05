@@ -22,5 +22,5 @@ private:
 
     juce::AudioFormatManager formatManager;
     juce::AudioThumbnailCache cache;
-    int samplesPerThumbSample = 1024;
+    int samplesPerThumbSample = 10;
 };

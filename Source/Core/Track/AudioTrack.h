@@ -54,6 +54,31 @@ public:
     /// @param rangeEnd range end in session samples
     void deleteClipsInRange(int64 rangeStart, int64 rangeEnd);
 
+    /// Trim clips to a range by removing content outside it.
+    /// @param rangeStart range start in session samples
+    /// @param rangeEnd range end in session samples
+    void trimClipsToRange(int64 rangeStart, int64 rangeEnd);
+
+    /// Trim the head of a clip and resolve overlaps.
+    /// @param clipId clip identifier
+    /// @param newStartSample new session start
+    void trimClipHead(const String& clipId, int64 newStartSample);
+
+    /// Trim the tail of a clip and resolve overlaps.
+    /// @param clipId clip identifier
+    /// @param newEndSample new session end
+    void trimClipTail(const String& clipId, int64 newEndSample);
+
+    /// Preview trim the head of a clip without resolving overlaps.
+    /// @param clipId clip identifier
+    /// @param newStartSample new session start
+    void previewTrimClipHead(const String& clipId, int64 newStartSample);
+
+    /// Preview trim the tail of a clip without resolving overlaps.
+    /// @param clipId clip identifier
+    /// @param newEndSample new session end
+    void previewTrimClipTail(const String& clipId, int64 newEndSample);
+
     /// True when recording will create a new clip.
     /// @see addAudioClip()
     /// @see RecordManager()
@@ -71,6 +96,10 @@ public:
     const std::vector<std::unique_ptr<AudioClip>>& getAudioClips() const noexcept{
         return audioClips;
     }
+
+    /// Replace all clips on this track.
+    /// @param clips new clip list
+    void replaceClips(std::vector<std::unique_ptr<AudioClip>> clips);
 
     /// Register a clip listener.
     /// @param listener listener to add

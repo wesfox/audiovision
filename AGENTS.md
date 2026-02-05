@@ -3,7 +3,7 @@
 - If a request is ambiguous, ask clarifying questions before coding.
 - Never update the code but if I explicitily said to.
 - Never start coding if my message finish with "?", challenge me, validate or invalidate my though, but do not touch anything
-- Never talk about the fact that I forbid you to do stuff, just don't do stuff, and say "OKPT" to ask for permission, but only my message is ambiguous.
+- Never talk about the fact that I forbid you to do stuff, just don't do stuff, and say "Should I do it?" to ask for permission, but only my message is ambiguous.
 - When I ask for new behavior, propose a clean structure first, then wait for approval before coding.
 - When you add early return for "undefined behaviour", like a value < 0 that should be positive in normal use, add a jassert(false) and a little comment upper
 

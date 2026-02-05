@@ -62,6 +62,7 @@ SelectableList::SelectableList() {
     lookAndFeel->setColour(juce::PopupMenu::textColourId, kTextColour);
     lookAndFeel->setColour(juce::PopupMenu::highlightedTextColourId, kTextColour);
     comboBox.setLookAndFeel(lookAndFeel.get());
+    comboBox.setWantsKeyboardFocus(false);
     addAndMakeVisible(comboBox);
 }
 

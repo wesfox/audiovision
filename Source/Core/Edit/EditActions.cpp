@@ -57,10 +57,10 @@ void EditActionStore::removeListener(EditActionListener* listener) {
 void EditActionStore::applyAction(const EditAction& action) {
     switch (action.type) {
         case EditActionType::SetViewRange:
-            state.setViewRange(action.startSample, action.endSample, &undoManager);
+            state.setViewRange(action.startSample, action.endSample, nullptr);
             break;
         case EditActionType::Zoom:
-            state.zoom(action.zoomRatio, action.zoomCenterSample, &undoManager);
+            state.zoom(action.zoomRatio, action.zoomCenterSample, nullptr);
             break;
         case EditActionType::SetFrameRate:
             state.setFrameRate(action.frameRate, &undoManager);

@@ -8,7 +8,7 @@
 
 #include "juce_graphics/fonts/harfbuzz/hb-cplusplus.hh"
 
-class ThumbnailCache;
+class PeakFile;
 
 /// Read audio data from disk with low-latency access.
 /// TODO: handle multi-mono files.
@@ -48,8 +48,11 @@ public:
     /// Todo : Make optimized reader that allow to read only parts of the files that are used.
     void readWholeFileInCache();
 
-    /// Access the shared waveform thumbnail.
-    juce::AudioThumbnail* getThumbnail() const;
+    /// Access the waveform peak cache.
+    std::shared_ptr<PeakFile> getPeakFile() const;
+
+    /// Total number of samples in the file.
+    int64 getLengthInSamples() const;
 private:
 
     String id;
@@ -59,5 +62,5 @@ private:
     int64 originalTimeReference;
     Channel channel;
     ChannelsFormat format;
-    mutable std::unique_ptr<juce::AudioThumbnail> thumbnail;
+    std::shared_ptr<PeakFile> peakFile;
 };

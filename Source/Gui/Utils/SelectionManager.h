@@ -67,6 +67,11 @@ public:
     /// @param sample sample to keep as the selection point
     void collapseSelectionToSample(int64 sample);
 
+    /// Update the selection range from a command.
+    /// @param anchorSample anchor sample for the selection
+    /// @param hoverSample hover sample for the selection
+    void setSelectionRangeFromCommand(int64 anchorSample, int64 hoverSample);
+
     /// Handle selection on mouse down.
     /// @param event mouse event to process
     /// @param relativeTo component used for relative coordinates
@@ -107,6 +112,7 @@ private:
     void updateSelectionRange(int hoverIndex);
     void applySelectionRange(int startIndex, int endIndex);
     void updateSelectionSamples();
+    void applySelectionSamples(int64 anchorSample, int64 hoverSample);
     void notifyListeners();
 
     Edit& edit;

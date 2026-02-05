@@ -29,9 +29,19 @@ String AudioClip::getName() const
     return name;
 }
 
+void AudioClip::setName(const String& newName)
+{
+    name = newName;
+}
+
 juce::Colour AudioClip::getColor() const
 {
     return color;
+}
+
+void AudioClip::setColor(juce::Colour newColor)
+{
+    color = newColor;
 }
 
 String AudioClip::getAudioFilePath() const
@@ -71,6 +81,11 @@ double AudioClip::getSampleRate() const
 ChannelsFormat AudioClip::getFormat() const
 {
     return format;
+}
+
+void AudioClip::setFormat(ChannelsFormat newFormat)
+{
+    format = newFormat;
 }
 
 std::vector<float> AudioClip::getWaveformData() const
@@ -156,12 +171,78 @@ std::unique_ptr<AudioClip> AudioClip::split(int64 splitSample)
 
 void AudioClip::trimHead(int64 newSessionStartSample, bool keepFade)
 {
-    // Empty implementation
+    const auto fileLength = audioFile ? audioFile->getLengthInSamples() : 0;
+    if (fileLength <= 0) {
+        // File length must be valid to trim.
+        jassert(false);
+        return;
+    }
+
+    const auto currentStart = sessionStartSample;
+    const auto currentEnd = sessionEndSample;
+    const auto currentLength = currentEnd - currentStart;
+    if (currentLength <= 1) {
+        return;
+    }
+
+    if (newSessionStartSample >= currentEnd) {
+        // Head trim must keep at least one sample.
+        jassert(false);
+        newSessionStartSample = currentEnd - 1;
+    }
+
+    auto desiredDelta = newSessionStartSample - currentStart;
+    auto newFileStart = fileStartSample + desiredDelta;
+    if (newFileStart < 0) {
+        desiredDelta = -fileStartSample;
+        newFileStart = 0;
+        newSessionStartSample = currentStart + desiredDelta;
+    }
+
+    fileStartSample = newFileStart;
+    setSessionStartSample(newSessionStartSample);
+
+    if (!keepFade) {
+        fadeIn.remove();
+    }
 }
 
 void AudioClip::trimTail(int64 newSessionEndSample, bool keepFade)
 {
-    // Empty implementation
+    const auto fileLength = audioFile ? audioFile->getLengthInSamples() : 0;
+    if (fileLength <= 0) {
+        // File length must be valid to trim.
+        jassert(false);
+        return;
+    }
+
+    const auto currentStart = sessionStartSample;
+    const auto currentEnd = sessionEndSample;
+    const auto currentLength = currentEnd - currentStart;
+    if (currentLength <= 1) {
+        return;
+    }
+
+    if (newSessionEndSample <= currentStart) {
+        // Tail trim must keep at least one sample.
+        jassert(false);
+        newSessionEndSample = currentStart + 1;
+    }
+
+    const auto fileEnd = fileStartSample + currentLength;
+    auto desiredDelta = newSessionEndSample - currentEnd;
+    auto newFileEnd = fileEnd + desiredDelta;
+    if (newFileEnd > fileLength) {
+        desiredDelta = fileLength - fileEnd;
+        newFileEnd = fileLength;
+        newSessionEndSample = currentEnd + desiredDelta;
+    }
+
+    setSessionEndSample(newSessionEndSample);
+
+    if (!keepFade) {
+        fadeOut.remove();
+    }
 }
 
 void AudioClip::setSessionStartSample(int64 newSessionStartSample)
@@ -184,4 +265,42 @@ void AudioClip::setSampleRate(double newSampleRate)
 void AudioClip::setFileStartSample(int64 newFileStartSample)
 {
     fileStartSample = newFileStartSample;
+}
+
+void AudioClip::setFadeIn(bool active, int endSample)
+{
+    if (endSample < 0) {
+        // Fade-in end sample must be non-negative.
+        jassert(false);
+        return;
+    }
+    fadeIn.endSample = endSample;
+    fadeIn.setActive(active);
+    if (!active) {
+        fadeIn.remove();
+    }
+}
+
+void AudioClip::setFadeOut(bool active, int startSample)
+{
+    if (startSample < 0) {
+        // Fade-out start sample must be non-negative.
+        jassert(false);
+        return;
+    }
+    fadeOut.startSample = startSample;
+    fadeOut.setActive(active);
+    if (!active) {
+        fadeOut.remove();
+    }
+}
+
+void AudioClip::setIdForRestore(const String& newId)
+{
+    if (newId.isEmpty()) {
+        // Restored clip id must be non-empty.
+        jassert(false);
+        return;
+    }
+    id = newId;
 }

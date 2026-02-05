@@ -54,6 +54,10 @@ public:
     /// @param wasDrag true when drag occurred
     void onPointerUp(int64 previousSample, int64 playheadSample, bool wasDrag);
 
+    /// Ensure the cursor is visible in the view range.
+    /// @param cursorSample cursor sample to reveal
+    void ensureCursorVisible(int64 cursorSample);
+
 private:
     void timerCallback() override;
     bool shouldFollowPlayhead() const;

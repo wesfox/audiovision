@@ -29,6 +29,32 @@ void ShortcutMappings::applyDefaultMappings(juce::ApplicationCommandManager& man
                               juce::KeyPress('h', juce::ModifierKeys::commandModifier, 0));
         mappings->addKeyPress(CommandIds::EditView::deleteClipsInSelection,
                               juce::KeyPress(juce::KeyPress::backspaceKey, juce::ModifierKeys(), 0));
+        mappings->addKeyPress(CommandIds::EditView::trimToSelection,
+                              juce::KeyPress('t', juce::ModifierKeys::commandModifier, 0));
+        mappings->addKeyPress(CommandIds::EditView::tabToNextCut,
+                              juce::KeyPress(juce::KeyPress::tabKey, juce::ModifierKeys(), 0));
+        mappings->addKeyPress(CommandIds::EditView::tabToNextCut,
+                              juce::KeyPress(juce::KeyPress::tabKey, juce::ModifierKeys::shiftModifier, 0));
+        mappings->addKeyPress(CommandIds::EditView::tabToPreviousCut,
+                              juce::KeyPress(juce::KeyPress::tabKey, juce::ModifierKeys::altModifier, 0));
+        mappings->addKeyPress(CommandIds::EditView::tabToPreviousCut,
+                              juce::KeyPress(juce::KeyPress::tabKey,
+                                             juce::ModifierKeys::altModifier | juce::ModifierKeys::shiftModifier,
+                                             0));
+        mappings->addKeyPress(CommandIds::EditView::moveCursorToSessionStart,
+                              juce::KeyPress(juce::KeyPress::returnKey, juce::ModifierKeys(), 0));
+        mappings->addKeyPress(CommandIds::EditView::moveCursorToSessionStart,
+                              juce::KeyPress(juce::KeyPress::returnKey,
+                                             juce::ModifierKeys::shiftModifier,
+                                             0));
+        mappings->addKeyPress(CommandIds::EditView::moveCursorToSessionEnd,
+                              juce::KeyPress(juce::KeyPress::returnKey,
+                                             juce::ModifierKeys::altModifier,
+                                             0));
+        mappings->addKeyPress(CommandIds::EditView::moveCursorToSessionEnd,
+                              juce::KeyPress(juce::KeyPress::returnKey,
+                                             juce::ModifierKeys::altModifier | juce::ModifierKeys::shiftModifier,
+                                             0));
         mappings->addKeyPress(CommandIds::EditView::undo,
                               juce::KeyPress('z', juce::ModifierKeys(), 0));
         mappings->addKeyPress(CommandIds::EditView::undo,

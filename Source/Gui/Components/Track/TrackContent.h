@@ -21,6 +21,8 @@ public:
     void resized() override;
     void paint(juce::Graphics& g) override;
     void paintOverChildren(juce::Graphics& g) override;
+    void mouseDoubleClick(const juce::MouseEvent& event) override;
+    void handleDoubleClick(int64 sample, bool extendSelection);
     void valueTreePropertyChanged(juce::ValueTree& tree, const juce::Identifier& property) override;
 
 private:
@@ -28,6 +30,9 @@ private:
     void rebuildClipComponents();
     void applyWaveformScale();
     void selectionChanged() override;
+    void setSelectedClipId(const String& clipId);
+    void clearSelectedClip();
+    void updateSelectedClipFromSelection();
     ViewRangeMapper getMapper() const;
 
     Edit& edit;
@@ -36,4 +41,6 @@ private:
     std::shared_ptr<AudioTrack> audioTrack;
     std::vector<std::unique_ptr<AudioClipComponent>> clipComponents;
     bool isSelected = false;
+    String selectedClipId;
+    bool suppressNextCursorClear = false;
 };

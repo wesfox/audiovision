@@ -71,12 +71,12 @@ public:
     void setOutput(std::weak_ptr<Track> newOutputTrack);
 
     /// Track id.
-    String getId() {
+    String getId() const {
         return id;
     }
 
     /// Track display name.
-    String getName() {
+    String getName() const {
         return name;
     }
 

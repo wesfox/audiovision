@@ -3,6 +3,7 @@
 #include <cmath>
 #include <algorithm>
 
+#include "Command/Definitions/EditCommands.h"
 #include "Core/Track/AudioTrack.h"
 #include "Gui/Utils/ViewRangeMapper.h"
 
@@ -134,6 +135,28 @@ void TrackContent::paintOverChildren(juce::Graphics& g) {
     g.drawLine(x, 0.0f, x, static_cast<float>(getHeight()), 1.0f);
 }
 
+void TrackContent::mouseDoubleClick(const juce::MouseEvent& event) {
+    if (!event.mods.isLeftButtonDown()) {
+        return;
+    }
+    const auto mapper = getMapper();
+    const auto relative = event.getEventRelativeTo(this);
+    const auto clickSample = mapper.xToSample(relative.position.x);
+    handleDoubleClick(clickSample, event.mods.isShiftDown());
+}
+
+void TrackContent::handleDoubleClick(int64 sample, bool extendSelection) {
+    if (!track) {
+        return;
+    }
+    clearSelectedClip();
+    if (extendSelection && selectionManager.getSelectionRangeSamples().has_value()) {
+        extendSelectionToNearestCut(edit, selectionManager, track->getId(), sample);
+        return;
+    }
+    selectRegionBetweenCuts(edit, selectionManager, track->getId(), sample);
+}
+
 void TrackContent::clipsChanged(AudioTrack&) {
     rebuildClipComponents();
     updateLayout();
@@ -142,6 +165,17 @@ void TrackContent::clipsChanged(AudioTrack&) {
 
 void TrackContent::valueTreePropertyChanged(juce::ValueTree&, const juce::Identifier& property) {
     if (property != EditState::kWaveformScaleId) {
+        if (property == juce::Identifier("selectionStartSample")
+            || property == juce::Identifier("selectionEndSample")
+            ) {
+            updateSelectedClipFromSelection();
+        } else if (property == juce::Identifier("cursorSample")) {
+            if (suppressNextCursorClear) {
+                suppressNextCursorClear = false;
+                return;
+            }
+            clearSelectedClip();
+        }
         return;
     }
     applyWaveformScale();
@@ -155,13 +189,49 @@ void TrackContent::rebuildClipComponents() {
         return;
     }
 
+    bool hasSelectedClip = false;
     for (const auto& clip : audioTrack->getAudioClips()) {
         if (!clip) {
             continue;
         }
         auto clipComponent = std::make_unique<AudioClipComponent>(*clip, track->getColour());
+        clipComponent->setSelected(clip->getId() == selectedClipId);
+        if (clipComponent->isSelected()) {
+            hasSelectedClip = true;
+        }
+        clipComponent->onDoubleClick = [this](AudioClipComponent& component, int64 sample, bool extendSelection) {
+            if (extendSelection) {
+                handleDoubleClick(sample, true);
+                return;
+            }
+            setSelectedClipId(component.getClip().getId());
+            suppressNextCursorClear = true;
+            selectionManager.setSelectionRangeFromCommand(component.getClip().getSessionStartSample(),
+                                                          component.getClip().getSessionEndSample());
+        };
+        clipComponent->onTrimDrag = [this](const String& clipId, int64 sample, bool trimHead, bool commit) {
+            if (!audioTrack) {
+                return;
+            }
+            if (commit) {
+                if (trimHead) {
+                    audioTrack->trimClipHead(clipId, sample);
+                } else {
+                    audioTrack->trimClipTail(clipId, sample);
+                }
+                return;
+            }
+            if (trimHead) {
+                audioTrack->previewTrimClipHead(clipId, sample);
+            } else {
+                audioTrack->previewTrimClipTail(clipId, sample);
+            }
+        };
         addAndMakeVisible(clipComponent.get());
         clipComponents.push_back(std::move(clipComponent));
+    }
+    if (!hasSelectedClip) {
+        selectedClipId.clear();
     }
     applyWaveformScale();
 }
@@ -183,6 +253,61 @@ void TrackContent::selectionChanged() {
     }
     isSelected = nextSelected;
     repaint();
+}
+
+void TrackContent::setSelectedClipId(const String& clipId) {
+    selectedClipId = clipId;
+    for (auto& clipComponent : clipComponents) {
+        clipComponent->setSelected(clipComponent->getClip().getId() == selectedClipId);
+    }
+}
+
+void TrackContent::clearSelectedClip() {
+    if (selectedClipId.isEmpty()) {
+        return;
+    }
+    selectedClipId.clear();
+    for (auto& clipComponent : clipComponents) {
+        clipComponent->setSelected(false);
+    }
+}
+
+void TrackContent::updateSelectedClipFromSelection() {
+    if (selectedClipId.isEmpty()) {
+        return;
+    }
+
+    const auto& state = edit.getState();
+    if (!state.hasSelectionRange()) {
+        clearSelectedClip();
+        return;
+    }
+
+    if (!audioTrack) {
+        clearSelectedClip();
+        return;
+    }
+
+    const auto rangeStart = state.getSelectionStartSample();
+    const auto rangeEnd = state.getSelectionEndSample();
+    const auto selectionStart = std::min(rangeStart, rangeEnd);
+    const auto selectionEnd = std::max(rangeStart, rangeEnd);
+
+    for (const auto& clip : audioTrack->getAudioClips()) {
+        if (!clip) {
+            continue;
+        }
+        if (clip->getId() != selectedClipId) {
+            continue;
+        }
+        if (clip->getSessionStartSample() == selectionStart
+            && clip->getSessionEndSample() == selectionEnd) {
+            return;
+        }
+        break;
+    }
+
+    clearSelectedClip();
 }
 
 ViewRangeMapper TrackContent::getMapper() const {

@@ -30,7 +30,6 @@ private:
     void handleAsyncUpdate() override;
     void timerCallback() override;
     ViewRangeMapper getMapper(float width) const;
-    int getTrackIndexAtY(int y) const;
     void updateSelectionRange(int hoverIndex);
 
     std::unique_ptr<CursorTimeline> cursorTimeline;

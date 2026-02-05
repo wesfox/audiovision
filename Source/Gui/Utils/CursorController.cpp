@@ -122,6 +122,10 @@ void CursorController::onPointerUp(int64 previousSample, int64 playheadSample, b
     viewFollow.followBothEdges(playheadSample);
 }
 
+void CursorController::ensureCursorVisible(int64 cursorSample) {
+    viewFollow.followRightEdge(cursorSample);
+}
+
 void CursorController::setCursorPositionFromUserAction(int64 playheadSample) {
     if (const auto transport = edit.getTransport()) {
         if (transport->isPlaying()) {

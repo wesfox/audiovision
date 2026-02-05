@@ -46,8 +46,16 @@ public:
     /// Clip display name.
     String getName() const;
 
+    /// Set the clip display name.
+    /// @param newName display name
+    void setName(const String& newName);
+
     /// Clip color used in the UI.
     juce::Colour getColor() const;
+
+    /// Set the clip color used in the UI.
+    /// @param newColor new color value
+    void setColor(juce::Colour newColor);
 
     /// Source audio file path.
     String getAudioFilePath() const;
@@ -72,6 +80,10 @@ public:
 
     /// Channel format of the clip.
     ChannelsFormat getFormat() const;
+
+    /// Set the channel format of the clip.
+    /// @param newFormat new format
+    void setFormat(ChannelsFormat newFormat);
 
     /// Compute waveform data for display.
     std::vector<float> getWaveformData() const;
@@ -128,6 +140,28 @@ public:
     /// @param newFileStartSample new file start sample
     void setFileStartSample(int64 newFileStartSample);
 
+    /// True when a fade-in is active.
+    bool hasFadeIn() const { return fadeIn.isActive(); }
+
+    /// Read the fade-in end sample.
+    int getFadeInEndSample() const { return fadeIn.endSample; }
+
+    /// Set the fade-in state.
+    /// @param active true to enable the fade
+    /// @param endSample end sample in clip-relative samples
+    void setFadeIn(bool active, int endSample);
+
+    /// True when a fade-out is active.
+    bool hasFadeOut() const { return fadeOut.isActive(); }
+
+    /// Read the fade-out start sample.
+    int getFadeOutStartSample() const { return fadeOut.startSample; }
+
+    /// Set the fade-out state.
+    /// @param active true to enable the fade
+    /// @param startSample start sample in clip-relative samples
+    void setFadeOut(bool active, int startSample);
+
     /// If true, the read method returns an empty (cleared), buffer
     bool isMuted() const { return muted; }
 
@@ -135,11 +169,9 @@ public:
     /// @param isMuted new mute state
     void mute(const bool isMuted){ muted = isMuted; }
 
-    /// True when a fade-in is active.
-    bool hasFadeIn() const { return fadeIn.isActive(); }
-
-    /// True when a fade-out is active.
-    bool hasFadeOut() const { return fadeOut.isActive(); }
+    /// Override the clip id for restore workflows.
+    /// @param newId restored clip id
+    void setIdForRestore(const String& newId);
 
 private:
     String id;

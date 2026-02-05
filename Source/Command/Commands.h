@@ -25,6 +25,11 @@ static constexpr juce::CommandID splitClipsAtCursorOrSelection = 0x2204;
 static constexpr juce::CommandID healClip = 0x2205;
 static constexpr juce::CommandID deleteClipsInSelection = 0x2206;
 static constexpr juce::CommandID undo = 0x2207;
+static constexpr juce::CommandID trimToSelection = 0x2208;
+static constexpr juce::CommandID tabToNextCut = 0x2209;
+static constexpr juce::CommandID tabToPreviousCut = 0x220A;
+static constexpr juce::CommandID moveCursorToSessionStart = 0x220B;
+static constexpr juce::CommandID moveCursorToSessionEnd = 0x220C;
 }
 
 /// Command identifiers for track actions.

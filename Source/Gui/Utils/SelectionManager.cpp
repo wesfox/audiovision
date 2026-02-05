@@ -101,7 +101,7 @@ void SelectionManager::collapseSelectionToSample(int64 sample) {
     if (!selectionAnchorSample.has_value() || !selectionHoverSample.has_value()) {
         selectionAnchorSample = sample;
         selectionHoverSample = sample;
-        getCursorController().onSelectionRangeChanged(sample, sample);
+        applySelectionSamples(sample, sample);
         notifyListeners();
         return;
     }
@@ -110,7 +110,16 @@ void SelectionManager::collapseSelectionToSample(int64 sample) {
     }
     selectionAnchorSample = sample;
     selectionHoverSample = sample;
-    getCursorController().onSelectionRangeChanged(sample, sample);
+    applySelectionSamples(sample, sample);
+    notifyListeners();
+}
+
+void SelectionManager::setSelectionRangeFromCommand(int64 anchorSample, int64 hoverSample) {
+    selectionAnchorSample = anchorSample;
+    selectionHoverSample = hoverSample;
+    isSelecting = false;
+    forceSelectionCommit = false;
+    applySelectionSamples(anchorSample, hoverSample);
     notifyListeners();
 }
 
@@ -458,7 +467,12 @@ void SelectionManager::updateSelectionSamples() {
         getCursorController().onSelectionCleared();
         return;
     }
-    getCursorController().onSelectionRangeChanged(selectionAnchorSample.value(), selectionHoverSample.value());
+    applySelectionSamples(selectionAnchorSample.value(), selectionHoverSample.value());
+}
+
+void SelectionManager::applySelectionSamples(int64 anchorSample, int64 hoverSample) {
+    getCursorController().onSelectionRangeChanged(anchorSample, hoverSample);
+    getCursorController().setCursorSample(std::min(anchorSample, hoverSample));
 }
 
 void SelectionManager::notifyListeners() {

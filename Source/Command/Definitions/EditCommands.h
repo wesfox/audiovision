@@ -33,9 +33,14 @@ private:
     void splitClipsAtCursorOrSelection();
     void healClipsAtCursorOrSelection();
     void deleteClipsInSelection();
+    void trimToSelection();
     void toggleDebugWatchWindow();
     void undo();
     void saveEdit();
+    void tabToNextCut(bool extendSelection);
+    void tabToPreviousCut(bool extendSelection);
+    void moveCursorToSessionStart(bool extendSelection);
+    void moveCursorToSessionEnd(bool extendSelection);
 
     Edit& edit;
     SelectionManager& selectionManager;
@@ -44,3 +49,23 @@ private:
     std::function<void()> toggleDebugWatchWindowCallback;
     std::function<void()> saveEditCallback;
 };
+
+/// Select the region between the nearest cuts on a track.
+/// @param edit edit owning track data
+/// @param selectionManager selection manager to update
+/// @param trackId track to scan for cuts
+/// @param sample sample position to bracket
+void selectRegionBetweenCuts(Edit& edit,
+                             SelectionManager& selectionManager,
+                             const String& trackId,
+                             int64 sample);
+
+/// Extend the current selection to the nearest cut outside it on a track.
+/// @param edit edit owning track data
+/// @param selectionManager selection manager to update
+/// @param trackId track to scan for cuts
+/// @param sample sample position to bracket
+void extendSelectionToNearestCut(Edit& edit,
+                                 SelectionManager& selectionManager,
+                                 const String& trackId,
+                                 int64 sample);
