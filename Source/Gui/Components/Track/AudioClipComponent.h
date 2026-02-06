@@ -54,6 +54,15 @@ public:
     /// @param commit true when drag ends
     std::function<void(const String& clipId, int64 sample, bool trimHead, bool commit)> onTrimDrag;
 
+    /// Forward mouse down events when the clip does not consume them.
+    std::function<void(const juce::MouseEvent& event)> onMousePassthroughDown;
+
+    /// Forward mouse drag events when the clip does not consume them.
+    std::function<void(const juce::MouseEvent& event)> onMousePassthroughDrag;
+
+    /// Forward mouse up events when the clip does not consume them.
+    std::function<void(const juce::MouseEvent& event)> onMousePassthroughUp;
+
     /// Check whether the mouse event targets a trim handle.
     /// @param event mouse event to test
     bool isTrimHandleHit(const juce::MouseEvent& event) const;

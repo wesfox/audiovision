@@ -58,7 +58,7 @@
           "filePath": "/Users/nico/Music/ELYO PRINT_11.wav",
           "fileStartSample": 0,
           "sessionStartSample": 96000,
-          "sessionEndSample": 1400000
+          "sessionEndSample": 700000
         },
         {
           "filePath": "/Users/nico/Music/SEQ00_Actions horschampSDB.wav",
@@ -103,7 +103,14 @@
       "armed": false,
       "parentFolderIndex": -1,
       "outputIndex": -1,
-      "clips": [],
+      "clips": [
+        {
+          "filePath": "/Users/nico/Music/SEQ00_Actions horschampSDB.wav",
+          "fileStartSample": 240000,
+          "sessionStartSample": 0,
+          "sessionEndSample": 960000
+        }
+      ],
       "plugins": [],
       "sends": []
     },
@@ -114,7 +121,14 @@
       "armed": false,
       "parentFolderIndex": -1,
       "outputIndex": -1,
-      "clips": [],
+      "clips": [
+        {
+          "filePath": "/Users/nico/Music/SEQ00_Actions horschampSDB.wav",
+          "fileStartSample": 240000,
+          "sessionStartSample": 0,
+          "sessionEndSample": 960000
+        }
+      ],
       "plugins": [],
       "sends": []
     },
@@ -125,7 +139,14 @@
       "armed": false,
       "parentFolderIndex": -1,
       "outputIndex": -1,
-      "clips": [],
+      "clips": [
+        {
+          "filePath": "/Users/nico/Music/SEQ00_Actions horschampSDB.wav",
+          "fileStartSample": 240000,
+          "sessionStartSample": 0,
+          "sessionEndSample": 960000
+        }
+      ],
       "plugins": [],
       "sends": []
     },
@@ -136,7 +157,14 @@
       "armed": false,
       "parentFolderIndex": -1,
       "outputIndex": -1,
-      "clips": [],
+      "clips": [
+        {
+          "filePath": "/Users/nico/Music/SEQ00_Actions horschampSDB.wav",
+          "fileStartSample": 240000,
+          "sessionStartSample": 0,
+          "sessionEndSample": 960000
+        }
+      ],
       "plugins": [],
       "sends": []
     },
@@ -147,7 +175,14 @@
       "armed": false,
       "parentFolderIndex": -1,
       "outputIndex": -1,
-      "clips": [],
+      "clips": [
+        {
+          "filePath": "/Users/nico/Music/SEQ00_Actions horschampSDB.wav",
+          "fileStartSample": 240000,
+          "sessionStartSample": 0,
+          "sessionEndSample": 960000
+        }
+      ],
       "plugins": [],
       "sends": []
     },
@@ -158,7 +193,48 @@
       "armed": false,
       "parentFolderIndex": -1,
       "outputIndex": -1,
-      "clips": [],
+      "clips": [
+        {
+          "filePath": "/Users/nico/Music/SEQ00_Actions horschampSDB.wav",
+          "fileStartSample": 240000,
+          "sessionStartSample": 0,
+          "sessionEndSample": 960000
+        }
+      ],
+      "plugins": [],
+      "sends": []
+    },{
+      "index": 10,
+      "name": "DTrack10",
+      "type": "Audio",
+      "armed": false,
+      "parentFolderIndex": -1,
+      "outputIndex": -1,
+      "clips": [
+        {
+          "filePath": "/Users/nico/Music/SEQ00_Actions horschampSDB.wav",
+          "fileStartSample": 240000,
+          "sessionStartSample": 0,
+          "sessionEndSample": 960000
+        }
+      ],
+      "plugins": [],
+      "sends": []
+    },{
+      "index": 10,
+      "name": "DTrack10",
+      "type": "Audio",
+      "armed": false,
+      "parentFolderIndex": -1,
+      "outputIndex": -1,
+      "clips": [
+        {
+          "filePath": "/Users/nico/Music/SEQ00_Actions horschampSDB.wav",
+          "fileStartSample": 240000,
+          "sessionStartSample": 0,
+          "sessionEndSample": 960000
+        }
+      ],
       "plugins": [],
       "sends": []
     }

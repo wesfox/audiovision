@@ -7,12 +7,6 @@
 /// Read-only access to a waveform peak cache.
 class PeakFile {
 public:
-    struct Level {
-        uint64 offset = 0;
-        uint32 blockSize = 0;
-        uint32 blockCount = 0;
-    };
-
     struct PeakBlock {
         int16 min = 0;
         int16 max = 0;
@@ -25,26 +19,26 @@ public:
     /// True when the file is ready for reading.
     bool isValid() const;
 
-    /// Best level for a given samples-per-pixel ratio.
+    /// Best resolution for a given samples-per-pixel ratio.
     /// @param samplesPerPixel view resolution in samples
-    const Level& getBestLevel(double samplesPerPixel) const;
+    uint32 getBestResolution(double samplesPerPixel) const;
 
-    /// Read blocks from a level.
-    /// @param level level to read from
-    /// @param startBlock first block index
-    /// @param blockCount number of blocks to read
+    /// Read blocks for a sample range at a resolution.
+    /// @param samplesPerBlock resolution to read
+    /// @param startSample first sample in file space
+    /// @param endSample last sample in file space
     /// @param outBlocks output blocks (per channel)
-    bool readBlocks(const Level& level,
-                    uint64 startBlock,
-                    uint32 blockCount,
-                    std::vector<PeakBlock>& outBlocks) const;
+    bool readBlocksForRange(uint32 samplesPerBlock,
+                            uint64 startSample,
+                            uint64 endSample,
+                            std::vector<PeakBlock>& outBlocks) const;
 
     /// Number of channels in the cached audio.
     uint32 getChannelCount() const noexcept {
         return channelCount;
     }
 
-    /// Total samples in the cached audio.
+    /// Total samples in the cached audio.®
     uint64 getTotalSamples() const noexcept {
         return totalSamples;
     }
@@ -66,7 +60,12 @@ private:
 
     juce::File peakFilePath;
     std::unique_ptr<juce::MemoryMappedFile> mappedFile;
-    std::vector<Level> levels;
+    struct LevelInfo {
+        uint64 offset = 0;
+        uint32 blockSize = 0;
+        uint32 blockCount = 0;
+    };
+    std::vector<LevelInfo> levels;
     PeakFileFormat::SampleFormat sampleFormat = PeakFileFormat::SampleFormat::Int16;
     uint32 sampleRate = 0;
     uint32 channelCount = 0;

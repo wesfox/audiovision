@@ -35,7 +35,7 @@ std::shared_ptr<PeakFile> PeakCacheManager::getOrBuildPeakFile(const juce::File&
             if (peakFile->getTotalSamples() != expectedSamples
                 || peakFile->getChannelCount() != expectedChannels
                 || peakFile->getSampleRate() != expectedRate
-                || peakFile->getBaseBlockSize() != baseBlockSize) {
+                || peakFile->getBaseBlockSize() != PeakFileBuilder::getMinSamplesPerBlock()) {
                 peakFile.reset();
                 shouldBuild = true;
             }
@@ -46,8 +46,6 @@ std::shared_ptr<PeakFile> PeakCacheManager::getOrBuildPeakFile(const juce::File&
 
     if (shouldBuild) {
         PeakFileBuilder::BuildOptions options;
-        options.baseBlockSize = baseBlockSize;
-        options.targetMaxBlocks = targetMaxBlocks;
         if (!builder.build(reader, peakFilePath, options)) {
             return nullptr;
         }
@@ -64,15 +62,6 @@ std::shared_ptr<PeakFile> PeakCacheManager::getOrBuildPeakFile(const juce::File&
     }
 
     return peakFile;
-}
-
-void PeakCacheManager::setBaseBlockSize(uint32 newBaseBlockSize) {
-    if (newBaseBlockSize == 0) {
-        // Base block size must be non-zero.
-        jassert(false);
-        return;
-    }
-    baseBlockSize = newBaseBlockSize;
 }
 
 juce::File PeakCacheManager::getPeakFilePath(const juce::File& audioFile) const {

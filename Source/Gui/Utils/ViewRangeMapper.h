@@ -47,6 +47,8 @@ public:
     int64 getViewLengthSamples() const;
 
 private:
+    double viewStartSampleF = 0.0;
+    double viewLengthSamplesF = 0.0;
     int64 viewStart = 0;
     int64 viewEnd = 0;
     int64 viewLength = 0;

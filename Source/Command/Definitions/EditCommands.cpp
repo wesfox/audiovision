@@ -46,6 +46,7 @@ std::shared_ptr<AudioTrack> findAudioTrack(Edit& edit, const String& trackId) {
     return nullptr;
 }
 
+
 std::optional<int64> findPreviousCutOnTrack(const AudioTrack& track, int64 sample, int64 sessionEnd) {
     std::optional<int64> previousCut;
     if (sample > 0) {
@@ -114,10 +115,16 @@ void EditCommands::getAllCommands(juce::Array<juce::CommandID>& commands) {
     commands.add(CommandIds::EditView::deleteClipsInSelection);
     commands.add(CommandIds::EditView::undo);
     commands.add(CommandIds::EditView::trimToSelection);
+    commands.add(CommandIds::EditView::trimHeadToCursor);
+    commands.add(CommandIds::EditView::trimTailToCursor);
     commands.add(CommandIds::EditView::tabToNextCut);
     commands.add(CommandIds::EditView::tabToPreviousCut);
     commands.add(CommandIds::EditView::moveCursorToSessionStart);
     commands.add(CommandIds::EditView::moveCursorToSessionEnd);
+    commands.add(CommandIds::EditView::selectPreviousTrack);
+    commands.add(CommandIds::EditView::selectNextTrack);
+    commands.add(CommandIds::EditView::moveNextCutToCursor);
+    commands.add(CommandIds::EditView::movePreviousCutToCursor);
     commands.add(CommandIds::Project::save);
 }
 
@@ -158,6 +165,14 @@ void EditCommands::getCommandInfo(juce::CommandID commandID, juce::ApplicationCo
         result.setInfo("Trim To Selection", "Trim clips to the selection range", "Edit", 0);
         return;
     }
+    if (commandID == CommandIds::EditView::trimHeadToCursor) {
+        result.setInfo("Trim Head To Cursor", "Trim clip starts to the cursor", "Edit", 0);
+        return;
+    }
+    if (commandID == CommandIds::EditView::trimTailToCursor) {
+        result.setInfo("Trim Tail To Cursor", "Trim clip ends to the cursor", "Edit", 0);
+        return;
+    }
     if (commandID == CommandIds::EditView::tabToNextCut) {
         result.setInfo("Tab To Next Cut", "Move cursor to the next cut", "Edit", 0);
         return;
@@ -172,6 +187,22 @@ void EditCommands::getCommandInfo(juce::CommandID commandID, juce::ApplicationCo
     }
     if (commandID == CommandIds::EditView::moveCursorToSessionEnd) {
         result.setInfo("Go To End", "Move cursor to the end of the session", "Edit", 0);
+        return;
+    }
+    if (commandID == CommandIds::EditView::selectPreviousTrack) {
+        result.setInfo("Select Previous Track", "Move selection to the previous track", "Edit", 0);
+        return;
+    }
+    if (commandID == CommandIds::EditView::selectNextTrack) {
+        result.setInfo("Select Next Track", "Move selection to the next track", "Edit", 0);
+        return;
+    }
+    if (commandID == CommandIds::EditView::moveNextCutToCursor) {
+        result.setInfo("Move Previous Cut To Cursor", "Move the previous cut to the cursor", "Edit", 0);
+        return;
+    }
+    if (commandID == CommandIds::EditView::movePreviousCutToCursor) {
+        result.setInfo("Move Next Cut To Cursor", "Move the next cut to the cursor", "Edit", 0);
         return;
     }
     if (commandID == CommandIds::Project::save) {
@@ -215,6 +246,14 @@ bool EditCommands::perform(const juce::ApplicationCommandTarget::InvocationInfo&
         trimToSelection();
         return true;
     }
+    if (info.commandID == CommandIds::EditView::trimHeadToCursor) {
+        trimHeadToCursor();
+        return true;
+    }
+    if (info.commandID == CommandIds::EditView::trimTailToCursor) {
+        trimTailToCursor();
+        return true;
+    }
     if (info.commandID == CommandIds::EditView::tabToNextCut) {
         const bool extendSelection = info.keyPress.getModifiers().isShiftDown();
         tabToNextCut(extendSelection);
@@ -235,6 +274,24 @@ bool EditCommands::perform(const juce::ApplicationCommandTarget::InvocationInfo&
         moveCursorToSessionEnd(extendSelection);
         return true;
     }
+    if (info.commandID == CommandIds::EditView::selectPreviousTrack) {
+        const bool extendSelection = info.keyPress.getModifiers().isShiftDown();
+        selectPreviousTrack(extendSelection);
+        return true;
+    }
+    if (info.commandID == CommandIds::EditView::selectNextTrack) {
+        const bool extendSelection = info.keyPress.getModifiers().isShiftDown();
+        selectNextTrack(extendSelection);
+        return true;
+    }
+    if (info.commandID == CommandIds::EditView::moveNextCutToCursor) {
+        moveNextCutToCursor();
+        return true;
+    }
+    if (info.commandID == CommandIds::EditView::movePreviousCutToCursor) {
+        movePreviousCutToCursor();
+        return true;
+    }
     if (info.commandID == CommandIds::Project::save) {
         saveEdit();
         return true;
@@ -252,10 +309,16 @@ bool EditCommands::handlesCommand(juce::CommandID commandID) const {
         || commandID == CommandIds::EditView::deleteClipsInSelection
         || commandID == CommandIds::EditView::undo
         || commandID == CommandIds::EditView::trimToSelection
+        || commandID == CommandIds::EditView::trimHeadToCursor
+        || commandID == CommandIds::EditView::trimTailToCursor
         || commandID == CommandIds::EditView::tabToNextCut
         || commandID == CommandIds::EditView::tabToPreviousCut
         || commandID == CommandIds::EditView::moveCursorToSessionStart
         || commandID == CommandIds::EditView::moveCursorToSessionEnd
+        || commandID == CommandIds::EditView::selectPreviousTrack
+        || commandID == CommandIds::EditView::selectNextTrack
+        || commandID == CommandIds::EditView::moveNextCutToCursor
+        || commandID == CommandIds::EditView::movePreviousCutToCursor
         || commandID == CommandIds::Project::save;
 }
 
@@ -388,6 +451,32 @@ void EditCommands::trimToSelection() {
 
     edit.performUndoable("Trim To Selection",
                          new TrimToSelectionAction(edit, selectedTrackIds, rangeStart, rangeEnd));
+}
+
+void EditCommands::trimHeadToCursor() {
+    const auto selectedTrackIds = selectionManager.getSelectedTrackIds();
+    if (selectedTrackIds.empty()) {
+        return;
+    }
+    const auto cursorSample = edit.getState().getCursorSample();
+    edit.performUndoable("Trim Head To Cursor",
+                         new TrimClipsToCursorAction(edit,
+                                                     selectedTrackIds,
+                                                     cursorSample,
+                                                     TrimClipsToCursorAction::TrimSide::Head));
+}
+
+void EditCommands::trimTailToCursor() {
+    const auto selectedTrackIds = selectionManager.getSelectedTrackIds();
+    if (selectedTrackIds.empty()) {
+        return;
+    }
+    const auto cursorSample = edit.getState().getCursorSample();
+    edit.performUndoable("Trim Tail To Cursor",
+                         new TrimClipsToCursorAction(edit,
+                                                     selectedTrackIds,
+                                                     cursorSample,
+                                                     TrimClipsToCursorAction::TrimSide::Tail));
 }
 
 void EditCommands::toggleDebugWatchWindow() {
@@ -583,6 +672,122 @@ void EditCommands::moveCursorToSessionEnd(bool extendSelection) {
     if (!extendSelection) {
         selectionManager.collapseSelectionToSample(sessionEndSample);
     }
+}
+
+namespace {
+std::vector<String> getTrackIdsInOrder(const Edit& edit) {
+    std::vector<String> ids;
+    for (const auto& track : edit.getTracks()) {
+        if (track) {
+            ids.push_back(track->getId());
+        }
+    }
+    return ids;
+}
+
+int findFirstSelectedIndex(const std::vector<String>& ids, const SelectionManager& selectionManager) {
+    for (int index = 0; index < static_cast<int>(ids.size()); ++index) {
+        if (selectionManager.isSelected(ids[static_cast<size_t>(index)])) {
+            return index;
+        }
+    }
+    return -1;
+}
+
+std::pair<int, int> findSelectedRange(const std::vector<String>& ids,
+                                      const SelectionManager& selectionManager) {
+    int minIndex = -1;
+    int maxIndex = -1;
+    for (int index = 0; index < static_cast<int>(ids.size()); ++index) {
+        if (!selectionManager.isSelected(ids[static_cast<size_t>(index)])) {
+            continue;
+        }
+        if (minIndex < 0) {
+            minIndex = index;
+        }
+        maxIndex = index;
+    }
+    return { minIndex, maxIndex };
+}
+} // namespace
+
+void EditCommands::selectPreviousTrack(bool extendSelection) {
+    const auto trackIds = getTrackIdsInOrder(edit);
+    if (trackIds.empty()) {
+        return;
+    }
+    int targetIndex = 0;
+    if (extendSelection) {
+        const auto [minIndex, maxIndex] = findSelectedRange(trackIds, selectionManager);
+        targetIndex = minIndex < 0 ? 0 : std::max(0, minIndex - 1);
+    } else {
+        const int currentIndex = findFirstSelectedIndex(trackIds, selectionManager);
+        targetIndex = currentIndex < 0 ? 0 : std::max(0, currentIndex - 1);
+    }
+    const auto& targetId = trackIds[static_cast<size_t>(targetIndex)];
+    if (extendSelection) {
+        selectionManager.addTrackToSelection(targetId);
+    } else {
+        selectionManager.setSelection({ targetId });
+    }
+}
+
+void EditCommands::selectNextTrack(bool extendSelection) {
+    const auto trackIds = getTrackIdsInOrder(edit);
+    if (trackIds.empty()) {
+        return;
+    }
+    const int lastIndex = static_cast<int>(trackIds.size()) - 1;
+    int targetIndex = 0;
+    if (extendSelection) {
+        const auto [minIndex, maxIndex] = findSelectedRange(trackIds, selectionManager);
+        targetIndex = maxIndex < 0 ? 0 : std::min(lastIndex, maxIndex + 1);
+    } else {
+        const int currentIndex = findFirstSelectedIndex(trackIds, selectionManager);
+        targetIndex = currentIndex < 0 ? 0 : std::min(lastIndex, currentIndex + 1);
+    }
+    const auto& targetId = trackIds[static_cast<size_t>(targetIndex)];
+    if (extendSelection) {
+        selectionManager.addTrackToSelection(targetId);
+    } else {
+        selectionManager.setSelection({ targetId });
+    }
+}
+
+void EditCommands::moveNextCutToCursor() {
+    const auto selectedTrackIds = selectionManager.getSelectedTrackIds();
+    if (selectedTrackIds.empty()) {
+        return;
+    }
+    const auto cursorSample = edit.getState().getCursorSample();
+    auto& undoManager = edit.getUndoManager();
+    undoManager.beginNewTransaction("Move Next Cut To Cursor");
+    undoManager.perform(new TrimClipsToCursorAction(edit,
+                                                    selectedTrackIds,
+                                                    cursorSample,
+                                                    TrimClipsToCursorAction::TrimSide::Tail));
+    undoManager.perform(new TrimClipsToCursorAction(edit,
+                                                    selectedTrackIds,
+                                                    cursorSample,
+                                                    TrimClipsToCursorAction::TrimSide::Head));
+}
+
+void EditCommands::movePreviousCutToCursor() {
+    const auto selectedTrackIds = selectionManager.getSelectedTrackIds();
+    if (selectedTrackIds.empty()) {
+        return;
+    }
+    const auto cursorSample = edit.getState().getCursorSample();
+    auto& undoManager = edit.getUndoManager();
+    undoManager.beginNewTransaction("Move Previous Cut To Cursor");
+    undoManager.perform(new TrimClipsToCursorAction(edit,
+                                                    selectedTrackIds,
+                                                    cursorSample,
+                                                    TrimClipsToCursorAction::TrimSide::Head));
+    undoManager.perform(new TrimClipsToCursorAction(edit,
+                                                    selectedTrackIds,
+                                                    cursorSample,
+                                                    TrimClipsToCursorAction::TrimSide::Tail));
 }
 
 void selectRegionBetweenCuts(Edit& edit,

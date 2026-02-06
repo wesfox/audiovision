@@ -19,10 +19,6 @@ public:
     std::shared_ptr<PeakFile> getOrBuildPeakFile(const juce::File& audioFile,
                                                  juce::AudioFormatReader& reader);
 
-    /// Update the base block size for new peak files.
-    /// @param baseBlockSize base block size in samples
-    void setBaseBlockSize(uint32 baseBlockSize);
-
 private:
     PeakCacheManager() = default;
 
@@ -31,6 +27,4 @@ private:
     juce::CriticalSection lock;
     std::unordered_map<String, std::weak_ptr<PeakFile>> cache;
     PeakFileBuilder builder;
-    uint32 baseBlockSize = 512;
-    uint32 targetMaxBlocks = 256;
 };

@@ -1,14 +1,19 @@
 #include "ViewRangeMapper.h"
 
+#include <algorithm>
+#include <cmath>
+
 ViewRangeMapper::ViewRangeMapper(const Edit& edit, float width)
-    : viewStart(edit.getViewStartSample()),
-      viewEnd(edit.getViewEndSample()),
-      viewLength(viewEnd - viewStart),
+    : viewStartSampleF(edit.getState().getViewStartSampleF()),
+      viewLengthSamplesF(edit.getState().getSamplesPerPixel() * static_cast<double>(width)),
       width(width) {
+    viewLength = std::max<int64>(1, static_cast<int64>(std::llround(viewLengthSamplesF)));
+    viewStart = static_cast<int64>(std::llround(viewStartSampleF));
+    viewEnd = viewStart + viewLength;
 }
 
 bool ViewRangeMapper::isValid() const {
-    return viewLength > 0 && width > 0.0f;
+    return viewLengthSamplesF > 0.0 && width > 0.0f;
 }
 
 ViewRangeMapper ViewRangeMapper::createChecked(const Edit& edit, float width) {
@@ -47,7 +52,8 @@ float ViewRangeMapper::sampleToX(int64 sample) const {
         return 0.0f;
     }
     const auto clamped = clampSample(sample);
-    return (static_cast<float>(clamped - viewStart) / static_cast<float>(viewLength)) * width;
+    const auto delta = static_cast<double>(clamped) - viewStartSampleF;
+    return static_cast<float>((delta / viewLengthSamplesF) * static_cast<double>(width));
 }
 
 int64 ViewRangeMapper::xToSample(float x) const {
@@ -57,8 +63,9 @@ int64 ViewRangeMapper::xToSample(float x) const {
         return viewStart;
     }
     const float clampedX = juce::jlimit(0.0f, width, x);
-    return viewStart
-        + static_cast<int64>(std::llround((clampedX / width) * static_cast<float>(viewLength)));
+    const auto ratio = static_cast<double>(clampedX / width);
+    const auto sample = viewStartSampleF + (ratio * viewLengthSamplesF);
+    return static_cast<int64>(std::llround(sample));
 }
 
 int64 ViewRangeMapper::getViewStartSample() const {

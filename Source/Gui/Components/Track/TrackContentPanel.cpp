@@ -34,9 +34,10 @@ TrackContentPanel::TrackContentPanel(Edit& edit, SelectionManager& selectionMana
         }
     });
     addAndMakeVisible(cursorTimeline.get());
+    selectionOverlay = std::make_unique<TrackSelectionOverlay>(edit, selectionManager);
+    addAndMakeVisible(selectionOverlay.get());
     edit.getState().getRoot().addListener(this);
     startTimerHz(30);
-    addMouseListener(this, true);
 }
 
 TrackContentPanel::~TrackContentPanel() {
@@ -58,6 +59,14 @@ void TrackContentPanel::updateLayout() {
     if (timelineRuler != nullptr) {
         timelineRuler->setRulerHeight(rulerHeight);
         timelineRuler->setBounds(bounds.removeFromTop(rulerHeight));
+    }
+    const auto viewWidth = std::max(1, bounds.getWidth());
+    if (std::abs(edit.getState().getViewWidthPixels() - static_cast<float>(viewWidth)) > 0.5f) {
+        edit.getState().setViewWidthPixels(static_cast<float>(viewWidth), nullptr);
+    }
+    if (selectionOverlay != nullptr) {
+        selectionOverlay->setBounds(bounds);
+        selectionOverlay->toFront(false);
     }
     for (const auto& track : edit.getTracks()) {
         if (!track) {
@@ -182,17 +191,6 @@ void TrackContentPanel::timerCallback() {
     }
 }
 
-void TrackContentPanel::mouseDown(const juce::MouseEvent& event) {
-    selectionManager.mouseDown(event, this);
-    if (event.mods.isShiftDown()) {
-        return;
-    }
-    const auto mapper = getMapper(static_cast<float>(getWidth()));
-    const auto relative = event.getEventRelativeTo(this);
-    const auto cursorSample = mapper.xToSample(relative.position.x);
-    selectionManager.getCursorController().setCursorSample(cursorSample);
-}
-
 ViewRangeMapper TrackContentPanel::getMapper(float width) const {
     ViewRangeMapper mapper(edit, width);
     if (!mapper.isValid()) {
@@ -200,20 +198,4 @@ ViewRangeMapper TrackContentPanel::getMapper(float width) const {
         jassert(false);
     }
     return mapper;
-}
-
-void TrackContentPanel::mouseDrag(const juce::MouseEvent& event) {
-    selectionManager.mouseDrag(event, this);
-}
-
-void TrackContentPanel::mouseMove(const juce::MouseEvent& event) {
-    selectionManager.mouseMove(event, this);
-}
-
-void TrackContentPanel::mouseEnter(const juce::MouseEvent& event) {
-    selectionManager.mouseEnter(event, this);
-}
-
-void TrackContentPanel::mouseUp(const juce::MouseEvent&) {
-    selectionManager.mouseUp();
 }

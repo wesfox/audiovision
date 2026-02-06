@@ -69,7 +69,7 @@ bool AudioClipComponent::isSelected() const {
 }
 
 bool AudioClipComponent::isTrimHandleHit(const juce::MouseEvent& event) const {
-    const auto localX = event.getEventRelativeTo(this).position.x;
+    const auto localX = event.position.x;
     const auto bounds = getLocalBounds().toFloat();
     const float handleWidth = 6.0f;
     return localX <= handleWidth || localX >= bounds.getWidth() - handleWidth;
@@ -116,6 +116,9 @@ void AudioClipComponent::mouseExit(const juce::MouseEvent&) {
 }
 
 void AudioClipComponent::mouseDown(const juce::MouseEvent& event) {
+    if (event.getNumberOfClicks() > 1) {
+        return;
+    }
     const auto localX = event.getEventRelativeTo(this).position.x;
     const auto bounds = getLocalBounds().toFloat();
     const float handleWidth = 6.0f;
@@ -125,6 +128,9 @@ void AudioClipComponent::mouseDown(const juce::MouseEvent& event) {
         activeTrimHandle = TrimHandle::Tail;
     } else {
         activeTrimHandle = TrimHandle::None;
+        if (onMousePassthroughDown) {
+            onMousePassthroughDown(event);
+        }
         return;
     }
     isTrimming = true;
@@ -133,6 +139,9 @@ void AudioClipComponent::mouseDown(const juce::MouseEvent& event) {
 
 void AudioClipComponent::mouseDrag(const juce::MouseEvent& event) {
     if (!isTrimming || activeTrimHandle == TrimHandle::None) {
+        if (onMousePassthroughDrag) {
+            onMousePassthroughDrag(event);
+        }
         return;
     }
     if (!onTrimDrag) {
@@ -153,6 +162,9 @@ void AudioClipComponent::mouseDrag(const juce::MouseEvent& event) {
 
 void AudioClipComponent::mouseUp(const juce::MouseEvent& event) {
     if (!isTrimming || activeTrimHandle == TrimHandle::None) {
+        if (onMousePassthroughUp) {
+            onMousePassthroughUp(event);
+        }
         return;
     }
     if (onTrimDrag) {

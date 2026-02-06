@@ -5,7 +5,9 @@
 
 #include "Command/Definitions/EditCommands.h"
 #include "Core/Track/AudioTrack.h"
+#include "Gui/Utils/CursorController.h"
 #include "Gui/Utils/ViewRangeMapper.h"
+#include "TrackContentPanel.h"
 
 // ------------------------ MainComponent Implementation ------------------------
 
@@ -208,6 +210,39 @@ void TrackContent::rebuildClipComponents() {
             suppressNextCursorClear = true;
             selectionManager.setSelectionRangeFromCommand(component.getClip().getSessionStartSample(),
                                                           component.getClip().getSessionEndSample());
+        };
+        clipComponent->onMousePassthroughDown = [this](const juce::MouseEvent& event) {
+            auto* panel = findParentComponentOfClass<TrackContentPanel>();
+            if (panel == nullptr) {
+                return;
+            }
+            const auto panelEvent = event.getEventRelativeTo(panel);
+            selectionManager.mouseDown(panelEvent, panel);
+            if (panelEvent.mods.isShiftDown()) {
+                return;
+            }
+            ViewRangeMapper mapper(edit, static_cast<float>(panel->getWidth()));
+            if (!mapper.isValid()) {
+                // View range and width must be valid to map samples.
+                jassert(false);
+                return;
+            }
+            const auto cursorSample = mapper.xToSample(panelEvent.position.x);
+            selectionManager.getCursorController().setCursorSample(cursorSample);
+        };
+        clipComponent->onMousePassthroughDrag = [this](const juce::MouseEvent& event) {
+            auto* panel = findParentComponentOfClass<TrackContentPanel>();
+            if (panel == nullptr) {
+                return;
+            }
+            selectionManager.mouseDrag(event.getEventRelativeTo(panel), panel);
+        };
+        clipComponent->onMousePassthroughUp = [this](const juce::MouseEvent& event) {
+            auto* panel = findParentComponentOfClass<TrackContentPanel>();
+            if (panel == nullptr) {
+                return;
+            }
+            selectionManager.mouseUp();
         };
         clipComponent->onTrimDrag = [this](const String& clipId, int64 sample, bool trimHead, bool commit) {
             if (!audioTrack) {

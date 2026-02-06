@@ -1,10 +1,15 @@
 #include "PeakFileBuilder.h"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <limits>
 
 namespace {
+constexpr uint32 kMinSamplesPerBlock = 128;
+constexpr uint32 kMidSamplesPerBlock = 1024;
+constexpr uint32 kMaxSamplesPerBlock = 65536;
+
 constexpr float kFloatToInt16 = 32767.0f;
 
 int16 quantizePeak(float value) {
@@ -36,25 +41,25 @@ void writeInt16VectorLE(juce::OutputStream& output, const std::vector<int16>& da
     output.write(swapped.data(), static_cast<int>(swapped.size() * sizeof(int16)));
 }
 
-std::vector<PeakFileFormat::LevelInfo> buildLevelInfos(uint64 totalSamples,
-                                                       uint32 baseBlockSize,
-                                                       uint32 targetMaxBlocks) {
+std::vector<PeakFileFormat::LevelInfo> buildLevelInfos(uint64 totalSamples) {
+    static constexpr std::array<uint32, 3> kFixedLevels = {
+        kMinSamplesPerBlock,
+        kMidSamplesPerBlock,
+        kMaxSamplesPerBlock
+    };
     std::vector<PeakFileFormat::LevelInfo> infos;
-    uint32 blockSize = baseBlockSize;
-    while (blockSize > 0) {
-        const auto blockCount = static_cast<uint32>((totalSamples + blockSize - 1) / blockSize);
+    infos.reserve(kFixedLevels.size());
+    for (const auto blockSize : kFixedLevels) {
+        const auto blockCount = static_cast<uint32>(std::max<uint64>(1, (totalSamples + blockSize - 1) / blockSize));
         infos.push_back({ 0, blockSize, blockCount });
-        if (blockCount <= targetMaxBlocks) {
-            break;
-        }
-        if (blockSize > std::numeric_limits<uint32>::max() / 2) {
-            break;
-        }
-        blockSize *= 2;
     }
     return infos;
 }
 } // namespace
+
+uint32 PeakFileBuilder::getMinSamplesPerBlock() {
+    return kMinSamplesPerBlock;
+}
 
 bool PeakFileBuilder::build(juce::AudioFormatReader& reader,
                             const juce::File& peakFilePath,
@@ -70,9 +75,7 @@ bool PeakFileBuilder::build(juce::AudioFormatReader& reader,
         return false;
     }
 
-    const auto levelInfos = buildLevelInfos(totalSamples,
-                                            options.baseBlockSize,
-                                            options.targetMaxBlocks);
+    const auto levelInfos = buildLevelInfos(totalSamples);
     const auto levelCount = static_cast<uint32>(levelInfos.size());
     if (levelCount == 0) {
         return false;
@@ -82,7 +85,7 @@ bool PeakFileBuilder::build(juce::AudioFormatReader& reader,
     header.sampleRate = static_cast<uint32>(std::lround(reader.sampleRate));
     header.channelCount = channelCount;
     header.totalSamples = totalSamples;
-    header.baseBlockSize = options.baseBlockSize;
+    header.baseBlockSize = levelInfos.front().blockSize;
     header.levelCount = levelCount;
     header.sampleFormat = options.sampleFormat;
     header.compression = PeakFileFormat::Compression::None;
@@ -191,19 +194,32 @@ bool PeakFileBuilder::build(juce::AudioFormatReader& reader,
         nextLevel.info = resolvedInfos[levelIndex];
         nextLevel.data.resize(static_cast<size_t>(nextLevel.info.blockCount) * valuesPerBlock);
 
+        const auto blockRatio = nextLevel.info.blockSize / previousLevel.info.blockSize;
+        if (blockRatio == 0 || (nextLevel.info.blockSize % previousLevel.info.blockSize) != 0) {
+            // Level sizes must be divisible to aggregate peaks safely.
+            jassert(false);
+            return false;
+        }
+
         for (uint32 blockIndex = 0; blockIndex < nextLevel.info.blockCount; ++blockIndex) {
-            const auto firstChild = static_cast<size_t>(blockIndex) * 2;
-            const auto secondChild = firstChild + 1;
+            const auto firstChild = static_cast<size_t>(blockIndex) * blockRatio;
+            if (firstChild >= previousLevel.info.blockCount) {
+                // Each parent block should map to at least one child block.
+                jassert(false);
+                break;
+            }
+            const auto lastChild = std::min<size_t>(firstChild + blockRatio,
+                                                    static_cast<size_t>(previousLevel.info.blockCount));
 
             auto writeOffset = static_cast<size_t>(blockIndex) * valuesPerBlock;
             for (uint32 channel = 0; channel < channelCount; ++channel) {
                 auto minValue = previousLevel.data[firstChild * valuesPerBlock + channel * 2];
                 auto maxValue = previousLevel.data[firstChild * valuesPerBlock + channel * 2 + 1];
-                if (secondChild < previousLevel.info.blockCount) {
-                    const auto secondMin = previousLevel.data[secondChild * valuesPerBlock + channel * 2];
-                    const auto secondMax = previousLevel.data[secondChild * valuesPerBlock + channel * 2 + 1];
-                    minValue = std::min(minValue, secondMin);
-                    maxValue = std::max(maxValue, secondMax);
+                for (size_t childIndex = firstChild + 1; childIndex < lastChild; ++childIndex) {
+                    const auto childMin = previousLevel.data[childIndex * valuesPerBlock + channel * 2];
+                    const auto childMax = previousLevel.data[childIndex * valuesPerBlock + channel * 2 + 1];
+                    minValue = std::min(minValue, childMin);
+                    maxValue = std::max(maxValue, childMax);
                 }
                 nextLevel.data[writeOffset++] = minValue;
                 nextLevel.data[writeOffset++] = maxValue;

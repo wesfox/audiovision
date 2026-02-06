@@ -356,5 +356,7 @@ std::shared_ptr<Edit> EditSerializer::importFromFile(const juce::File& file)
         edit->setAudioOutputTrack(createdTracks[static_cast<size_t>(audioOutputIndex)]);
     }
 
+    edit->clampViewToSessionClips();
+
     return edit;
 }

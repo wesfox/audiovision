@@ -26,3 +26,4 @@
 ### Commands
 - When I ask to create a new command, use the Source/Command folder to add it, never add a keydown directly in a component (unless I ask very explicitely do to so and ask validation before)
 - If a command is added, update ShortcutMappings or WheelShortcutMappings accordingly.
+- If a command is added, we might want to make it undoable: ask me if this is the case.

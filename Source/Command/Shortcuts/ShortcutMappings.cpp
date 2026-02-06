@@ -31,6 +31,24 @@ void ShortcutMappings::applyDefaultMappings(juce::ApplicationCommandManager& man
                               juce::KeyPress(juce::KeyPress::backspaceKey, juce::ModifierKeys(), 0));
         mappings->addKeyPress(CommandIds::EditView::trimToSelection,
                               juce::KeyPress('t', juce::ModifierKeys::commandModifier, 0));
+        mappings->addKeyPress(CommandIds::EditView::trimHeadToCursor,
+                              juce::KeyPress('a', juce::ModifierKeys(), 0));
+        mappings->addKeyPress(CommandIds::EditView::trimTailToCursor,
+                              juce::KeyPress('s', juce::ModifierKeys(), 0));
+        mappings->addKeyPress(CommandIds::EditView::selectPreviousTrack,
+                              juce::KeyPress('p', juce::ModifierKeys(), 0));
+        mappings->addKeyPress(CommandIds::EditView::selectPreviousTrack,
+                              juce::KeyPress('p', juce::ModifierKeys::shiftModifier, 0));
+        mappings->addKeyPress(CommandIds::EditView::selectNextTrack,
+                              juce::KeyPress(';', juce::ModifierKeys(), 0));
+        mappings->addKeyPress(CommandIds::EditView::selectNextTrack,
+                              juce::KeyPress(':',
+                                             juce::ModifierKeys::shiftModifier,
+                                             0));
+        mappings->addKeyPress(CommandIds::EditView::moveNextCutToCursor,
+                              juce::KeyPress('s', juce::ModifierKeys::ctrlModifier, 0));
+        mappings->addKeyPress(CommandIds::EditView::movePreviousCutToCursor,
+                              juce::KeyPress('a', juce::ModifierKeys::ctrlModifier, 0));
         mappings->addKeyPress(CommandIds::EditView::tabToNextCut,
                               juce::KeyPress(juce::KeyPress::tabKey, juce::ModifierKeys(), 0));
         mappings->addKeyPress(CommandIds::EditView::tabToNextCut,

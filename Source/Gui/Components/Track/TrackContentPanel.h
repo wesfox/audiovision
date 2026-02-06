@@ -6,6 +6,7 @@
 #include "Core/Edit/EditState.h"
 #include "CursorTimeline.h"
 #include "TimelineRuler.h"
+#include "TrackSelectionOverlay.h"
 #include "Gui/Utils/SelectionManager.h"
 #include "Gui/Utils/ViewRangeMapper.h"
 
@@ -20,11 +21,6 @@ public:
     void resized() override;
     void paint(juce::Graphics& g) override;
     void valueTreePropertyChanged(juce::ValueTree& tree, const juce::Identifier& property) override;
-    void mouseDown(const juce::MouseEvent& event) override;
-    void mouseDrag(const juce::MouseEvent& event) override;
-    void mouseMove(const juce::MouseEvent& event) override;
-    void mouseEnter(const juce::MouseEvent& event) override;
-    void mouseUp(const juce::MouseEvent& event) override;
 
 private:
     void handleAsyncUpdate() override;
@@ -34,6 +30,7 @@ private:
 
     std::unique_ptr<CursorTimeline> cursorTimeline;
     std::unique_ptr<TimelineRuler> timelineRuler;
+    std::unique_ptr<TrackSelectionOverlay> selectionOverlay;
 
     Edit& edit;
     SelectionManager& selectionManager;

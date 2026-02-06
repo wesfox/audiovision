@@ -34,6 +34,8 @@ private:
     void healClipsAtCursorOrSelection();
     void deleteClipsInSelection();
     void trimToSelection();
+    void trimHeadToCursor();
+    void trimTailToCursor();
     void toggleDebugWatchWindow();
     void undo();
     void saveEdit();
@@ -41,6 +43,10 @@ private:
     void tabToPreviousCut(bool extendSelection);
     void moveCursorToSessionStart(bool extendSelection);
     void moveCursorToSessionEnd(bool extendSelection);
+    void selectPreviousTrack(bool extendSelection);
+    void selectNextTrack(bool extendSelection);
+    void moveNextCutToCursor();
+    void movePreviousCutToCursor();
 
     Edit& edit;
     SelectionManager& selectionManager;

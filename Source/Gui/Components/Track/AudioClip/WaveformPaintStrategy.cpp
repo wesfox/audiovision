@@ -5,6 +5,7 @@
 
 #include "Core/AudioClip/AudioClip.h"
 #include "Utils/IO/AudioFile.h"
+#include "Utils/Waveform/PeakFileBuilder.h"
 #include "Utils/Waveform/PeakFile.h"
 #include "Gui/Style/Font.h"
 
@@ -20,6 +21,72 @@ float applyPerceptualMapping(float value) {
 
 float dequantizePeak(int16 value) {
     return static_cast<float>(value) * kInt16ToFloat;
+}
+
+struct PixelPeak {
+    float min = 0.0f;
+    float max = 0.0f;
+    bool hasValue = false;
+};
+
+
+// Aggregate peak blocks into per-pixel min/max buckets.
+void aggregateBlocksToPixels(const std::vector<PeakFile::PeakBlock>& blocks,
+                             uint32 channelCount,
+                             uint64 startBlock,
+                             uint32 samplesPerBlock,
+                             int64 fileStart,
+                             int64 fileEnd,
+                             int pixelCount,
+                             std::vector<PixelPeak>& outPeaks) {
+    outPeaks.clear();
+    if (pixelCount <= 0 || channelCount == 0 || blocks.empty()) {
+        return;
+    }
+
+    const auto blockCount = static_cast<uint32>(blocks.size() / channelCount);
+    if (blockCount == 0) {
+        return;
+    }
+
+    const auto rangeSamples = fileEnd - fileStart;
+    if (rangeSamples <= 0) {
+        return;
+    }
+
+    outPeaks.resize(static_cast<size_t>(pixelCount));
+    const auto lastBlock = startBlock + blockCount;
+
+    for (int pixelIndex = 0; pixelIndex < pixelCount; ++pixelIndex) {
+        const auto startRatio = static_cast<double>(pixelIndex) / static_cast<double>(pixelCount);
+        const auto endRatio = static_cast<double>(pixelIndex + 1) / static_cast<double>(pixelCount);
+        auto pixelStartSample = fileStart + static_cast<int64>(std::floor(startRatio * rangeSamples));
+        auto pixelEndSample = fileStart + static_cast<int64>(std::floor(endRatio * rangeSamples));
+        if (pixelEndSample <= pixelStartSample) {
+            pixelEndSample = pixelStartSample + 1;
+        }
+
+        const auto pixelStartBlock = static_cast<uint64>(pixelStartSample / samplesPerBlock);
+        const auto pixelEndBlock = static_cast<uint64>((pixelEndSample + samplesPerBlock - 1) / samplesPerBlock);
+        const auto clampedStartBlock = std::max<uint64>(pixelStartBlock, startBlock);
+        const auto clampedEndBlock = std::min<uint64>(pixelEndBlock, lastBlock);
+        if (clampedEndBlock <= clampedStartBlock) {
+            continue;
+        }
+
+        float minValue = 1.0f;
+        float maxValue = -1.0f;
+        for (uint64 blockIndex = clampedStartBlock; blockIndex < clampedEndBlock; ++blockIndex) {
+            const auto localIndex = static_cast<size_t>(blockIndex - startBlock);
+            for (uint32 channel = 0; channel < channelCount; ++channel) {
+                const auto& block = blocks[localIndex * channelCount + channel];
+                minValue = std::min(minValue, dequantizePeak(block.min));
+                maxValue = std::max(maxValue, dequantizePeak(block.max));
+            }
+        }
+
+        outPeaks[static_cast<size_t>(pixelIndex)] = { minValue, maxValue, true };
+    }
 }
 } // namespace
 
@@ -58,59 +125,73 @@ void WaveformPaintStrategy::paint(juce::Graphics& g,
     const auto visibleSamples = visibleEnd - visibleStart;
     const float samplesPerPixel = static_cast<float>(visibleSamples) / std::max(1.0f, visibleBounds.getWidth());
 
-    if (samplesPerPixel >= 128.0f) {
+    // use cache
+    if (std::round(samplesPerPixel) >= PeakFileBuilder::getMinSamplesPerBlock()) {
         if (auto audioFile = clip.getAudioFile()) {
             const auto peakFile = audioFile->getPeakFile();
             if (!peakFile || !peakFile->isValid()) {
                 return;
             }
-            const auto& level = peakFile->getBestLevel(samplesPerPixel);
-            if (level.blockCount == 0 || level.blockSize == 0) {
+            const auto samplesPerBlock = peakFile->getBestResolution(samplesPerPixel);
+            if (samplesPerBlock == 0) {
                 return;
             }
 
             const auto fileStart = clip.getFileStartSample() + (visibleStart - clipStart);
-            const auto fileEnd = clip.getFileStartSample() + (visibleEnd - clipStart);
+            auto fileEnd = clip.getFileStartSample() + (visibleEnd - clipStart);
+            const auto totalSamples = static_cast<int64>(peakFile->getTotalSamples());
+            if (totalSamples > 0 && fileEnd > totalSamples) {
+                fileEnd = totalSamples;
+            }
             if (fileEnd <= fileStart) {
                 return;
             }
 
-            const auto startBlock = static_cast<uint64>(fileStart / level.blockSize);
-            const auto endBlock = static_cast<uint64>((fileEnd + level.blockSize - 1) / level.blockSize);
-            const auto blockCount = static_cast<uint32>(std::max<uint64>(1, endBlock - startBlock));
             std::vector<PeakFile::PeakBlock> blocks;
-            if (!peakFile->readBlocks(level, startBlock, blockCount, blocks)) {
+            if (!peakFile->readBlocksForRange(static_cast<uint32>(samplesPerBlock),
+                                              static_cast<uint64>(fileStart),
+                                              static_cast<uint64>(fileEnd),
+                                              blocks)) {
                 return;
             }
 
             const auto channelCount = peakFile->getChannelCount();
-            const auto rangeSamples = static_cast<double>(fileEnd - fileStart);
             juce::Path path;
             std::vector<juce::Point<float>> minPoints;
-            minPoints.reserve(blockCount);
+            const int pixelCount = std::max(1, static_cast<int>(std::floor(visibleBounds.getWidth())));
+            minPoints.reserve(static_cast<size_t>(pixelCount));
 
-            for (uint32 blockIndex = 0; blockIndex < blockCount; ++blockIndex) {
-                const auto blockStart = (startBlock + blockIndex) * level.blockSize;
-                const auto blockEnd = blockStart + level.blockSize;
-                const auto blockCenter = static_cast<double>(blockStart + blockEnd) * 0.5;
-                const auto normalizedX = static_cast<float>((blockCenter - fileStart) / rangeSamples);
-                const auto clampedX = juce::jlimit(0.0f, 1.0f, normalizedX);
-                const float x = visibleBounds.getX() + clampedX * visibleBounds.getWidth();
+            std::vector<PixelPeak> pixelPeaks;
+            const auto startBlock = static_cast<uint64>(fileStart / samplesPerBlock);
+            aggregateBlocksToPixels(blocks,
+                                    channelCount,
+                                    startBlock,
+                                    static_cast<uint32>(samplesPerBlock),
+                                    fileStart,
+                                    fileEnd,
+                                    pixelCount,
+                                    pixelPeaks);
 
-                float minValue = 1.0f;
-                float maxValue = -1.0f;
-                for (uint32 channel = 0; channel < channelCount; ++channel) {
-                    const auto& block = blocks[blockIndex * channelCount + channel];
-                    minValue = std::min(minValue, dequantizePeak(block.min));
-                    maxValue = std::max(maxValue, dequantizePeak(block.max));
-                }
+            const float xStart = visibleBounds.getX();
+            const float xStep = visibleBounds.getWidth() / static_cast<float>(pixelCount);
+            float previousMin = 0.0f;
+            float previousMax = 0.0f;
+
+            for (int pixelIndex = 0; pixelIndex < pixelCount; ++pixelIndex) {
+                const auto& peak = pixelPeaks[static_cast<size_t>(pixelIndex)];
+                const float minValue = peak.hasValue ? peak.min : previousMin;
+                const float maxValue = peak.hasValue ? peak.max : previousMax;
+                previousMin = minValue;
+                previousMax = maxValue;
+
+                const float x = xStart + xStep * static_cast<float>(pixelIndex);
 
                 const auto mappedMax = applyPerceptualMapping(maxValue);
                 const auto mappedMin = applyPerceptualMapping(minValue);
                 const auto maxY = midY - (mappedMax * halfHeight);
                 const auto minY = midY - (mappedMin * halfHeight);
 
-                if (blockIndex == 0) {
+                if (pixelIndex == 0) {
                     path.startNewSubPath(x, maxY);
                 } else {
                     path.lineTo(x, maxY);
@@ -128,6 +209,7 @@ void WaveformPaintStrategy::paint(juce::Graphics& g,
             g.setColour(waveformColour);
             g.strokePath(path, juce::PathStrokeType(1.0f));
         }
+    // use raw sample but as there is still multiple samples per pixel, we need to mean them (still min/max)
     } else if (samplesPerPixel > 1.0f) {
         const auto clipRelativeStart = visibleStart - clipStart;
         auto buffer = clip.read(clipRelativeStart, visibleSamples);
@@ -183,6 +265,7 @@ void WaveformPaintStrategy::paint(juce::Graphics& g,
         g.fillPath(path);
         g.setColour(waveformColour);
         g.strokePath(path, juce::PathStrokeType(1.0f));
+    // space between sample is >= than one pixel so we need to draw each sample (no more min/max)
     } else {
         const auto clipRelativeStart = visibleStart - clipStart;
         auto buffer = clip.read(clipRelativeStart, visibleSamples);

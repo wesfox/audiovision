@@ -148,12 +148,11 @@ bool PeakFile::isValid() const {
     return mappedFile != nullptr && !levels.empty();
 }
 
-const PeakFile::Level& PeakFile::getBestLevel(double samplesPerPixel) const {
+uint32 PeakFile::getBestResolution(double samplesPerPixel) const {
     if (levels.empty()) {
         // Peak levels must be available before selecting.
         jassert(false);
-        static const Level fallback;
-        return fallback;
+        return 0;
     }
 
     const auto target = std::max(1.0, samplesPerPixel);
@@ -166,28 +165,62 @@ const PeakFile::Level& PeakFile::getBestLevel(double samplesPerPixel) const {
             bestIndex = index;
         }
     }
-    return levels[bestIndex];
+    return levels[bestIndex].blockSize;
 }
 
-bool PeakFile::readBlocks(const Level& level,
-                          uint64 startBlock,
-                          uint32 blockCount,
-                          std::vector<PeakBlock>& outBlocks) const {
+bool PeakFile::readBlocksForRange(uint32 samplesPerBlock,
+                                  uint64 startSample,
+                                  uint64 endSample,
+                                  std::vector<PeakBlock>& outBlocks) const {
     if (!isValid()) {
+        // should be valid
+        jassert(false);
         return false;
     }
-    if (blockCount == 0 || startBlock >= level.blockCount) {
+    if (samplesPerBlock == 0 || endSample <= startSample) {
+        // should be in range
+        jassert(false);
+        return false;
+    }
+    const LevelInfo* level = nullptr;
+    for (const auto& info : levels) {
+        if (info.blockSize == samplesPerBlock) {
+            level = &info;
+            break;
+        }
+    }
+    if (level == nullptr) {
+        // level should have been found
+        jassert(false);
+        return false;
+    }
+
+    const auto clampedEnd = std::min<uint64>(endSample, totalSamples);
+    if (clampedEnd <= startSample) {
+        // should be clamped
+        jassert(false);
+        return false;
+    }
+
+    const auto startBlock = static_cast<uint64>(startSample / level->blockSize);
+    const auto endBlock = static_cast<uint64>((clampedEnd + level->blockSize - 1) / level->blockSize);
+    const auto blockCount = static_cast<uint32>(std::max<uint64>(1, endBlock - startBlock));
+    if (startBlock >= level->blockCount) {
+        // should be clamped
+        jassert(false);
         return false;
     }
 
     const auto clampedBlockCount = std::min<uint32>(blockCount,
-                                                    static_cast<uint32>(level.blockCount - startBlock));
+                                                    static_cast<uint32>(level->blockCount - startBlock));
     const auto valuesPerBlock = static_cast<size_t>(channelCount) * 2;
     const auto bytesPerBlock = valuesPerBlock * sizeof(int16);
-    const auto byteOffset = level.offset + startBlock * bytesPerBlock;
+    const auto byteOffset = level->offset + startBlock * bytesPerBlock;
     const auto byteCount = static_cast<uint64>(clampedBlockCount) * bytesPerBlock;
     const auto fileSize = static_cast<uint64>(mappedFile->getSize());
     if (byteOffset + byteCount > fileSize) {
+        // should be clamped
+        jassert(false);
         return false;
     }
 

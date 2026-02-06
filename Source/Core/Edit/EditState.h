@@ -24,14 +24,41 @@ public:
     /// Access the root ValueTree (const).
     const juce::ValueTree& getRoot() const { return root; }
 
-    /// Current view start sample.
+    /// Current view start sample (fractional, UI-only).
+    double getViewStartSampleF() const;
+
+    /// Current samples-per-pixel ratio (UI-only).
+    double getSamplesPerPixel() const;
+
+    /// Current view width in pixels (UI-only).
+    float getViewWidthPixels() const;
+
+    /// Current view start sample (rounded to integer).
     int64 getViewStartSample() const;
 
-    /// Current view end sample.
+    /// Current view end sample (rounded to integer).
     int64 getViewEndSample() const;
+
+    /// Current view length in samples.
+    int64 getViewLengthSamples() const;
 
     /// Current frame rate.
     float getFrameRate() const;
+
+    /// Set the view start sample (fractional, UI-only).
+    /// @param startSample view start sample
+    /// @param undo optional undo manager for transactions
+    void setViewStartSampleF(double startSample, juce::UndoManager* undo = nullptr);
+
+    /// Set the samples-per-pixel ratio (UI-only).
+    /// @param samplesPerPixel view scale in samples per pixel
+    /// @param undo optional undo manager for transactions
+    void setSamplesPerPixel(double samplesPerPixel, juce::UndoManager* undo = nullptr);
+
+    /// Set the view width in pixels (UI-only).
+    /// @param widthPixels current view width in pixels
+    /// @param undo optional undo manager for transactions
+    void setViewWidthPixels(float widthPixels, juce::UndoManager* undo = nullptr);
 
     /// Set the visible sample range.
     /// @param startSample view start sample
@@ -39,9 +66,9 @@ public:
     /// @param undo optional undo manager for transactions
     void setViewRange(int64 startSample, int64 endSample, juce::UndoManager* undo = nullptr);
 
-    /// Apply a zoom ratio to the current view.
-    /// @param ratio zoom ratio (positive to zoom out, negative to zoom in)
-    /// @param centerSample sample around which to center the view
+    /// Apply a zoom step to the current view.
+    /// @param ratio zoom ratio sign (positive to zoom out, negative to zoom in)
+    /// @param centerSample sample around which to anchor the view
     /// @param undo optional undo manager for transactions
     void zoom(float ratio, int64 centerSample, juce::UndoManager* undo = nullptr);
 
@@ -127,8 +154,7 @@ public:
 
     /// Convert a pixel position to a sample position in the current view.
     /// @param pixelX x position in pixels
-    /// @param viewWidth width of the view in pixels
-    int64 mapPixelToSample(float pixelX, float viewWidth) const;
+    int64 mapPixelToSample(float pixelX) const;
 
     /// Ensure a track state node exists.
     /// @param trackId identifier of the track

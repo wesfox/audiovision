@@ -30,6 +30,12 @@ static constexpr juce::CommandID tabToNextCut = 0x2209;
 static constexpr juce::CommandID tabToPreviousCut = 0x220A;
 static constexpr juce::CommandID moveCursorToSessionStart = 0x220B;
 static constexpr juce::CommandID moveCursorToSessionEnd = 0x220C;
+static constexpr juce::CommandID trimHeadToCursor = 0x220D;
+static constexpr juce::CommandID trimTailToCursor = 0x220E;
+static constexpr juce::CommandID selectPreviousTrack = 0x220F;
+static constexpr juce::CommandID selectNextTrack = 0x2210;
+static constexpr juce::CommandID moveNextCutToCursor = 0x2211;
+static constexpr juce::CommandID movePreviousCutToCursor = 0x2212;
 }
 
 /// Command identifiers for track actions.

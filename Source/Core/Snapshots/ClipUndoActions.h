@@ -108,3 +108,65 @@ private:
     std::vector<ClipSnapshot> afterSnapshots;
     bool hasSnapshots = false;
 };
+
+/// Undoable action for trimming clip edges to the cursor.
+class TrimClipsToCursorAction final : public juce::UndoableAction {
+public:
+    enum class TrimSide {
+        Head,
+        Tail
+    };
+
+    /// Create a trim-to-cursor action.
+    /// @param edit edit owning the tracks
+    /// @param trackIds track ids to modify
+    /// @param cursorSample cursor position in session samples
+    /// @param side which clip edge to trim
+    TrimClipsToCursorAction(Edit& edit,
+                            std::vector<String> trackIds,
+                            int64 cursorSample,
+                            TrimSide side);
+
+    bool perform() override;
+    bool undo() override;
+
+private:
+    Edit& edit;
+    std::vector<String> trackIds;
+    int64 cursorSample = 0;
+    TrimSide side = TrimSide::Head;
+    std::vector<ClipSnapshot> beforeSnapshots;
+    std::vector<ClipSnapshot> afterSnapshots;
+    bool hasSnapshots = false;
+};
+
+/// Undoable action for moving a clip cut to the cursor.
+class MoveCutToCursorAction final : public juce::UndoableAction {
+public:
+    enum class CutDirection {
+        Previous,
+        Next
+    };
+
+    /// Create a move-cut action.
+    /// @param edit edit owning the tracks
+    /// @param trackIds track ids to modify
+    /// @param cursorSample cursor position in session samples
+    /// @param direction which cut to move
+    MoveCutToCursorAction(Edit& edit,
+                          std::vector<String> trackIds,
+                          int64 cursorSample,
+                          CutDirection direction);
+
+    bool perform() override;
+    bool undo() override;
+
+private:
+    Edit& edit;
+    std::vector<String> trackIds;
+    int64 cursorSample = 0;
+    CutDirection direction = CutDirection::Next;
+    std::vector<ClipSnapshot> beforeSnapshots;
+    std::vector<ClipSnapshot> afterSnapshots;
+    bool hasSnapshots = false;
+};

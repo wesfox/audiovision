@@ -7,6 +7,9 @@
 /// Builds peak cache files from audio readers.
 class PeakFileBuilder {
 public:
+    /// Smallest samples-per-block supported by the peak cache.
+    static uint32 getMinSamplesPerBlock();
+
     /// Hook for optional compression.
     class CompressionHook {
     public:
@@ -23,8 +26,6 @@ public:
 
     /// Build configuration for a peak file.
     struct BuildOptions {
-        uint32 baseBlockSize = 512;
-        uint32 targetMaxBlocks = 256;
         PeakFileFormat::SampleFormat sampleFormat = PeakFileFormat::SampleFormat::Int16;
         std::shared_ptr<CompressionHook> compressionHook;
     };

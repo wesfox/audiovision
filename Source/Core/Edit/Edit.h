@@ -103,6 +103,12 @@ public:
         return totalHeight;
     }
 
+    /// Largest clip end sample across all audio tracks.
+    int64 getSessionEndSample() const;
+
+    /// Clamp the view to the session clip range.
+    void clampViewToSessionClips();
+
     void zoom(float ratio) {
         const auto cursorSample = editState.getCursorSample();
         actionStore.dispatch(EditAction::makeZoom(ratio, cursorSample));
